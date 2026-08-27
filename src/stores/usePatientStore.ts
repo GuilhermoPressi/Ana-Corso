@@ -1,13 +1,13 @@
 import { create } from "zustand"
 
 import {
-  patients as seedPatients,
   type Patient,
   type PatientStatus,
   type ProcedureRecord,
 } from "@/data/patients"
-import { seedLeads, type Lead, type LeadStage } from "@/data/leads"
+import { type Lead, type LeadStage } from "@/data/leads"
 import { CLINIC_TODAY, isCurrentMonth } from "@/lib/clinic"
+
 
 export type NewPatientInput = {
   name: string
@@ -104,8 +104,9 @@ function upsertProduct(
 let sequence = 0
 function nextId(prefix: string) {
   sequence += 1
-  return `${prefix}-${sequence}-${seedPatients.length + sequence}`
+  return `${prefix}-${sequence}`
 }
+
 
 export const usePatientStore = create<PatientState>((set, get) => ({
   patients: [],

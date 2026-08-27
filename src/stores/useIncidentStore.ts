@@ -49,40 +49,9 @@ type IncidentState = {
 let sequence = 0
 const nextId = (prefix: string) => `${prefix}-${(sequence += 1)}`
 
-const seedIncidents: Incident[] = [
-  {
-    id: "inc-seed-1",
-    patientId: "p7",
-    patientName: "Sofia Ribeiro",
-    date: "2026-07-16",
-    typeId: "edema",
-    procedure: "Preenchimento",
-    product: "Juvéderm Voluma 1ml · Allergan",
-    lot: "JV-6011",
-    report:
-      "Paciente relatou inchaço acima do esperado em região malar bilateral no segundo dia. Sem dor, sem alteração de coloração.",
-    conducts: ["Compressa fria orientada", "Elevação da cabeceira ao dormir", "Reavaliação em 48 h"],
-    status: "acompanhando",
-    timeline: [
-      {
-        id: "ie-1",
-        date: "2026-07-16",
-        note: "Contato por WhatsApp. Orientada quanto a compressa fria e repouso da região.",
-        author: "Dra. Ana Corso",
-      },
-      {
-        id: "ie-2",
-        date: "2026-07-18",
-        note: "Reavaliação presencial: edema reduzido em cerca de 40%. Mantida conduta conservadora.",
-        author: "Dra. Ana Corso",
-      },
-    ],
-    createdAt: "2026-07-16",
-  },
-]
-
 export const useIncidentStore = create<IncidentState>((set) => ({
   incidents: [],
+
 
 
   addIncident: (input) => {

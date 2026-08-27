@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-import { revenueSeries, type RevenuePoint } from "@/data/dashboard"
+import { type RevenuePoint } from "@/data/dashboard"
 import { CLINIC_TODAY, isCurrentMonth } from "@/lib/clinic"
 
 export type LedgerKind = "receita" | "despesa"
@@ -74,89 +74,12 @@ type FinanceState = {
   removeProcedure: (id: string) => void
 }
 
-
-
 let sequence = 0
 function nextId(prefix: string) {
   sequence += 1
   return `${prefix}-${sequence}`
 }
 
-const seedLedger: LedgerEntry[] = [
-  {
-    id: "e1",
-    date: "2026-08-24",
-    kind: "receita",
-    description: "Toxina botulínica · terço superior",
-    category: "Toxina botulínica",
-    amount: 1800,
-    directCost: 470,
-    patientId: "p1",
-    countsAsAppointment: true,
-  },
-  {
-    id: "e2",
-    date: "2026-08-24",
-    kind: "receita",
-    description: "Preenchimento labial · 1ml",
-    category: "Preenchimento",
-    amount: 2400,
-    directCost: 700,
-    patientId: "p3",
-    countsAsAppointment: true,
-  },
-  {
-    id: "e3",
-    date: "2026-08-24",
-    kind: "receita",
-    description: "Bioestimulador · 1ª sessão",
-    category: "Bioestimulador",
-    amount: 3200,
-    directCost: 950,
-    patientId: "p4",
-    countsAsAppointment: true,
-  },
-  {
-    id: "e4",
-    date: "2026-08-24",
-    kind: "receita",
-    description: "Skinbooster · face e pescoço",
-    category: "Skinbooster",
-    amount: 1600,
-    directCost: 420,
-    patientId: "p6",
-    countsAsAppointment: true,
-  },
-  {
-    id: "e5",
-    date: "2026-08-24",
-    kind: "receita",
-    description: "Toxina botulínica · retoque",
-    category: "Toxina botulínica",
-    amount: 600,
-    directCost: 60,
-    patientId: "p9",
-    countsAsAppointment: true,
-  },
-  { id: "e6", date: "2026-08-05", kind: "despesa", description: "Aluguel e condomínio", category: "Estrutura", amount: 5000 },
-  { id: "e7", date: "2026-08-07", kind: "despesa", description: "Compra de produtos e insumos", category: "Produtos", amount: 22000 },
-  { id: "e8", date: "2026-08-05", kind: "despesa", description: "Equipe · salários e comissões", category: "Equipe", amount: 8000 },
-  { id: "e9", date: "2026-08-10", kind: "despesa", description: "Marketing e tráfego pago", category: "Marketing", amount: 2400 },
-  { id: "e10", date: "2026-08-20", kind: "despesa", description: "Taxas de cartão", category: "Taxas", amount: 2530 },
-  { id: "e11", date: "2026-08-02", kind: "despesa", description: "Software e sistemas", category: "Estrutura", amount: 890 },
-  { id: "e12", date: "2026-08-15", kind: "despesa", description: "Contador e impostos", category: "Impostos", amount: 1810 },
-]
-
-const seedBaseline: Baseline = {
-  expenses: 0,
-  revenueByCategory: [
-    { name: "Bioestimulador", revenue: 23200, sessions: 8, directCost: 7000 },
-    { name: "Preenchimento", revenue: 19700, sessions: 11, directCost: 5700 },
-    { name: "Toxina botulínica", revenue: 17450, sessions: 16, directCost: 4300 },
-    { name: "Skinbooster", revenue: 8200, sessions: 6, directCost: 1600 },
-    { name: "Microagulhamento", revenue: 6200, sessions: 11, directCost: 800 },
-  ],
-}
 
 export const useFinanceStore = create<FinanceState>((set) => ({
   ledger: [],

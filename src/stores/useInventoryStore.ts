@@ -1,12 +1,11 @@
 import { create } from "zustand"
 
 import {
-  seedMovements,
-  seedProducts,
   type ContentUnit,
   type Product,
   type StockMovement,
 } from "@/data/inventory"
+
 import { CLINIC_TODAY } from "@/lib/clinic"
 import { parseLocalDate } from "@/lib/utils"
 
