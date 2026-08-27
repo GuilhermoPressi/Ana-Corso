@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom"
+import { useLocation, Link } from "react-router-dom"
 import { Bell, Menu, Plus, Search } from "lucide-react"
 
 import { QuickReferenceSheet } from "@/components/clinical/QuickReferenceSheet"
@@ -17,6 +17,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { findNavItem } from "@/lib/navigation"
+import { useClinicStore } from "@/stores/useClinicStore"
+
+function getInitials(name: string): string {
+  if (!name) return "CL"
+  const parts = name.replace(/^Dra?\.\s*/i, "").trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
 
 export function Header({ mobileOpen, onMobileOpenChange }: {
   mobileOpen: boolean
@@ -24,6 +32,7 @@ export function Header({ mobileOpen, onMobileOpenChange }: {
 }) {
   const { pathname } = useLocation()
   const current = findNavItem(pathname)
+  const profile = useClinicStore((state) => state.profile)
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border/70 bg-background/80 px-4 backdrop-blur-xl lg:px-8">
@@ -43,9 +52,9 @@ export function Header({ mobileOpen, onMobileOpenChange }: {
 
       <div className="hidden min-w-0 flex-1 flex-col lg:flex">
         <h1 className="truncate font-display text-[15px] font-semibold leading-tight">
-          {current?.title ?? "Ana Corso"}
+          {current?.title ?? profile.name}
         </h1>
-        <p className="text-[11px] text-muted-foreground">Clínica Ana Corso · Porto Alegre</p>
+        <p className="text-[11px] text-muted-foreground">{profile.name} · {profile.city}</p>
       </div>
 
       <div className="relative ml-auto hidden w-full max-w-[240px] shrink md:block xl:max-w-xs">
@@ -72,20 +81,25 @@ export function Header({ mobileOpen, onMobileOpenChange }: {
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-muted">
               <Avatar className="size-8">
-                <AvatarFallback className="bg-primary/12 text-[11px] font-semibold text-primary">AC</AvatarFallback>
+                <AvatarFallback className="bg-primary/12 text-[11px] font-semibold text-primary">
+                  {getInitials(profile.professional)}
+                </AvatarFallback>
               </Avatar>
-              <span className="hidden whitespace-nowrap text-[13px] font-medium 2xl:block">Dra. Ana Corso</span>
+              <span className="hidden whitespace-nowrap text-[13px] font-medium 2xl:block">{profile.professional}</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">
-              <p className="text-[13px] font-semibold">Dra. Ana Corso</p>
-              <p className="text-xs text-muted-foreground">CRBM 12.345 · Biomédica esteta</p>
+              <p className="text-[13px] font-semibold">{profile.professional}</p>
+              <p className="text-xs text-muted-foreground">{profile.registry}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Meu perfil</DropdownMenuItem>
-            <DropdownMenuItem>Equipe e permissões</DropdownMenuItem>
-            <DropdownMenuItem>Assinatura</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/configuracoes">Configurações da Clínica</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/configuracoes">Equipe e permissões</Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive">Sair</DropdownMenuItem>
           </DropdownMenuContent>
@@ -94,3 +108,4 @@ export function Header({ mobileOpen, onMobileOpenChange }: {
     </header>
   )
 }
+

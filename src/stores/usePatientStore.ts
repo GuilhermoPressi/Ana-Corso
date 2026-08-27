@@ -62,7 +62,10 @@ type PatientState = {
   removeLead: (id: string) => void
   /** Fecha o lead e cria a paciente correspondente, devolvendo o id da nova ficha. */
   convertLead: (id: string) => string | undefined
+  clearAllData: () => void
+  restoreDemoData: () => void
 }
+
 
 /** Acumula o consumo do produto na ficha, em vez de criar linhas repetidas. */
 function upsertProduct(
@@ -281,7 +284,7 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       city: "Porto Alegre · RS",
       birthDate: "1990-01-01",
       mainProcedure: lead.interest,
-      professional: "Dra. Ana Corso",
+      professional: "Dra. Profissional",
       origin: lead.source,
       skinType: "A definir na anamnese",
       allergies: "A confirmar na anamnese",
@@ -294,7 +297,11 @@ export const usePatientStore = create<PatientState>((set, get) => ({
     get().moveLead(id, "fechado")
     return patient.id
   },
+
+  clearAllData: () => set({ patients: [], leads: [], historicalNewPatients: 0 }),
+  restoreDemoData: () => set({ patients: seedPatients, leads: seedLeads, historicalNewPatients: 42 }),
 }))
+
 
 /* ------------------------------------------------------------------ *
  * Seletores derivados

@@ -72,7 +72,10 @@ type FinanceState = {
   registerExpense: (input: { description: string; category: string; amount: number }) => void
   addProcedure: (procedure: Omit<PricedProcedure, "id" | "createdAt">) => PricedProcedure
   removeProcedure: (id: string) => void
+  clearAllData: () => void
+  restoreDemoData: () => void
 }
+
 
 let sequence = 0
 function nextId(prefix: string) {
@@ -203,7 +206,26 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
   removeProcedure: (id) =>
     set((state) => ({ procedures: state.procedures.filter((item) => item.id !== id) })),
+
+  clearAllData: () =>
+    set({
+      ledger: [],
+      baseline: { expenses: 0, revenueByCategory: [] },
+      goal: 0,
+      revenueSeries: [],
+      procedures: [],
+    }),
+
+  restoreDemoData: () =>
+    set({
+      ledger: seedLedger,
+      baseline: seedBaseline,
+      goal: 85000,
+      revenueSeries,
+      procedures: seedProcedures,
+    }),
 }))
+
 
 /* ------------------------------------------------------------------ *
  * Seletores derivados

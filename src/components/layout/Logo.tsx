@@ -1,6 +1,9 @@
 import { cn } from "@/lib/utils"
+import { useClinicStore } from "@/stores/useClinicStore"
 
 export function Logo({ className, showWordmark = true }: { className?: string; showWordmark?: boolean }) {
+  const profile = useClinicStore((state) => state.profile)
+
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
       <div className="relative grid size-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-[hsl(316_70%_72%)] shadow-[0_6px_18px_-8px_hsl(335_78%_55%/0.9)]">
@@ -14,10 +17,11 @@ export function Logo({ className, showWordmark = true }: { className?: string; s
       </div>
       {showWordmark && (
         <div className="leading-none">
-          <p className="font-display text-[15px] font-semibold tracking-tight text-foreground">Ana Corso</p>
+          <p className="font-display text-[15px] font-semibold tracking-tight text-foreground">{profile.name}</p>
           <p className="mt-1 text-[11px] font-medium text-muted-foreground">Gestão para estética</p>
         </div>
       )}
     </div>
   )
 }
+
