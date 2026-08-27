@@ -51,18 +51,16 @@ type InventoryState = {
     patientName?: string
   }) => ConsumeResult
   removeProduct: (productId: string) => void
-  clearAllData: () => void
-  restoreDemoData: () => void
 }
-
 
 let sequence = 0
 const nextId = (prefix: string) => `${prefix}-${(sequence += 1)}`
 
 export const useInventoryStore = create<InventoryState>((set, get) => ({
-  products: seedProducts,
-  movements: seedMovements,
+  products: [],
+  movements: [],
   expiryWindowDays: 30,
+
 
   addProduct: (input) => {
     const product: Product = {
@@ -162,10 +160,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
   removeProduct: (productId) =>
     set((state) => ({ products: state.products.filter((item) => item.id !== productId) })),
-
-  clearAllData: () => set({ products: [], movements: [] }),
-  restoreDemoData: () => set({ products: seedProducts, movements: seedMovements }),
 }))
+
 
 
 /* ------------------------------------------------------------------ *

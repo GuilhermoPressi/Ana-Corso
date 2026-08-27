@@ -37,9 +37,8 @@ type ScheduleState = {
   addEvent: (event: Omit<ScheduleEvent, "id">) => ScheduleEvent
   updateEvent: (id: string, patch: Partial<ScheduleEvent>) => void
   removeEvent: (id: string) => void
-  clearAllData: () => void
-  restoreDemoData: () => void
 }
+
 
 
 let sequence = 0
@@ -210,7 +209,7 @@ const seedEvents: ScheduleEvent[] = [
 ]
 
 export const useScheduleStore = create<ScheduleState>((set) => ({
-  events: seedEvents,
+  events: [],
 
   addEvent: (event) => {
     const created: ScheduleEvent = { ...event, id: nextId() }
@@ -224,9 +223,8 @@ export const useScheduleStore = create<ScheduleState>((set) => ({
     })),
 
   removeEvent: (id) => set((state) => ({ events: state.events.filter((event) => event.id !== id) })),
-  clearAllData: () => set({ events: [] }),
-  restoreDemoData: () => set({ events: seedEvents }),
 }))
+
 
 
 /* ------------------------------------------------------------------ *

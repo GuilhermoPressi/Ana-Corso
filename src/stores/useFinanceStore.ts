@@ -72,9 +72,8 @@ type FinanceState = {
   registerExpense: (input: { description: string; category: string; amount: number }) => void
   addProcedure: (procedure: Omit<PricedProcedure, "id" | "createdAt">) => PricedProcedure
   removeProcedure: (id: string) => void
-  clearAllData: () => void
-  restoreDemoData: () => void
 }
+
 
 
 let sequence = 0
@@ -160,11 +159,11 @@ const seedBaseline: Baseline = {
 }
 
 export const useFinanceStore = create<FinanceState>((set) => ({
-  ledger: seedLedger,
-  baseline: seedBaseline,
-  goal: 80000,
-  revenueSeries,
-  operational: { returnRate: 68, occupancy: 82, avgHoursPerDay: 6.4 },
+  ledger: [],
+  baseline: { expenses: 0, revenueByCategory: [] },
+  goal: 0,
+  revenueSeries: [],
+  operational: { returnRate: 0, occupancy: 0, avgHoursPerDay: 0 },
   procedures: [],
 
   registerRevenue: ({
@@ -208,25 +207,8 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
   removeProcedure: (id) =>
     set((state) => ({ procedures: state.procedures.filter((item) => item.id !== id) })),
-
-  clearAllData: () =>
-    set({
-      ledger: [],
-      baseline: { expenses: 0, revenueByCategory: [] },
-      goal: 0,
-      revenueSeries: [],
-      procedures: [],
-    }),
-
-  restoreDemoData: () =>
-    set({
-      ledger: seedLedger,
-      baseline: seedBaseline,
-      goal: 80000,
-      revenueSeries,
-      procedures: [],
-    }),
 }))
+
 
 
 

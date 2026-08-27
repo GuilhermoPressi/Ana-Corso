@@ -62,9 +62,8 @@ type PatientState = {
   removeLead: (id: string) => void
   /** Fecha o lead e cria a paciente correspondente, devolvendo o id da nova ficha. */
   convertLead: (id: string) => string | undefined
-  clearAllData: () => void
-  restoreDemoData: () => void
 }
+
 
 
 /** Acumula o consumo do produto na ficha, em vez de criar linhas repetidas. */
@@ -109,9 +108,10 @@ function nextId(prefix: string) {
 }
 
 export const usePatientStore = create<PatientState>((set, get) => ({
-  patients: seedPatients,
-  leads: seedLeads,
-  historicalNewPatients: 17,
+  patients: [],
+  leads: [],
+  historicalNewPatients: 0,
+
 
   addPatient: (input) => {
     const patient: Patient = {
@@ -297,10 +297,8 @@ export const usePatientStore = create<PatientState>((set, get) => ({
     get().moveLead(id, "fechado")
     return patient.id
   },
-
-  clearAllData: () => set({ patients: [], leads: [], historicalNewPatients: 0 }),
-  restoreDemoData: () => set({ patients: seedPatients, leads: seedLeads, historicalNewPatients: 42 }),
 }))
+
 
 
 /* ------------------------------------------------------------------ *

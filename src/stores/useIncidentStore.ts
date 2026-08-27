@@ -42,9 +42,8 @@ type IncidentState = {
   addEntry: (incidentId: string, note: string, author: string) => void
   setStatus: (incidentId: string, status: IncidentStatus) => void
   removeIncident: (incidentId: string) => void
-  clearAllData: () => void
-  restoreDemoData: () => void
 }
+
 
 
 let sequence = 0
@@ -83,7 +82,8 @@ const seedIncidents: Incident[] = [
 ]
 
 export const useIncidentStore = create<IncidentState>((set) => ({
-  incidents: seedIncidents,
+  incidents: [],
+
 
   addIncident: (input) => {
     const incident: Incident = {
@@ -129,9 +129,8 @@ export const useIncidentStore = create<IncidentState>((set) => ({
 
   removeIncident: (incidentId) =>
     set((state) => ({ incidents: state.incidents.filter((item) => item.id !== incidentId) })),
-  clearAllData: () => set({ incidents: [] }),
-  restoreDemoData: () => set({ incidents: seedIncidents }),
 }))
+
 
 
 export function incidentsForPatient(incidents: Incident[], patientId: string) {
