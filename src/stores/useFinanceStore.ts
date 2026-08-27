@@ -148,18 +148,20 @@ const seedLedger: LedgerEntry[] = [
   { id: "e12", date: "2026-08-15", kind: "despesa", description: "Contador e impostos", category: "Impostos", amount: 1810 },
 ]
 
+const seedBaseline: Baseline = {
+  expenses: 0,
+  revenueByCategory: [
+    { name: "Bioestimulador", revenue: 23200, sessions: 8, directCost: 7000 },
+    { name: "Preenchimento", revenue: 19700, sessions: 11, directCost: 5700 },
+    { name: "Toxina botulínica", revenue: 17450, sessions: 16, directCost: 4300 },
+    { name: "Skinbooster", revenue: 8200, sessions: 6, directCost: 1600 },
+    { name: "Microagulhamento", revenue: 6200, sessions: 11, directCost: 800 },
+  ],
+}
+
 export const useFinanceStore = create<FinanceState>((set) => ({
   ledger: seedLedger,
-  baseline: {
-    expenses: 0,
-    revenueByCategory: [
-      { name: "Bioestimulador", revenue: 23200, sessions: 8, directCost: 7000 },
-      { name: "Preenchimento", revenue: 19700, sessions: 11, directCost: 5700 },
-      { name: "Toxina botulínica", revenue: 17450, sessions: 16, directCost: 4300 },
-      { name: "Skinbooster", revenue: 8200, sessions: 6, directCost: 1600 },
-      { name: "Microagulhamento", revenue: 6200, sessions: 11, directCost: 800 },
-    ],
-  },
+  baseline: seedBaseline,
   goal: 80000,
   revenueSeries,
   operational: { returnRate: 68, occupancy: 82, avgHoursPerDay: 6.4 },
@@ -220,11 +222,12 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     set({
       ledger: seedLedger,
       baseline: seedBaseline,
-      goal: 85000,
+      goal: 80000,
       revenueSeries,
-      procedures: seedProcedures,
+      procedures: [],
     }),
 }))
+
 
 
 /* ------------------------------------------------------------------ *
