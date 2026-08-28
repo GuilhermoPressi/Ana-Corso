@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify"
 import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, LedgerKind, LedgerSource } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "../db.js"
-import { requireAuth } from "../middlewares/auth.js"
+import { requireAuth, requirePermission } from "../middlewares/auth.js"
 
 const createEntrySchema = z.object({
   kind: z.nativeEnum(LedgerKind),
@@ -14,6 +14,7 @@ const createEntrySchema = z.object({
 
 export async function financeRoutes(fastify: FastifyInstance) {
   fastify.addHook("preHandler", requireAuth)
+  fastify.addHook("preHandler", requirePermission("FINANCE_READ"))
 
   fastify.addHook("preHandler", async (request, reply) => {
     if (!request.clinic) {

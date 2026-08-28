@@ -84,7 +84,14 @@ export async function authenticateSession(request: FastifyRequest, reply: Fastif
     })
   }
 
-  const userClinicRel = user.clinics[0]
+  // Multi-clinic tenant selection via Header or Cookie
+  const targetClinicId =
+    (request.headers["x-clinic-id"] as string) || request.cookies.ana_corso_clinic_id
+
+  const userClinicRel =
+    user.clinics.find((c) => c.clinicId === targetClinicId && c.clinic.status !== ClinicStatus.BLOCKED) ||
+    user.clinics.find((c) => c.clinic.status !== ClinicStatus.BLOCKED) ||
+    user.clinics[0]
 
   // Real-time clinic block check
   if (userClinicRel?.clinic && userClinicRel.clinic.status === ClinicStatus.BLOCKED) {
@@ -152,5 +159,21 @@ export async function requireSystemAdmin(request: FastifyRequest, reply: Fastify
     return reply.status(403).send({
       error: { code: "FORBIDDEN", message: "Acesso restrito aos administradores da plataforma." },
     })
+  }
+}
+
+import { hasPermission, type Permission } from "../utils/permissions.js"
+
+export function requirePermission(permission: Permission) {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!request.user) {
+      await authenticateSession(request, reply)
+    }
+    const role = request.clinicRole || "PROFESSIONAL"
+    if (!hasPermission(role, permission)) {
+      return reply.status(403).send({
+        error: { code: "FORBIDDEN", message: "Permissão insuficiente para esta operação." },
+      })
+    }
   }
 }

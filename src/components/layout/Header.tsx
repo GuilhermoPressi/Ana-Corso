@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { Bell, LogOut, Menu, Plus, Search, ShieldAlert } from "lucide-react"
 
+import { NotificationCenter } from "@/components/layout/NotificationCenter"
 import { QuickReferenceSheet } from "@/components/clinical/QuickReferenceSheet"
 import { Logo } from "@/components/layout/Logo"
 import { SidebarNav } from "@/components/layout/SidebarNav"
@@ -95,10 +96,7 @@ export function Header({
           <Plus /> Novo atendimento
         </Button>
 
-        <Button variant="ghost" size="icon" className="relative rounded-full" aria-label="Notificações">
-          <Bell />
-          <span className="absolute right-2 top-2 size-2 rounded-full bg-primary ring-2 ring-background" />
-        </Button>
+        <NotificationCenter />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

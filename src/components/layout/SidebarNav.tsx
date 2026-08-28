@@ -60,6 +60,9 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const user = useAuthStore((state) => state.user)
   const isAdmin = user?.systemRole?.toUpperCase() === "ADMIN"
 
+  const clinic = useAuthStore((state) => state.clinic)
+  const isReceptionist = clinic?.role === "RECEPTIONIST"
+
   return (
     <div className="flex h-full flex-col bg-sidebar">
       <div className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-5">
@@ -80,16 +83,25 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             </div>
           )}
 
-          {navigation.map((group) => (
-            <div key={group.label} className="flex flex-col gap-1">
-              <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">
-                {group.label}
-              </p>
-              {group.items.map((item) => (
-                <NavRow key={item.url} item={item} onNavigate={onNavigate} />
-              ))}
-            </div>
-          ))}
+          {navigation.map((group) => {
+            const filteredItems = group.items.filter((item) => {
+              if (isReceptionist && item.url === "/financeiro") return false
+              return true
+            })
+
+            if (filteredItems.length === 0) return null
+
+            return (
+              <div key={group.label} className="flex flex-col gap-1">
+                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/70">
+                  {group.label}
+                </p>
+                {filteredItems.map((item) => (
+                  <NavRow key={item.url} item={item} onNavigate={onNavigate} />
+                ))}
+              </div>
+            )
+          })}
         </nav>
       </ScrollArea>
 

@@ -41,6 +41,8 @@ const Precificacao = lazy(() => import("@/pages/Precificacao"))
 const Protocolos = lazy(() => import("@/pages/Protocolos"))
 const Recuperador = lazy(() => import("@/pages/Recuperador"))
 
+const Convite = lazy(() => import("@/pages/Convite"))
+
 function PageFallback() {
   return (
     <div className="mx-auto max-w-[1400px] p-6">
@@ -73,6 +75,14 @@ export default function App() {
         element={
           <Suspense fallback={<PageFallback />}>
             <Cadastro />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/convite/:token"
+        element={
+          <Suspense fallback={<PageFallback />}>
+            <Convite />
           </Suspense>
         }
       />

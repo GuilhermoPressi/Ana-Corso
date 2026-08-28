@@ -4,7 +4,9 @@ import fastifyRateLimit from "@fastify/rate-limit"
 import Fastify from "fastify"
 
 import { config } from "./config.js"
+import { academyRoutes } from "./routes/academy.js"
 import { adminRoutes } from "./routes/admin.js"
+import { aiRoutes } from "./routes/ai.js"
 import { authRoutes } from "./routes/auth.js"
 import { catalogRoutes } from "./routes/catalog.js"
 import { clinicRoutes } from "./routes/clinic.js"
@@ -15,14 +17,17 @@ import { incidentRoutes } from "./routes/incidents.js"
 import { inventoryRoutes } from "./routes/inventory.js"
 import { leadRoutes } from "./routes/leads.js"
 import { mapRoutes } from "./routes/maps.js"
+import { notificationRoutes } from "./routes/notifications.js"
 import { patientRoutes } from "./routes/patients.js"
 import { photoRoutes } from "./routes/photos.js"
 import { planningRoutes } from "./routes/plannings.js"
+import { planRoutes } from "./routes/plans.js"
 import { postCareRoutes } from "./routes/postcare.js"
 import { procedureRoutes } from "./routes/procedures.js"
 import { proposalRoutes } from "./routes/proposals.js"
 import { recoveryRoutes } from "./routes/recovery.js"
 import { scheduleRoutes } from "./routes/schedule.js"
+import { teamRoutes } from "./routes/team.js"
 
 export function buildApp() {
   const app = Fastify({
@@ -91,7 +96,9 @@ export function buildApp() {
   app.register(authRoutes, { prefix: "/api" })
   app.register(adminRoutes, { prefix: "/api" })
   app.register(clinicRoutes, { prefix: "/api" })
+  app.register(teamRoutes, { prefix: "/api" })
   app.register(patientRoutes, { prefix: "/api" })
+  app.register(planRoutes, { prefix: "/api" })
   app.register(inventoryRoutes, { prefix: "/api" })
   app.register(scheduleRoutes, { prefix: "/api" })
   app.register(procedureRoutes, { prefix: "/api" })
@@ -106,6 +113,9 @@ export function buildApp() {
   app.register(incidentRoutes, { prefix: "/api" })
   app.register(postCareRoutes, { prefix: "/api" })
   app.register(recoveryRoutes, { prefix: "/api" })
+  app.register(academyRoutes, { prefix: "/api" })
+  app.register(aiRoutes, { prefix: "/api" })
+  app.register(notificationRoutes, { prefix: "/api" })
 
   return app
 }
