@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { ClinicRole, SystemRole } from "@prisma/client"
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 
 import { buildApp } from "../app.js"
 import { prisma } from "../db.js"

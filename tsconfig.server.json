@@ -11,5 +11,6 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["server/**/*", "prisma/**/*"]
+  "include": ["server/**/*", "prisma/**/*"],
+  "exclude": ["server/src/tests/**/*", "**/*.test.ts", "**/*.spec.ts"]
 }
