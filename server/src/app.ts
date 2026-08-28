@@ -48,14 +48,15 @@ export function buildApp() {
   app.register(fastifyCors, {
     origin: (origin, cb) => {
       if (!origin) return cb(null, true)
+      const allowedOrigins = [config.FRONTEND_URL].filter(Boolean)
       if (
-        origin === config.FRONTEND_URL ||
-        origin.startsWith("http://localhost:") ||
-        origin.startsWith("http://127.0.0.1:")
+        allowedOrigins.includes(origin) ||
+        (config.NODE_ENV !== "production" &&
+          (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")))
       ) {
         return cb(null, true)
       }
-      return cb(null, true)
+      return cb(new Error("Origem não permitida pelo CORS"), false)
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -65,6 +66,18 @@ export function buildApp() {
   app.register(fastifyCookie, {
     secret: config.SESSION_SECRET,
     hook: "onRequest",
+  })
+
+  // Security Headers Hook
+  app.addHook("onSend", async (_request, reply) => {
+    reply.header("X-Content-Type-Options", "nosniff")
+    reply.header("X-Frame-Options", "SAMEORIGIN")
+    reply.header("X-XSS-Protection", "1; mode=block")
+    reply.header("Referrer-Policy", "strict-origin-when-cross-origin")
+    reply.header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+    if (config.NODE_ENV === "production") {
+      reply.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    }
   })
 
   // Rate Limiting

@@ -2,25 +2,25 @@
  * "Hoje" da clínica na demonstração. Todos os dados mockados giram em torno
  * desta data — centralizar evita que telas mostrem meses diferentes entre si.
  */
-export const CLINIC_TODAY = new Date().toISOString().slice(0, 10)
+import {
+  clinicTodayLabel as tzClinicTodayLabel,
+  getClinicDateKey,
+  getClinicMonthKey,
+  getClinicToday,
+  isCurrentMonth as tzIsCurrentMonth,
+} from "./timezone.js"
 
-export const CLINIC_MONTH = new Date().toISOString().slice(0, 7)
+export const CLINIC_TODAY = getClinicToday()
+
+export const CLINIC_MONTH = getClinicMonthKey()
 
 /** Verdadeiro quando a data ISO cai no mês corrente da clínica. */
-export function isCurrentMonth(iso: string) {
-  const currentMonth = new Date().toISOString().slice(0, 7)
-  return iso.slice(0, 7) === currentMonth
+export function isCurrentMonth(isoOrDate: string | Date) {
+  return tzIsCurrentMonth(isoOrDate)
 }
 
 export function clinicTodayLabel() {
-  const now = new Date()
-  const formatted = new Intl.DateTimeFormat("pt-BR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-  }).format(now)
-
-  return formatted.charAt(0).toUpperCase() + formatted.slice(1)
+  return tzClinicTodayLabel()
 }
 
 /** Soma dias a uma data ISO "AAAA-MM-DD" e devolve outra data ISO. */

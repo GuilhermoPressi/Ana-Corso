@@ -99,6 +99,26 @@ export async function photoRoutes(fastify: FastifyInstance) {
     const cleanBase64 = body.base64Data.replace(/^data:image\/\w+;base64,/, "")
     const imageBuffer = Buffer.from(cleanBase64, "base64")
 
+    if (imageBuffer.length === 0) {
+      return reply.status(400).send({
+        error: { code: "INVALID_FILE", message: "O arquivo enviado está vazio." },
+      })
+    }
+
+    // Magic Bytes Verification (JPEG: FF D8 FF, PNG: 89 50 4E 47, WEBP: 52 49 46 46)
+    const isJpeg = imageBuffer[0] === 0xff && imageBuffer[1] === 0xd8 && imageBuffer[2] === 0xff
+    const isPng = imageBuffer[0] === 0x89 && imageBuffer[1] === 0x50 && imageBuffer[2] === 0x4e && imageBuffer[3] === 0x47
+    const isWebp = imageBuffer[0] === 0x52 && imageBuffer[1] === 0x49 && imageBuffer[2] === 0x46 && imageBuffer[3] === 0x46
+
+    if (!isJpeg && !isPng && !isWebp) {
+      return reply.status(400).send({
+        error: {
+          code: "INVALID_IMAGE_HEADER",
+          message: "O conteúdo do arquivo não corresponde a uma imagem válida (JPEG, PNG ou WEBP).",
+        },
+      })
+    }
+
     const photoId = crypto.randomUUID()
     const extension = body.mimeType.split("/")[1] || "jpg"
 

@@ -22,7 +22,10 @@ const loginSchema = z.object({
 
 export async function authRoutes(fastify: FastifyInstance) {
   // POST /api/auth/register
-  fastify.post("/auth/register", async (request, reply) => {
+  fastify.post(
+    "/auth/register",
+    { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
+    async (request, reply) => {
     const parseResult = registerSchema.safeParse(request.body)
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -186,7 +189,10 @@ export async function authRoutes(fastify: FastifyInstance) {
   })
 
   // POST /api/auth/login
-  fastify.post("/auth/login", async (request, reply) => {
+  fastify.post(
+    "/auth/login",
+    { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
+    async (request, reply) => {
     const parseResult = loginSchema.safeParse(request.body)
     if (!parseResult.success) {
       return reply.status(400).send({

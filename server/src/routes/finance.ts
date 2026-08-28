@@ -3,6 +3,7 @@ import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, LedgerKin
 import { z } from "zod"
 import { prisma } from "../db.js"
 import { requireAuth, requirePermission } from "../middlewares/auth.js"
+import { getClinicMonthKey, getClinicMonthRange } from "../utils/timezone.js"
 
 const createEntrySchema = z.object({
   kind: z.nativeEnum(LedgerKind),
@@ -113,15 +114,11 @@ export async function financeRoutes(fastify: FastifyInstance) {
     const { month } = querySchema.parse(request.query)
     const clinicId = request.clinic!.id
 
+    const tz = request.clinic!.timezone || "America/Sao_Paulo"
     const now = new Date()
-    const targetMonth = month && month.trim() ? month.trim() : now.toISOString().slice(0, 7)
+    const targetMonth = month && month.trim() ? month.trim() : getClinicMonthKey(now, tz)
 
-    const [yearStr, monthStr] = targetMonth.split("-")
-    const year = parseInt(yearStr, 10)
-    const monthNum = parseInt(monthStr, 10)
-
-    const startDate = new Date(Date.UTC(year, monthNum - 1, 1, 0, 0, 0, 0))
-    const endDate = new Date(Date.UTC(year, monthNum, 0, 23, 59, 59, 999))
+    const { startDate, endDate } = getClinicMonthRange(targetMonth, tz)
 
     const monthEntries = await prisma.ledgerEntry.findMany({
       where: {

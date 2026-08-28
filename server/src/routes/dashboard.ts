@@ -3,6 +3,7 @@ import { ClinicStatus, LedgerKind, PatientStatus, ScheduleEventStatus } from "@p
 import { z } from "zod"
 import { prisma } from "../db.js"
 import { requireAuth } from "../middlewares/auth.js"
+import { getClinicDateKey, getClinicDayRange, getClinicMonthKey, getClinicMonthRange } from "../utils/timezone.js"
 
 export async function dashboardRoutes(fastify: FastifyInstance) {
   fastify.addHook("preHandler", requireAuth)
@@ -29,18 +30,13 @@ export async function dashboardRoutes(fastify: FastifyInstance) {
     const { month } = querySchema.parse(request.query)
     const clinicId = request.clinic!.id
 
+    const tz = request.clinic!.timezone || "America/Sao_Paulo"
     const now = new Date()
-    const targetMonth = month && month.trim() ? month.trim() : now.toISOString().slice(0, 7)
+    const targetMonth = month && month.trim() ? month.trim() : getClinicMonthKey(now, tz)
 
-    const [yearStr, monthStr] = targetMonth.split("-")
-    const year = parseInt(yearStr, 10)
-    const monthNum = parseInt(monthStr, 10)
-
-    const startDate = new Date(Date.UTC(year, monthNum - 1, 1, 0, 0, 0, 0))
-    const endDate = new Date(Date.UTC(year, monthNum, 0, 23, 59, 59, 999))
-
-    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
-    const todayEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
+    const { startDate, endDate } = getClinicMonthRange(targetMonth, tz)
+    const todayIso = getClinicDateKey(now, tz)
+    const { startDate: todayStart, endDate: todayEnd } = getClinicDayRange(todayIso, tz)
 
     const [monthEntries, activePatientsCount, todayEvents, inventoryItems, proceduresGroup] = await Promise.all([
       prisma.ledgerEntry.findMany({
