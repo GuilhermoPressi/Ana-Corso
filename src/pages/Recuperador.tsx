@@ -49,6 +49,13 @@ function varsFor(target: RecoveryTarget) {
 export default function Recuperador() {
   const patients = usePatientStore((state) => state.patients)
   const leads = usePatientStore((state) => state.leads)
+  const loadPatients = usePatientStore((state) => state.loadPatients)
+  const fetchLeads = usePatientStore((state) => state.fetchLeads)
+
+  useEffect(() => {
+    loadPatients()
+    fetchLeads()
+  }, [loadPatients, fetchLeads])
 
   const [inactivityMonths, setInactivityMonths] = useState(6)
   const [toxinaMonths, setToxinaMonths] = useState(4)

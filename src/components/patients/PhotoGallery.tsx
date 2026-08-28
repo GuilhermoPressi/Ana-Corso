@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { ArrowLeftRight, Camera, ImagePlus, Lock, Ruler } from "lucide-react"
+import { toast } from "sonner"
 
 import { FaceGhost } from "@/components/clinical/FaceGhost"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +12,7 @@ import {
   type Patient,
   type PhotoRecord,
 } from "@/data/patients"
+import { CLINIC_TODAY } from "@/lib/clinic"
 import { cn, formatDate, formatDateLong, parseLocalDate } from "@/lib/utils"
 
 function daysBetween(a: string, b: string) {
@@ -19,24 +21,74 @@ function daysBetween(a: string, b: string) {
   )
 }
 
+export type DbPhoto = {
+  id: string
+  patientId: string
+  storageKey: string
+  originalFileName: string
+  mimeType: string
+  fileSize: number
+  type: "BEFORE" | "AFTER" | "EVOLUTION" | "CLINICAL" | "INCIDENT" | "OTHER"
+  bodyRegion?: string | null
+  notes?: string | null
+  capturedAt: string
+  accessUrl: string
+}
+
 export function PhotoGallery({ patient }: { patient: Patient }) {
   const [groupId, setGroupId] = useState(photoAngleGroups[0].id)
   const [beforeId, setBeforeId] = useState<string | null>(null)
   const [afterId, setAfterId] = useState<string | null>(null)
 
+  const [realPhotos, setRealPhotos] = useState<DbPhoto[]>([])
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const group = photoAngleGroups.find((item) => item.id === groupId) ?? photoAngleGroups[0]
+
+  useEffect(() => {
+    async function loadPhotos() {
+      try {
+        const res = await fetch(`/api/patients/${patient.id}/photos`)
+        if (res.ok) {
+          const data = await res.json()
+          setRealPhotos(data.photos || [])
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadPhotos()
+  }, [patient.id])
+
+  // Merge db photos with patient.photos for rendering
+  const mappedDbPhotos: PhotoRecord[] = useMemo(() => {
+    return realPhotos.map((p) => {
+      const isBefore = p.type === "BEFORE"
+      const isAfter = p.type === "AFTER"
+      return {
+        id: p.id,
+        date: p.capturedAt ? new Date(p.capturedAt).toISOString().split("T")[0] : CLINIC_TODAY,
+        angle: "frente",
+        session: isBefore ? "Foto de Antes" : isAfter ? "Foto de Depois" : p.notes || "Foto clínica",
+        src: p.accessUrl,
+      }
+    })
+  }, [realPhotos])
+
+  const allPhotos = useMemo(() => {
+    return [...mappedDbPhotos, ...patient.photos]
+  }, [mappedDbPhotos, patient.photos])
 
   const photos = useMemo(
     () =>
-      patient.photos
+      allPhotos
         .filter((photo) => group.angles.includes(photo.angle))
         .sort((a, b) => a.date.localeCompare(b.date)),
-    [patient.photos, group],
+    [allPhotos, group],
   )
 
-  // Sem escolha manual, comparamos o registro mais antigo com o mais recente.
-  const before =
-    photos.find((photo) => photo.id === beforeId) ?? photos.at(0) ?? null
+  const before = photos.find((photo) => photo.id === beforeId) ?? photos.at(0) ?? null
   const after =
     photos.find((photo) => photo.id === afterId) ??
     (photos.length > 1 ? photos.at(-1) ?? null : null)
@@ -44,7 +96,6 @@ export function PhotoGallery({ patient }: { patient: Patient }) {
   const interval = before && after ? daysBetween(before.date, after.date) : null
 
   function assign(photo: PhotoRecord) {
-    // Clique escolhe o lado que faz sentido pela data.
     if (!before || photo.date < before.date) {
       setBeforeId(photo.id)
       return
@@ -58,13 +109,71 @@ export function PhotoGallery({ patient }: { patient: Patient }) {
     setAfterId(currentBefore)
   }
 
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Formato não suportado. Use JPG, PNG ou WEBP.")
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Tamanho máximo excedido. O limite por foto é 10 MB.")
+      return
+    }
+
+    setUploading(true)
+
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const base64Data = reader.result as string
+      try {
+        const res = await fetch(`/api/patients/${patient.id}/photos`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            originalFileName: file.name,
+            mimeType: file.type,
+            fileSize: file.size,
+            base64Data,
+            type: groupId === "34" ? "BEFORE" : "CLINICAL",
+            notes: `Registro em ${group.label}`,
+          }),
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setRealPhotos((prev) => [data.photo, ...prev])
+          toast.success("Foto salva com sucesso no storage privado.")
+        } else {
+          toast.error("Erro ao enviar foto.")
+        }
+      } catch {
+        toast.error("Erro de conexão ao salvar foto.")
+      } finally {
+        setUploading(false)
+        if (fileInputRef.current) fileInputRef.current.value = ""
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
   const countsByGroup = photoAngleGroups.map((item) => ({
     ...item,
-    count: patient.photos.filter((photo) => item.angles.includes(photo.angle)).length,
+    count: allPhotos.filter((photo) => item.angles.includes(photo.angle)).length,
   }))
 
   return (
     <div className="flex flex-col gap-5">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFileSelect}
+      />
+
       {/* Enquadramentos */}
       <div className="flex flex-wrap items-center gap-2">
         {countsByGroup.map((item) => (
@@ -93,8 +202,14 @@ export function PhotoGallery({ patient }: { patient: Patient }) {
           </button>
         ))}
 
-        <Button variant="outline" size="sm" className="ml-auto">
-          <ImagePlus /> Adicionar foto
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          disabled={uploading}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <ImagePlus /> {uploading ? "Enviando..." : "Adicionar foto"}
         </Button>
       </div>
 
@@ -129,7 +244,7 @@ export function PhotoGallery({ patient }: { patient: Patient }) {
               {formatDateLong(before.date)} → {formatDateLong(after.date)}
             </span>
             <span className="flex items-center gap-1.5">
-              <Lock className="size-3" /> Uso de imagem autorizado
+              <Lock className="size-3" /> Armazenamento seguro privado (S3)
             </span>
           </div>
         )}
@@ -173,10 +288,14 @@ export function PhotoGallery({ patient }: { patient: Patient }) {
                       : "border-border/70 hover:border-primary/25",
                   )}
                 >
-                  <div className="relative aspect-[3/4] bg-gradient-to-br from-secondary via-accent/50 to-muted">
-                    <div className="absolute inset-0 grid place-items-center p-4 text-primary/25">
-                      <FaceGhost angle={photo.angle} />
-                    </div>
+                  <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-secondary via-accent/50 to-muted">
+                    {photo.src ? (
+                      <img src={photo.src} alt={photo.session} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 grid place-items-center p-4 text-primary/25">
+                        <FaceGhost angle={photo.angle} />
+                      </div>
+                    )}
                     {role && (
                       <span className="absolute left-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold capitalize text-primary-foreground">
                         {role}
@@ -206,12 +325,16 @@ export function PhotoGallery({ patient }: { patient: Patient }) {
 
 function ComparisonSlot({ label, photo }: { label: string; photo: PhotoRecord | null }) {
   return (
-    <div className="relative aspect-[4/5] bg-gradient-to-br from-secondary via-accent/40 to-muted sm:aspect-[3/4]">
+    <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-secondary via-accent/40 to-muted sm:aspect-[3/4]">
       {photo ? (
         <>
-          <div className="absolute inset-0 grid place-items-center p-10 text-primary/25">
-            <FaceGhost angle={photo.angle} />
-          </div>
+          {photo.src ? (
+            <img src={photo.src} alt={label} className="h-full w-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center p-10 text-primary/25">
+              <FaceGhost angle={photo.angle} />
+            </div>
+          )}
 
           <span className="absolute left-3 top-3 rounded-full bg-card/85 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-foreground backdrop-blur-sm">
             {label}

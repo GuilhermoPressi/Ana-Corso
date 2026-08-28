@@ -11,18 +11,23 @@ import { clinicRoutes } from "./routes/clinic.js"
 import { dashboardRoutes } from "./routes/dashboard.js"
 import { financeRoutes } from "./routes/finance.js"
 import { healthRoutes } from "./routes/health.js"
+import { incidentRoutes } from "./routes/incidents.js"
 import { inventoryRoutes } from "./routes/inventory.js"
 import { leadRoutes } from "./routes/leads.js"
 import { mapRoutes } from "./routes/maps.js"
 import { patientRoutes } from "./routes/patients.js"
+import { photoRoutes } from "./routes/photos.js"
 import { planningRoutes } from "./routes/plannings.js"
+import { postCareRoutes } from "./routes/postcare.js"
 import { procedureRoutes } from "./routes/procedures.js"
 import { proposalRoutes } from "./routes/proposals.js"
+import { recoveryRoutes } from "./routes/recovery.js"
 import { scheduleRoutes } from "./routes/schedule.js"
 
 export function buildApp() {
   const app = Fastify({
     trustProxy: true,
+    bodyLimit: 15 * 1024 * 1024, // 15MB for high-res photo uploads
     logger:
       config.NODE_ENV === "development"
         ? {
@@ -97,6 +102,10 @@ export function buildApp() {
   app.register(proposalRoutes, { prefix: "/api" })
   app.register(mapRoutes, { prefix: "/api" })
   app.register(catalogRoutes, { prefix: "/api" })
+  app.register(photoRoutes, { prefix: "/api" })
+  app.register(incidentRoutes, { prefix: "/api" })
+  app.register(postCareRoutes, { prefix: "/api" })
+  app.register(recoveryRoutes, { prefix: "/api" })
 
   return app
 }

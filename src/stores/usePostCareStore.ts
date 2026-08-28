@@ -6,7 +6,6 @@ export type CareOutcome = "tudo-bem" | "queixa" | "sem-resposta"
 
 export type CareLog = {
   id: string
-  /** Identifica o contato: paciente + procedimento + ponto da régua. */
   key: string
   patientId: string
   date: string
@@ -22,26 +21,71 @@ export const outcomeLabel: Record<CareOutcome, string> = {
 
 type PostCareState = {
   logs: CareLog[]
-  register: (input: { key: string; patientId: string; outcome: CareOutcome; note?: string }) => void
+  loading: boolean
+  error: string | null
+
+  fetchPostCare: () => Promise<void>
+  register: (input: { id?: string; key: string; patientId: string; outcome: CareOutcome; note?: string }) => Promise<void>
   undo: (key: string) => void
 }
 
-let sequence = 0
+export function mapDbPostCareToFrontend(dbP: any): CareLog {
+  const outcomeMap: Record<string, CareOutcome> = {
+    COMPLETED: "tudo-bem",
+    SENT: "tudo-bem",
+    CANCELLED: "sem-resposta",
+    PENDING: "sem-resposta",
+    OVERDUE: "queixa",
+  }
 
-const seedLogs: CareLog[] = [
-  { id: "log-s1", key: "p1:pr1:d1", patientId: "p1", date: "2026-08-25", outcome: "tudo-bem" },
-]
+  return {
+    id: dbP.id,
+    key: dbP.id,
+    patientId: dbP.patientId,
+    date: dbP.completedAt ? new Date(dbP.completedAt).toISOString().split("T")[0] : CLINIC_TODAY,
+    outcome: outcomeMap[dbP.status] || "tudo-bem",
+    note: dbP.procedureRecord ? dbP.procedureRecord.procedureName : undefined,
+  }
+}
 
-export const usePostCareStore = create<PostCareState>((set) => ({
-  logs: seedLogs,
+export const usePostCareStore = create<PostCareState>((set, get) => ({
+  logs: [],
+  loading: false,
+  error: null,
 
-  register: ({ key, patientId, outcome, note }) =>
+  fetchPostCare: async () => {
+    try {
+      const res = await fetch("/api/post-care")
+      if (res.ok) {
+        const data = await res.json()
+        const mapped = (data.followUps || []).map(mapDbPostCareToFrontend)
+        set({ logs: mapped })
+      }
+    } catch {
+      // ignore
+    }
+  },
+
+  register: async ({ id, key, patientId, outcome, note }) => {
+    const targetId = id || key
     set((state) => ({
       logs: [
         ...state.logs.filter((log) => log.key !== key),
-        { id: `log-${(sequence += 1)}`, key, patientId, date: CLINIC_TODAY, outcome, note },
+        { id: targetId, key, patientId, date: CLINIC_TODAY, outcome, note },
       ],
-    })),
+    }))
+
+    try {
+      const dbStatus = outcome === "tudo-bem" ? "COMPLETED" : outcome === "queixa" ? "OVERDUE" : "SENT"
+      await fetch(`/api/post-care/${targetId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: dbStatus }),
+      })
+    } catch {
+      // ignore
+    }
+  },
 
   undo: (key) => set((state) => ({ logs: state.logs.filter((log) => log.key !== key) })),
 }))

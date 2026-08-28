@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   CalendarClock,
   Check,
@@ -90,9 +90,16 @@ function dayDiff(from: string, to: string) {
 
 export default function PosProcedimento() {
   const patients = usePatientStore((state) => state.patients)
+  const loadPatients = usePatientStore((state) => state.loadPatients)
   const logs = usePostCareStore((state) => state.logs)
+  const fetchPostCare = usePostCareStore((state) => state.fetchPostCare)
   const register = usePostCareStore((state) => state.register)
   const undo = usePostCareStore((state) => state.undo)
+
+  useEffect(() => {
+    loadPatients()
+    fetchPostCare()
+  }, [loadPatients, fetchPostCare])
 
   const [showAll, setShowAll] = useState(false)
 

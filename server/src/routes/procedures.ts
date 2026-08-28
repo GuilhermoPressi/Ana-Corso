@@ -3,6 +3,8 @@ import {
   ClinicActivityAction,
   ClinicActivityEntityType,
   ClinicStatus,
+  FollowUpStage,
+  FollowUpStatus,
   InventoryMovementType,
   LedgerKind,
   LedgerSource,
@@ -290,15 +292,50 @@ export async function procedureRoutes(fastify: FastifyInstance) {
           const originalEvent = await tx.scheduleEvent.findFirst({
             where: { id: body.scheduleEventId, clinicId },
           })
-          if (originalEvent) {
+          if (originalEvent && originalEvent.status !== ScheduleEventStatus.COMPLETED) {
             await tx.scheduleEvent.update({
-              where: { id: originalEvent.id },
+              where: { id: body.scheduleEventId },
               data: { status: ScheduleEventStatus.COMPLETED },
             })
           }
         }
 
-        // Step 9: Clinic Activity Log
+        // Step 9: Create PostCareFollowUps (H24, DAY_7, DAY_15)
+        const h24Date = new Date(performedAt.getTime() + 24 * 60 * 60 * 1000)
+        const day7Date = new Date(performedAt.getTime() + 7 * 24 * 60 * 60 * 1000)
+        const day15Date = new Date(performedAt.getTime() + 15 * 24 * 60 * 60 * 1000)
+
+        await tx.postCareFollowUp.createMany({
+          data: [
+            {
+              clinicId,
+              patientId: patient.id,
+              procedureRecordId: procedureRecord.id,
+              stage: FollowUpStage.H24,
+              scheduledFor: h24Date,
+              status: FollowUpStatus.PENDING,
+            },
+            {
+              clinicId,
+              patientId: patient.id,
+              procedureRecordId: procedureRecord.id,
+              stage: FollowUpStage.DAY_7,
+              scheduledFor: day7Date,
+              status: FollowUpStatus.PENDING,
+            },
+            {
+              clinicId,
+              patientId: patient.id,
+              procedureRecordId: procedureRecord.id,
+              stage: FollowUpStage.DAY_15,
+              scheduledFor: day15Date,
+              status: FollowUpStatus.PENDING,
+            },
+          ],
+          skipDuplicates: true,
+        })
+
+        // Step 10: Clinic Activity Log
         await tx.clinicActivityLog.create({
           data: {
             clinicId,

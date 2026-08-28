@@ -71,6 +71,9 @@ enum ClinicActivityEntityType {
   MAP
   CATALOG
   PROTOCOL
+  PHOTO
+  INCIDENT
+  POST_CARE
 }
 
 enum ClinicActivityAction {
@@ -108,6 +111,15 @@ enum ClinicActivityAction {
   CATALOG_PROCEDURE_UPDATED
   PROTOCOL_CREATED
   PROTOCOL_UPDATED
+  PHOTO_UPLOADED
+  PHOTO_ARCHIVED
+  INCIDENT_CREATED
+  INCIDENT_UPDATED
+  INCIDENT_RESOLVED
+  INCIDENT_ARCHIVED
+  POST_CARE_CREATED
+  POST_CARE_COMPLETED
+  POST_CARE_CANCELLED
 }
 
 enum ScheduleEventKind {
@@ -218,6 +230,10 @@ model Clinic {
   procedureMaps        ProcedureMap[]
   catalogProcedures    CatalogProcedure[]
   protocols            Protocol[]
+  patientPhotos        PatientPhoto[]
+  incidents            Incident[]
+  incidentUpdates      IncidentUpdate[]
+  postCareFollowUps    PostCareFollowUp[]
 
   @@map("clinics")
 }
@@ -257,6 +273,9 @@ model User {
   createdMaps          ProcedureMap[]       @relation("MapCreatedBy")
   createdCatalog       CatalogProcedure[]   @relation("CatalogCreatedBy")
   createdProtocols     Protocol[]           @relation("ProtocolCreatedBy")
+  uploadedPhotos       PatientPhoto[]
+  createdIncidents     Incident[]           @relation("IncidentCreatedBy")
+  createdIncidentUpdates IncidentUpdate[]
 
   @@map("users")
 }
@@ -373,6 +392,9 @@ model Patient {
   facialPlannings FacialPlanning[]
   proposals       Proposal[]
   procedureMaps   ProcedureMap[]
+  photos          PatientPhoto[]
+  incidents       Incident[]
+  postCareFollowUps PostCareFollowUp[]
 
   @@unique([clinicId, cpf])
   @@index([clinicId])
@@ -458,6 +480,9 @@ model ProcedureRecord {
   inventoryOutputs InventoryMovement[]
   ledgerEntry      LedgerEntry?
   patientReturn    PatientReturn?
+  photos           PatientPhoto[]
+  incidents        Incident[]
+  postCareFollowUps PostCareFollowUp[]
 
   @@index([clinicId])
   @@index([clinicId, performedAt])
@@ -866,4 +891,167 @@ model ProtocolStep {
 
   @@index([protocolId])
   @@map("protocol_steps")
+}
+
+// ------------------------------------
+// FASE 5: STORAGE, PHOTOS, INCIDENTS & POST-CARE
+// ------------------------------------
+
+enum PhotoType {
+  BEFORE
+  AFTER
+  EVOLUTION
+  CLINICAL
+  INCIDENT
+  OTHER
+}
+
+enum IncidentSeverity {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  MONITORING
+  RESOLVED
+  ARCHIVED
+}
+
+enum FollowUpStage {
+  H24
+  DAY_7
+  DAY_15
+}
+
+enum FollowUpStatus {
+  PENDING
+  SENT
+  COMPLETED
+  CANCELLED
+  OVERDUE
+}
+
+model PatientPhoto {
+  id                String    @id @default(uuid())
+  clinicId          String    @map("clinic_id")
+  patientId         String    @map("patient_id")
+  procedureRecordId String?   @map("procedure_record_id")
+
+  storageKey       String    @map("storage_key")
+  originalFileName String    @map("original_file_name")
+  mimeType         String    @map("mime_type")
+  fileSize         Int       @map("file_size")
+
+  type             PhotoType @default(CLINICAL)
+  bodyRegion       String?   @map("body_region")
+  notes            String?   @db.Text
+
+  capturedAt       DateTime  @default(now()) @map("captured_at")
+  uploadedByUserId String?   @map("uploaded_by_user_id")
+
+  createdAt        DateTime  @default(now()) @map("created_at")
+  archivedAt       DateTime? @map("archived_at")
+
+  clinic          Clinic           @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  patient         Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedureRecord ProcedureRecord? @relation(fields: [procedureRecordId], references: [id], onDelete: SetNull)
+  uploadedByUser  User?            @relation(fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  incidentPhotos  IncidentPhoto[]
+
+  @@index([clinicId, patientId])
+  @@index([clinicId, type])
+  @@map("patient_photos")
+}
+
+model Incident {
+  id                String           @id @default(uuid())
+  clinicId          String           @map("clinic_id")
+  patientId         String           @map("patient_id")
+  procedureRecordId String?          @map("procedure_record_id")
+
+  type              String
+  severity          IncidentSeverity @default(MODERATE)
+  status            IncidentStatus   @default(OPEN)
+
+  report            String           @db.Text
+  identifiedAt      DateTime         @default(now()) @map("identified_at")
+  resolvedAt        DateTime?        @map("resolved_at")
+
+  createdByUserId   String?          @map("created_by_user_id")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  archivedAt        DateTime?        @map("archived_at")
+
+  clinic          Clinic           @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  patient         Patient          @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  procedureRecord ProcedureRecord? @relation(fields: [procedureRecordId], references: [id], onDelete: SetNull)
+  createdByUser   User?            @relation("IncidentCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  updates         IncidentUpdate[]
+  incidentPhotos  IncidentPhoto[]
+
+  @@index([clinicId, patientId])
+  @@index([clinicId, status])
+  @@map("incidents")
+}
+
+model IncidentUpdate {
+  id              String          @id @default(uuid())
+  clinicId        String          @map("clinic_id")
+  incidentId      String          @map("incident_id")
+
+  status          IncidentStatus?
+  note            String          @db.Text
+
+  createdByUserId String?         @map("created_by_user_id")
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  clinic        Clinic   @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  incident      Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  createdByUser User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([incidentId])
+  @@map("incident_updates")
+}
+
+model IncidentPhoto {
+  id             String @id @default(uuid())
+  incidentId     String @map("incident_id")
+  patientPhotoId String @map("patient_photo_id")
+
+  incident     Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  patientPhoto PatientPhoto @relation(fields: [patientPhotoId], references: [id], onDelete: Cascade)
+
+  @@unique([incidentId, patientPhotoId])
+  @@map("incident_photos")
+}
+
+model PostCareFollowUp {
+  id                String         @id @default(uuid())
+  clinicId          String         @map("clinic_id")
+  patientId         String         @map("patient_id")
+  procedureRecordId String         @map("procedure_record_id")
+
+  stage             FollowUpStage
+  scheduledFor      DateTime       @map("scheduled_for")
+  status            FollowUpStatus @default(PENDING)
+
+  sentAt            DateTime?      @map("sent_at")
+  completedAt       DateTime?      @map("completed_at")
+  cancelledAt       DateTime?      @map("cancelled_at")
+
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+
+  clinic          Clinic          @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  patient         Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedureRecord ProcedureRecord @relation(fields: [procedureRecordId], references: [id], onDelete: Cascade)
+
+  @@unique([procedureRecordId, stage])
+  @@index([clinicId, scheduledFor])
+  @@index([clinicId, status])
+  @@map("post_care_follow_ups")
 }

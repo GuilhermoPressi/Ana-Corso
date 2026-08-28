@@ -46,6 +46,12 @@ const filters: { id: "abertos" | "todos" | IncidentStatus; label: string }[] = [
 
 export default function Intercorrencias() {
   const incidents = useIncidentStore((state) => state.incidents)
+  const fetchIncidents = useIncidentStore((state) => state.fetchIncidents)
+
+  useEffect(() => {
+    fetchIncidents()
+  }, [fetchIncidents])
+
   const [filter, setFilter] = useState<(typeof filters)[number]["id"]>("abertos")
 
   const visible = useMemo(() => {
