@@ -43,7 +43,7 @@ export function Header({
 
   const displayName = user?.name || profile.professional || "Usuário"
   const displayClinic = clinic?.name || profile.name
-  const isAdmin = user?.systemRole === "admin"
+  const isAdmin = user?.systemRole?.toUpperCase() === "ADMIN"
 
   const handleLogout = async () => {
     await logout()
