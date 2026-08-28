@@ -8,7 +8,6 @@ import {
 import { type Lead, type LeadStage } from "@/data/leads"
 import { CLINIC_TODAY, isCurrentMonth } from "@/lib/clinic"
 
-
 export type NewPatientInput = {
   name: string
   phone: string
@@ -32,21 +31,30 @@ export type NewLeadInput = {
   note?: string
 }
 
+export type PaginationMeta = {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
 type PatientState = {
   patients: Patient[]
   leads: Lead[]
-  /**
-   * Pacientes novas do mês que não estão individualizadas na lista — o histórico
-   * completo da clínica não cabe no mock. As cadastradas na sessão somam a isto.
-   */
+  loading: boolean
+  error: string | null
+  pagination: PaginationMeta
   historicalNewPatients: number
 
-  addPatient: (input: NewPatientInput) => Patient
+  loadPatients: (params?: { search?: string; status?: string; page?: number; limit?: number }) => Promise<void>
+  fetchPatient: (id: string) => Promise<Patient | null>
+  addPatient: (input: NewPatientInput) => Promise<Patient | null>
+  updatePatientApi: (id: string, patch: Partial<Patient>) => Promise<boolean>
+  archivePatient: (id: string) => Promise<boolean>
+  restorePatient: (id: string) => Promise<boolean>
+  
+  // Legacy / Store Operations
   updatePatient: (id: string, patch: Partial<Patient>) => void
-  /**
-   * Lança um procedimento na ficha: histórico, linha do tempo, retorno
-   * programado e os totais da paciente, tudo de uma vez.
-   */
   registerProcedure: (input: {
     patientId: string
     record: Omit<ProcedureRecord, "id">
@@ -55,50 +63,63 @@ type PatientState = {
   }) => void
 
   addLead: (input: NewLeadInput) => Lead
-  /** Lembrete de recontato comercial gerado pela automação. */
   addScheduledLead: (input: NewLeadInput & { scheduledFor: string }) => Lead
   moveLead: (id: string, stage: LeadStage, toIndex?: number) => void
   updateLead: (id: string, patch: Partial<Lead>) => void
   removeLead: (id: string) => void
-  /** Fecha o lead e cria a paciente correspondente, devolvendo o id da nova ficha. */
-  convertLead: (id: string) => string | undefined
+  convertLead: (id: string) => Promise<string | undefined>
 }
 
-
-
-/** Acumula o consumo do produto na ficha, em vez de criar linhas repetidas. */
-function upsertProduct(
-  products: Patient["products"],
-  record: Omit<ProcedureRecord, "id">,
-  newId: string,
-) {
-  const [name, brand = "—"] = record.product.split(" · ")
-  const existing = products.find((item) => item.product === name)
-
-  if (!existing) {
-    return [
-      {
-        id: newId,
-        product: name,
-        brand,
-        totalQuantity: record.quantity,
-        lastUse: record.date,
-        sessions: 1,
-      },
-      ...products,
-    ]
+export function mapDbPatientToFrontend(dbP: any): Patient {
+  const statusMap: Record<string, PatientStatus> = {
+    ACTIVE: "ativa",
+    ATTENTION: "atencao",
+    INACTIVE: "inativa",
+    ARCHIVED: "inativa",
   }
 
-  return products.map((item) =>
-    item.product === name
-      ? {
-          ...item,
-          totalQuantity: `${item.totalQuantity} + ${record.quantity}`,
-          lastUse: record.date,
-          sessions: item.sessions + 1,
-        }
-      : item,
-  )
+  const birthDateFormatted = dbP.birthDate
+    ? new Date(dbP.birthDate).toISOString().split("T")[0]
+    : ""
+
+  const sinceFormatted = dbP.createdAt
+    ? new Date(dbP.createdAt).toISOString().split("T")[0]
+    : CLINIC_TODAY
+
+  return {
+    id: dbP.id,
+    name: dbP.name,
+    birthDate: birthDateFormatted,
+    phone: dbP.phone || "",
+    email: dbP.email || "",
+    city: dbP.city || "",
+    since: sinceFormatted,
+    status: statusMap[dbP.status] || "ativa",
+    lastVisit: sinceFormatted,
+    totalSpent: 0,
+    sessions: 0,
+    ticket: 0,
+    tags: ["Paciente cadastrada"],
+    mainProcedure: dbP.mainProcedure || "Procedimento Geral",
+    professional: dbP.responsibleProfessional || "Dra. Profissional",
+    origin: (dbP.leadSource as Patient["origin"]) || "Recepção",
+    skinType: dbP.clinicalProfile?.skinType || "A definir na anamnese",
+    allergies: dbP.clinicalProfile?.allergies || "Nenhuma relatada",
+    observations: dbP.clinicalProfile?.clinicalNotes || "",
+    procedures: [],
+    timeline: [
+      {
+        id: `t-${dbP.id}`,
+        date: sinceFormatted,
+        kind: "mensagem",
+        title: "Cadastro no PostgreSQL",
+        description: `Ficha registrada no banco real · origem ${dbP.leadSource || "Recepção"}.`,
+      },
+    ],
+    returns: [],
+    photos: [],
+    products: [],
+  }
 }
 
 let sequence = 0
@@ -107,51 +128,166 @@ function nextId(prefix: string) {
   return `${prefix}-${sequence}`
 }
 
-
 export const usePatientStore = create<PatientState>((set, get) => ({
   patients: [],
   leads: [],
+  loading: false,
+  error: null,
+  pagination: { page: 1, limit: 25, total: 0, totalPages: 0 },
   historicalNewPatients: 0,
 
+  loadPatients: async (params) => {
+    set({ loading: true, error: null })
+    try {
+      const q = new URLSearchParams()
+      if (params?.search) q.append("search", params.search)
+      if (params?.status) q.append("status", params.status)
+      if (params?.page) q.append("page", params.page.toString())
+      if (params?.limit) q.append("limit", params.limit.toString())
 
-  addPatient: (input) => {
-    const patient: Patient = {
-      id: nextId("p"),
-      name: input.name.trim(),
-      birthDate: input.birthDate,
-      phone: input.phone,
-      email: input.email,
-      city: input.city,
-      since: CLINIC_TODAY,
-      status: "ativa",
-      lastVisit: CLINIC_TODAY,
-      totalSpent: 0,
-      sessions: 0,
-      ticket: 0,
-      tags: ["Primeira consulta"],
-      mainProcedure: input.mainProcedure,
-      professional: input.professional,
-      origin: input.origin,
-      skinType: input.skinType,
-      allergies: input.allergies,
-      observations: input.observations,
-      procedures: [],
-      timeline: [
-        {
-          id: nextId("t"),
-          date: CLINIC_TODAY,
-          kind: "mensagem",
-          title: "Cadastro criado",
-          description: `Ficha aberta na recepção · origem ${input.origin}.`,
-        },
-      ],
-      returns: [],
-      photos: [],
-      products: [],
+      const res = await fetch(`/api/patients?${q.toString()}`)
+      if (!res.ok) {
+        set({ loading: false, error: "Erro ao carregar pacientes do servidor." })
+        return
+      }
+
+      const data = await res.json()
+      const mapped = (data.items || []).map(mapDbPatientToFrontend)
+
+      set({
+        patients: mapped,
+        pagination: data.pagination || { page: 1, limit: 25, total: mapped.length, totalPages: 1 },
+        loading: false,
+      })
+    } catch {
+      set({ loading: false, error: "Erro de conexão." })
     }
+  },
 
-    set((state) => ({ patients: [patient, ...state.patients] }))
-    return patient
+  fetchPatient: async (id) => {
+    try {
+      const res = await fetch(`/api/patients/${id}`)
+      if (!res.ok) return null
+      const data = await res.json()
+      const mapped = mapDbPatientToFrontend(data.patient)
+      
+      // Update local state if present
+      set((state) => ({
+        patients: state.patients.some((p) => p.id === id)
+          ? state.patients.map((p) => (p.id === id ? mapped : p))
+          : [mapped, ...state.patients],
+      }))
+      return mapped
+    } catch {
+      return null
+    }
+  },
+
+  addPatient: async (input) => {
+    set({ loading: true, error: null })
+    try {
+      const res = await fetch("/api/patients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: input.name,
+          phone: input.phone,
+          email: input.email,
+          city: input.city,
+          birthDate: input.birthDate,
+          mainProcedure: input.mainProcedure,
+          responsibleProfessional: input.professional,
+          leadSource: input.origin,
+          skinType: input.skinType,
+          allergies: input.allergies,
+          clinicalNotes: input.observations,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        set({ loading: false, error: data.error?.message || "Erro ao criar paciente." })
+        return null
+      }
+
+      const newPatient = mapDbPatientToFrontend(data.patient)
+      set((state) => ({
+        patients: [newPatient, ...state.patients],
+        loading: false,
+      }))
+
+      return newPatient
+    } catch (err: any) {
+      set({ loading: false, error: err.message || "Erro de conexão." })
+      return null
+    }
+  },
+
+  updatePatientApi: async (id, patch) => {
+    set({ loading: true })
+    try {
+      const res = await fetch(`/api/patients/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: patch.name,
+          phone: patch.phone,
+          email: patch.email,
+          city: patch.city,
+          birthDate: patch.birthDate,
+          mainProcedure: patch.mainProcedure,
+          responsibleProfessional: patch.professional,
+          skinType: patch.skinType,
+          allergies: patch.allergies,
+          clinicalNotes: patch.observations,
+        }),
+      })
+
+      if (!res.ok) {
+        set({ loading: false })
+        return false
+      }
+
+      const data = await res.json()
+      const updated = mapDbPatientToFrontend(data.patient)
+
+      set((state) => ({
+        patients: state.patients.map((p) => (p.id === id ? updated : p)),
+        loading: false,
+      }))
+      return true
+    } catch {
+      set({ loading: false })
+      return false
+    }
+  },
+
+  archivePatient: async (id) => {
+    try {
+      const res = await fetch(`/api/patients/${id}/archive`, { method: "POST" })
+      if (res.ok) {
+        set((state) => ({
+          patients: state.patients.filter((p) => p.id !== id),
+        }))
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
+  },
+
+  restorePatient: async (id) => {
+    try {
+      const res = await fetch(`/api/patients/${id}/restore`, { method: "POST" })
+      if (res.ok) {
+        await get().loadPatients()
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
   },
 
   updatePatient: (id, patch) =>
@@ -200,7 +336,6 @@ export const usePatientStore = create<PatientState>((set, get) => ({
             },
             ...patient.returns,
           ],
-          products: upsertProduct(patient.products, record, nextId("pu")),
         }
       }),
     })),
@@ -256,8 +391,6 @@ export const usePatientStore = create<PatientState>((set, get) => ({
 
       if (toIndex === undefined) return { leads: [...rest, moved] }
 
-      // O índice recebido é relativo à coluna de destino; converte para o índice
-      // absoluto na lista única que a store mantém.
       const targetIds = rest.filter((item) => item.stage === stage).map((item) => item.id)
       const anchorId = targetIds[toIndex]
       const absolute = anchorId ? rest.findIndex((item) => item.id === anchorId) : rest.length
@@ -274,11 +407,12 @@ export const usePatientStore = create<PatientState>((set, get) => ({
 
   removeLead: (id) => set((state) => ({ leads: state.leads.filter((lead) => lead.id !== id) })),
 
-  convertLead: (id) => {
+  // Refinement 15: Convert Lead to Patient calls REAL API POST /api/patients
+  convertLead: async (id) => {
     const lead = get().leads.find((item) => item.id === id)
-    if (!lead) return undefined
+    if (!lead || lead.stage === "fechado") return undefined
 
-    const patient = get().addPatient({
+    const newPatient = await get().addPatient({
       name: lead.name,
       phone: lead.phone,
       email: "",
@@ -295,16 +429,13 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       })}.`,
     })
 
-    get().moveLead(id, "fechado")
-    return patient.id
+    if (newPatient) {
+      get().moveLead(id, "fechado")
+      return newPatient.id
+    }
+    return undefined
   },
 }))
-
-
-
-/* ------------------------------------------------------------------ *
- * Seletores derivados
- * ------------------------------------------------------------------ */
 
 export function countByStatus(patients: Patient[]) {
   return {
@@ -315,7 +446,6 @@ export function countByStatus(patients: Patient[]) {
   } satisfies Record<"todas" | PatientStatus, number>
 }
 
-/** Pacientes que abriram ficha no mês corrente, somando o histórico não individualizado. */
 export function selectNewPatientsThisMonth(state: PatientState) {
   return state.historicalNewPatients + state.patients.filter((p) => isCurrentMonth(p.since)).length
 }
@@ -324,10 +454,8 @@ export function selectLeadsByStage(leads: Lead[], stage: LeadStage) {
   return leads.filter((lead) => lead.stage === stage)
 }
 
-/** Soma das propostas que ainda podem virar receita (exclui fechado e perdido). */
 const openStages: LeadStage[] = ["novos-contatos", "avaliacao-agendada", "proposta-enviada"]
 
-/** Um recontato agendado para o futuro ainda não é proposta em aberto. */
 export function isActiveProposal(lead: Lead) {
   if (!openStages.includes(lead.stage)) return false
   return !lead.scheduledFor || lead.scheduledFor <= CLINIC_TODAY

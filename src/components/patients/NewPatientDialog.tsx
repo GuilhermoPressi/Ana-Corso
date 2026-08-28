@@ -56,35 +56,43 @@ export function NewPatientDialog({ trigger }: { trigger?: ReactNode }) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<NewPatientInput>(emptyForm)
   const [touched, setTouched] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   const addPatient = usePatientStore((state) => state.addPatient)
+  const storeError = usePatientStore((state) => state.error)
   const navigate = useNavigate()
 
-  const nameError = form.name.trim().length < 3
+  const nameError = form.name.trim().length < 2
   const phoneError = form.phone.trim().length < 8
 
   function set<K extends keyof NewPatientInput>(key: K, value: NewPatientInput[K]) {
     setForm((current) => ({ ...current, [key]: value }))
   }
 
-  function submit() {
+  async function submit() {
     setTouched(true)
     if (nameError || phoneError) return
 
-    const patient = addPatient({
+    setSubmitting(true)
+    const patient = await addPatient({
       ...form,
       birthDate: form.birthDate || "1990-01-01",
       observations: form.observations.trim() || "Sem observações registradas na abertura da ficha.",
     })
+    setSubmitting(false)
 
-    setOpen(false)
-    setForm(emptyForm)
-    setTouched(false)
+    if (patient) {
+      setOpen(false)
+      setForm(emptyForm)
+      setTouched(false)
 
-    toast.success(`${patient.name} foi cadastrada`, {
-      description: "A ficha já está disponível e os números do painel foram atualizados.",
-      action: { label: "Abrir ficha", onClick: () => navigate(`/pacientes/${patient.id}`) },
-    })
+      toast.success(`${patient.name} foi cadastrada com sucesso!`, {
+        description: "A ficha já está gravada no banco de dados e disponível para atendimento.",
+        action: { label: "Abrir ficha", onClick: () => navigate(`/pacientes/${patient.id}`) },
+      })
+    } else {
+      toast.error(storeError || "Falha ao cadastrar paciente no banco de dados.")
+    }
   }
 
   return (
@@ -107,14 +115,14 @@ export function NewPatientDialog({ trigger }: { trigger?: ReactNode }) {
         <DialogHeader>
           <DialogTitle className="font-display">Nova paciente</DialogTitle>
           <DialogDescription>
-            O essencial para abrir a ficha. O restante você completa na anamnese.
+            Preencha os dados cadastrais da paciente para abrir a ficha no PostgreSQL.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-1 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <Label htmlFor="np-name" className="text-[13px]">
-              Nome completo
+              Nome completo *
             </Label>
             <Input
               id="np-name"
@@ -131,7 +139,7 @@ export function NewPatientDialog({ trigger }: { trigger?: ReactNode }) {
 
           <div>
             <Label htmlFor="np-phone" className="text-[13px]">
-              Telefone
+              Telefone *
             </Label>
             <Input
               id="np-phone"
@@ -142,7 +150,7 @@ export function NewPatientDialog({ trigger }: { trigger?: ReactNode }) {
               className="mt-1.5"
             />
             {touched && phoneError && (
-              <p className="mt-1.5 text-[11px] text-destructive">Informe um telefone para contato.</p>
+              <p className="mt-1.5 text-[11px] text-destructive">Informe um telefone válido para contato.</p>
             )}
           </div>
 
@@ -162,7 +170,7 @@ export function NewPatientDialog({ trigger }: { trigger?: ReactNode }) {
 
           <div>
             <Label htmlFor="np-birth" className="text-[13px]">
-              Nascimento
+              Data de Nascimento
             </Label>
             <Input
               id="np-birth"
@@ -282,8 +290,8 @@ export function NewPatientDialog({ trigger }: { trigger?: ReactNode }) {
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancelar
           </Button>
-          <Button onClick={submit} className="rounded-full">
-            <UserPlus /> Cadastrar paciente
+          <Button onClick={submit} disabled={submitting} className="rounded-full">
+            <UserPlus /> {submitting ? "Cadastrando..." : "Cadastrar paciente"}
           </Button>
         </DialogFooter>
       </DialogContent>

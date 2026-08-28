@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Check, Save, User } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,15 +9,28 @@ import { Label } from "@/components/ui/label"
 import { useClinicStore } from "@/stores/useClinicStore"
 
 export default function Configuracoes() {
-  const { profile, update } = useClinicStore()
+  const { profile, fetchProfile, update, loading, error } = useClinicStore()
   const [form, setForm] = useState({ ...profile })
   const [saved, setSaved] = useState(false)
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchProfile()
+  }, [fetchProfile])
+
+  useEffect(() => {
+    setForm({ ...profile })
+  }, [profile])
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
-    update(form)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    const success = await update(form)
+    if (success) {
+      setSaved(true)
+      toast.success("Configurações da clínica salvas no banco de dados com sucesso!")
+      setTimeout(() => setSaved(false), 3000)
+    } else {
+      toast.error(error || "Erro ao salvar configurações.")
+    }
   }
 
   return (
@@ -125,9 +139,9 @@ export default function Configuracoes() {
             </div>
 
             <div className="flex items-center gap-3 pt-2">
-              <Button type="submit" className="gap-2">
+              <Button type="submit" disabled={loading} className="gap-2">
                 {saved ? <Check className="size-4" /> : <Save className="size-4" />}
-                {saved ? "Alterações Salvas!" : "Salvar Alterações"}
+                {saved ? "Alterações Salvas!" : loading ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </div>
           </form>

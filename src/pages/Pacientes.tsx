@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ArrowUpDown, ChevronRight, Filter, MessageCircle, Search, X } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
@@ -51,11 +51,15 @@ type SortId = (typeof sortOptions)[number]["id"]
 
 export default function Pacientes() {
   const navigate = useNavigate()
-  const patients = usePatientStore((state) => state.patients)
+  const { patients, loadPatients, loading } = usePatientStore()
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState<"todas" | PatientStatus>("todas")
   const [procedure, setProcedure] = useState(procedureFilters[0])
   const [sort, setSort] = useState<SortId>("recentes")
+
+  useEffect(() => {
+    loadPatients()
+  }, [loadPatients])
 
   const counts = useMemo(() => countByStatus(patients), [patients])
 
@@ -99,7 +103,7 @@ export default function Pacientes() {
     <div className="mx-auto max-w-[1400px]">
       <PageHeader
         title="Pacientes"
-        description={`${counts.todas} pacientes cadastradas · ${counts.ativa} ativas neste trimestre`}
+        description={`${counts.todas} pacientes cadastradas · ${counts.ativa} ativas`}
         actions={
           <>
             <Button variant="outline" size="sm">
@@ -117,7 +121,7 @@ export default function Pacientes() {
             { id: "todas", label: "Todas as pacientes", value: counts.todas, tone: "text-foreground" },
             { id: "ativa", label: "Ativas", value: counts.ativa, tone: "text-success" },
             { id: "atencao", label: "Precisam de atenção", value: counts.atencao, tone: "text-warning" },
-            { id: "inativa", label: "Inativas há 6+ meses", value: counts.inativa, tone: "text-muted-foreground" },
+            { id: "inativa", label: "Inativas", value: counts.inativa, tone: "text-muted-foreground" },
           ] as const
         ).map((item) => (
           <button key={item.id} onClick={() => setStatus(item.id)} className="text-left">
@@ -214,80 +218,90 @@ export default function Pacientes() {
             </TableHeader>
 
             <TableBody>
-              {filtered.map((patient) => (
-                <TableRow
-                  key={patient.id}
-                  onClick={() => navigate(`/pacientes/${patient.id}`)}
-                  className="cursor-pointer border-border/60"
-                >
-                  <TableCell className="pl-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="size-9">
-                        <AvatarFallback className="bg-primary/10 text-[11px] font-semibold text-primary">
-                          {initials(patient.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="truncate text-[13px] font-semibold">{patient.name}</p>
-                        <p className="truncate text-[11px] text-muted-foreground">
-                          {patient.phone} · {patient.city}
-                        </p>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-12 text-xs text-muted-foreground">
+                    Carregando pacientes do banco de dados...
+                  </TableCell>
+                </TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-12">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <div className="grid size-12 place-items-center rounded-2xl bg-accent">
+                        <Search className="size-5 text-primary" />
+                      </div>
+                      <p className="mt-4 font-display text-[15px] font-semibold">Nenhuma paciente cadastrada ainda</p>
+                      <p className="mt-1 max-w-sm text-[13px] text-muted-foreground">
+                        Cadastre sua primeira paciente para começar o acompanhamento na clínica.
+                      </p>
+                      <div className="mt-4">
+                        <NewPatientDialog />
                       </div>
                     </div>
                   </TableCell>
-
-                  <TableCell>
-                    <Badge variant="outline" className={cn("text-[10px]", statusStyles[patient.status])}>
-                      {statusLabels[patient.status]}
-                    </Badge>
-                  </TableCell>
-
-                  <TableCell>
-                    <p className="text-[13px]">{patient.mainProcedure}</p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">{patient.professional}</p>
-                  </TableCell>
-
-                  <TableCell className="text-[13px] tabular-nums">{formatDate(patient.lastVisit)}</TableCell>
-
-                  <TableCell>
-                    {patient.nextReturn ? (
-                      <span className="text-[13px] tabular-nums">{formatDate(patient.nextReturn)}</span>
-                    ) : (
-                      <span className="text-[13px] text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-
-                  <TableCell className="text-right text-[13px] tabular-nums">{patient.sessions}</TableCell>
-
-                  <TableCell className="text-right text-[13px] font-semibold tabular-nums">
-                    {formatCurrency(patient.totalSpent)}
-                  </TableCell>
-
-                  <TableCell className="pr-4">
-                    <ChevronRight className="size-4 text-muted-foreground" />
-                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filtered.map((patient) => (
+                  <TableRow
+                    key={patient.id}
+                    onClick={() => navigate(`/pacientes/${patient.id}`)}
+                    className="cursor-pointer border-border/60"
+                  >
+                    <TableCell className="pl-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="size-9">
+                          <AvatarFallback className="bg-primary/10 text-[11px] font-semibold text-primary">
+                            {initials(patient.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="truncate text-[13px] font-semibold">{patient.name}</p>
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {patient.phone} · {patient.city}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge variant="outline" className={cn("text-[10px]", statusStyles[patient.status])}>
+                        {statusLabels[patient.status]}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell>
+                      <p className="text-[13px]">{patient.mainProcedure}</p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">{patient.professional}</p>
+                    </TableCell>
+
+                    <TableCell className="text-[13px] tabular-nums">{formatDate(patient.lastVisit)}</TableCell>
+
+                    <TableCell>
+                      {patient.nextReturn ? (
+                        <span className="text-[13px] tabular-nums">{formatDate(patient.nextReturn)}</span>
+                      ) : (
+                        <span className="text-[13px] text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+
+                    <TableCell className="text-right text-[13px] tabular-nums">{patient.sessions}</TableCell>
+
+                    <TableCell className="text-right text-[13px] font-semibold tabular-nums">
+                      {formatCurrency(patient.totalSpent)}
+                    </TableCell>
+
+                    <TableCell className="pr-4">
+                      <ChevronRight className="size-4 text-muted-foreground" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
 
-        {filtered.length === 0 && (
-          <div className="flex flex-col items-center px-6 py-16 text-center">
-            <div className="grid size-12 place-items-center rounded-2xl bg-accent">
-              <Search className="size-5 text-primary" />
-            </div>
-            <p className="mt-4 font-display text-[15px] font-semibold">Nenhuma paciente encontrada</p>
-            <p className="mt-1 max-w-sm text-[13px] text-muted-foreground">
-              Ajuste os filtros ou cadastre uma nova paciente para começar o acompanhamento.
-            </p>
-            <Button variant="outline" size="sm" className="mt-5" onClick={clearFilters}>
-              Limpar filtros
-            </Button>
-          </div>
-        )}
-
-        {filtered.length > 0 && (
+        {!loading && filtered.length > 0 && (
           <div className="flex items-center justify-between border-t border-border/70 bg-muted/25 px-4 py-3 text-[12px] text-muted-foreground">
             <span>
               Exibindo {filtered.length} de {patients.length} pacientes

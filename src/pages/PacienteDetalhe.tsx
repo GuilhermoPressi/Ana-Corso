@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import {
   ArrowLeft,
   CalendarPlus,
@@ -37,7 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { PatientStatus, ReturnRecord, TimelineKind } from "@/data/patients"
+import type { Patient, PatientStatus, ReturnRecord, TimelineKind } from "@/data/patients"
 import { usePatientStore } from "@/stores/usePatientStore"
 import { CLINIC_TODAY } from "@/lib/clinic"
 import {
@@ -98,9 +99,31 @@ function InfoRow({ icon: Icon, label, value }: { icon: typeof Phone; label: stri
 export default function PacienteDetalhe() {
   const { patientId } = useParams()
   const navigate = useNavigate()
-  const patient = usePatientStore((state) =>
+  const fetchPatient = usePatientStore((state) => state.fetchPatient)
+  const storePatient = usePatientStore((state) =>
     patientId ? state.patients.find((item) => item.id === patientId) : undefined,
   )
+
+  const [patient, setPatient] = useState<Patient | undefined>(storePatient)
+  const [loading, setLoading] = useState(!storePatient)
+
+  useEffect(() => {
+    if (patientId) {
+      fetchPatient(patientId).then((fetched) => {
+        if (fetched) setPatient(fetched)
+        setLoading(false)
+      })
+    }
+  }, [patientId, fetchPatient])
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-md py-16 text-center">
+        <div className="size-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
+        <p className="mt-4 text-xs font-medium text-muted-foreground">Carregando prontuário do banco de dados...</p>
+      </div>
+    )
+  }
 
   if (!patient) {
     return (
@@ -110,7 +133,7 @@ export default function PacienteDetalhe() {
         </div>
         <h1 className="mt-5 font-display text-xl font-semibold">Paciente não encontrada</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Este cadastro pode ter sido removido ou o endereço está incorreto.
+          Este cadastro não existe ou pertence a outra clínica.
         </p>
         <Button asChild className="mt-6 rounded-full">
           <Link to="/pacientes">Voltar para a lista</Link>
@@ -126,7 +149,6 @@ export default function PacienteDetalhe() {
   const birthdayThisMonth =
     patient.birthDate.slice(5, 7) === CLINIC_TODAY.slice(5, 7) && patient.sessions >= 0
 
-  // O rascunho é escolhido pelo contexto e vai invisível no link.
   const whatsappMessage = contextualMessage({
     vars: {
       firstName: firstNameOf(patient.name),

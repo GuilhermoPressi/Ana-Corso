@@ -6,11 +6,12 @@ import Fastify from "fastify"
 import { config } from "./config.js"
 import { adminRoutes } from "./routes/admin.js"
 import { authRoutes } from "./routes/auth.js"
+import { clinicRoutes } from "./routes/clinic.js"
 import { healthRoutes } from "./routes/health.js"
+import { patientRoutes } from "./routes/patients.js"
 
 export function buildApp() {
   const app = Fastify({
-    // Refinement 8: Fastify trustProxy for Nginx / EasyPanel reverse proxy
     trustProxy: true,
     logger:
       config.NODE_ENV === "development"
@@ -74,6 +75,8 @@ export function buildApp() {
   app.register(healthRoutes, { prefix: "/api" })
   app.register(authRoutes, { prefix: "/api" })
   app.register(adminRoutes, { prefix: "/api" })
+  app.register(clinicRoutes, { prefix: "/api" })
+  app.register(patientRoutes, { prefix: "/api" })
 
   return app
 }
