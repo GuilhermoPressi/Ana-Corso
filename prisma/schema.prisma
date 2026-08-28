@@ -874,9 +874,10 @@ model CatalogProcedure {
   updatedAt            DateTime  @updatedAt @map("updated_at")
   archivedAt           DateTime? @map("archived_at")
 
-  clinic        Clinic         @relation(fields: [clinicId], references: [id], onDelete: Restrict)
-  createdByUser User?          @relation("CatalogCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  clinic        Clinic                 @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  createdByUser User?                  @relation("CatalogCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   protocolSteps ProtocolStep[]
+  treatmentPlanItems PatientTreatmentPlanItem[]
 
   @@index([clinicId])
   @@map("catalog_procedures")
@@ -894,9 +895,10 @@ model Protocol {
   updatedAt       DateTime  @updatedAt @map("updated_at")
   archivedAt      DateTime? @map("archived_at")
 
-  clinic        Clinic         @relation(fields: [clinicId], references: [id], onDelete: Restrict)
-  createdByUser User?          @relation("ProtocolCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  clinic        Clinic                 @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  createdByUser User?                  @relation("ProtocolCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   steps         ProtocolStep[]
+  treatmentPlanItems PatientTreatmentPlanItem[]
 
   @@index([clinicId])
   @@map("protocols")
