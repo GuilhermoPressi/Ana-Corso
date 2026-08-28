@@ -209,6 +209,9 @@ export const useProcedureMapStore = create<ProcedureMapState>((set, get) => ({
       return false
     } catch {
       return false
+    }
+  },
+
   removeMap: (id) =>
     set((state) => ({ maps: state.maps.filter((item) => item.id !== id) })),
 }))
