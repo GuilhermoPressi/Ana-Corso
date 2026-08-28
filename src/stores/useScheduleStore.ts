@@ -87,7 +87,7 @@ export function mapDbEventToFrontend(dbE: any): ScheduleEvent {
   }
 }
 
-export const useScheduleStore = create<ScheduleState>((set, get) => ({
+export const useScheduleStore = create<ScheduleState>((set) => ({
   events: [],
   loading: false,
   error: null,

@@ -72,11 +72,11 @@ export function NewProductDialog() {
     setForm((current) => ({ ...current, [key]: value }))
   }
 
-  function submit() {
+  async function submit() {
     setTouched(true)
     if (nameError || costError || contentError || expiryError || lotError) return
 
-    const product = addProduct({
+    const product = await addProduct({
       name: form.name,
       brand: form.brand.trim() || "Sem marca",
       category: form.category,
@@ -91,13 +91,15 @@ export function NewProductDialog() {
       supplier: form.supplier,
     })
 
-    toast.success(`${product.name} entrou no estoque`, {
-      description: `Lote ${product.lot} · ${product.quantity.toLocaleString("pt-BR")} ${product.contentUnit} disponíveis.`,
-    })
+    if (product) {
+      toast.success(`${product.name} entrou no estoque`, {
+        description: `Lote ${product.lot} · ${product.quantity.toLocaleString("pt-BR")} ${product.contentUnit} disponíveis.`,
+      })
 
-    setForm(empty)
-    setTouched(false)
-    setOpen(false)
+      setForm(empty)
+      setTouched(false)
+      setOpen(false)
+    }
   }
 
   return (

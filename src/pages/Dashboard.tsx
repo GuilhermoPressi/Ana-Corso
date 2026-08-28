@@ -19,6 +19,7 @@ import { useInventoryStore } from "@/stores/useInventoryStore"
 export default function Dashboard() {
   const ledger = useFinanceStore((state) => state.ledger)
   const baseline = useFinanceStore((state) => state.baseline)
+  const operational = useFinanceStore((state) => state.operational)
   const fetchEntries = useFinanceStore((state) => state.fetchEntries)
   const newPatients = usePatientStore(selectNewPatientsThisMonth)
   const patients = usePatientStore((state) => state.patients)
