@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { Bell, LogOut, Menu, Plus, Search, ShieldAlert } from "lucide-react"
 
 import { QuickReferenceSheet } from "@/components/clinical/QuickReferenceSheet"

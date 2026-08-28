@@ -1,6 +1,5 @@
 import { useEffect } from "react"
 import { Navigate, Outlet } from "react-router-dom"
-import { Skeleton } from "@/components/ui/skeleton"
 import { useAuthStore } from "@/stores/useAuthStore"
 
 export function ProtectedRoute() {
