@@ -1,0 +1,170 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ClinicStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  PENDING
+  DELETED
+}
+
+enum SystemRole {
+  USER
+  ADMIN
+}
+
+enum ClinicRole {
+  OWNER
+  ADMIN
+  PROFESSIONAL
+  RECEPTIONIST
+}
+
+enum AuditActorType {
+  ADMIN
+  SYSTEM
+}
+
+enum LoginEventType {
+  REGISTER
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  LOGIN_FAILED_BLOCKED
+  LOGOUT
+}
+
+enum AdminAuditAction {
+  USER_BLOCKED
+  USER_UNBLOCKED
+  SESSIONS_REVOKED
+  USER_PROMOTED
+}
+
+model Clinic {
+  id        String       @id @default(uuid())
+  name      String
+  slug      String       @unique
+  status    ClinicStatus @default(ACTIVE)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  users ClinicUser[]
+
+  @@map("clinics")
+}
+
+model User {
+  id            String     @id @default(uuid())
+  name          String
+  email         String     @unique
+  phone         String?
+  passwordHash  String     @map("password_hash")
+  systemRole    SystemRole @default(USER) @map("system_role")
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  lastLoginAt   DateTime?  @map("last_login_at")
+  blockedAt     DateTime?  @map("blocked_at")
+  blockedReason String?    @map("blocked_reason")
+
+  clinics             ClinicUser[]
+  sessions            Session[]
+  loginEvents         LoginEvent[]
+  adminAuditLogs      AdminAuditLog[]      @relation("AdminUser")
+  targetAuditLogs     AdminAuditLog[]      @relation("TargetUser")
+  passwordResetTokens PasswordResetToken[]
+
+  @@map("users")
+}
+
+model ClinicUser {
+  id        String     @id @default(uuid())
+  clinicId  String     @map("clinic_id")
+  userId    String     @map("user_id")
+  role      ClinicRole @default(OWNER)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clinicId])
+  @@index([clinicId])
+  @@map("clinic_users")
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  tokenHash  String   @unique @map("token_hash")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  lastUsedAt DateTime @default(now()) @map("last_used_at")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model LoginEvent {
+  id        String         @id @default(uuid())
+  userId    String?        @map("user_id")
+  event     LoginEventType
+  ipAddress String?        @map("ip_address")
+  userAgent String?        @map("user_agent")
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@index([event])
+  @@map("login_events")
+}
+
+model AdminAuditLog {
+  id           String           @id @default(uuid())
+  actorType    AuditActorType   @default(ADMIN) @map("actor_type")
+  adminUserId  String?          @map("admin_user_id")
+  action       AdminAuditAction
+  targetUserId String?          @map("target_user_id")
+  metadata     Json?
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  adminUser  User? @relation("AdminUser", fields: [adminUserId], references: [id], onDelete: SetNull)
+  targetUser User? @relation("TargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([adminUserId, createdAt])
+  @@index([targetUserId])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}

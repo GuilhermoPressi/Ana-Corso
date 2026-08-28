@@ -1,10 +1,11 @@
-import { useLocation, Link } from "react-router-dom"
-import { Bell, Menu, Plus, Search } from "lucide-react"
+import { Link, useLocation, useNavigate } from "react"
+import { Bell, LogOut, Menu, Plus, Search, ShieldAlert } from "lucide-react"
 
 import { QuickReferenceSheet } from "@/components/clinical/QuickReferenceSheet"
 import { Logo } from "@/components/layout/Logo"
 import { SidebarNav } from "@/components/layout/SidebarNav"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -17,22 +18,37 @@ import {
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { findNavItem } from "@/lib/navigation"
+import { useAuthStore } from "@/stores/useAuthStore"
 import { useClinicStore } from "@/stores/useClinicStore"
 
 function getInitials(name: string): string {
-  if (!name) return "CL"
+  if (!name) return "AC"
   const parts = name.replace(/^Dra?\.\s*/i, "").trim().split(/\s+/)
   if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
-export function Header({ mobileOpen, onMobileOpenChange }: {
+export function Header({
+  mobileOpen,
+  onMobileOpenChange,
+}: {
   mobileOpen: boolean
   onMobileOpenChange: (open: boolean) => void
 }) {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const current = findNavItem(pathname)
   const profile = useClinicStore((state) => state.profile)
+  const { user, clinic, logout } = useAuthStore()
+
+  const displayName = user?.name || profile.professional || "Usuário"
+  const displayClinic = clinic?.name || profile.name
+  const isAdmin = user?.systemRole === "admin"
+
+  const handleLogout = async () => {
+    await logout()
+    navigate("/login")
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border/70 bg-background/80 px-4 backdrop-blur-xl lg:px-8">
@@ -51,10 +67,17 @@ export function Header({ mobileOpen, onMobileOpenChange }: {
       <Logo className="lg:hidden" showWordmark={false} />
 
       <div className="hidden min-w-0 flex-1 flex-col lg:flex">
-        <h1 className="truncate font-display text-[15px] font-semibold leading-tight">
-          {current?.title ?? profile.name}
+        <h1 className="truncate font-display text-[15px] font-semibold leading-tight flex items-center gap-2">
+          {current?.title ?? displayClinic}
+          {isAdmin && (
+            <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px]">
+              <ShieldAlert className="size-3 mr-1" /> SaaS Admin
+            </Badge>
+          )}
         </h1>
-        <p className="text-[11px] text-muted-foreground">{profile.name} · {profile.city}</p>
+        <p className="text-[11px] text-muted-foreground">
+          {displayClinic} · {profile.city || "Estética Avançada"}
+        </p>
       </div>
 
       <div className="relative ml-auto hidden w-full max-w-[240px] shrink md:block xl:max-w-xs">
@@ -82,30 +105,36 @@ export function Header({ mobileOpen, onMobileOpenChange }: {
             <button className="flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-muted">
               <Avatar className="size-8">
                 <AvatarFallback className="bg-primary/12 text-[11px] font-semibold text-primary">
-                  {getInitials(profile.professional)}
+                  {getInitials(displayName)}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden whitespace-nowrap text-[13px] font-medium 2xl:block">{profile.professional}</span>
+              <span className="hidden whitespace-nowrap text-[13px] font-medium 2xl:block">{displayName}</span>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-60">
             <DropdownMenuLabel className="font-normal">
-              <p className="text-[13px] font-semibold">{profile.professional}</p>
-              <p className="text-xs text-muted-foreground">{profile.registry}</p>
+              <p className="text-[13px] font-semibold">{displayName}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email || profile.email}</p>
+              <p className="mt-1 text-[11px] text-primary font-medium">{displayClinic}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link to="/configuracoes">Configurações da Clínica</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/configuracoes">Equipe e permissões</Link>
-            </DropdownMenuItem>
+            {isAdmin && (
+              <DropdownMenuItem asChild>
+                <Link to="/admin" className="font-semibold text-amber-600 dark:text-amber-400">
+                  <ShieldAlert className="size-4 mr-2" /> Painel de Controle SaaS
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">Sair</DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+              <LogOut className="size-4 mr-2" /> Sair
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
     </header>
   )
 }
-

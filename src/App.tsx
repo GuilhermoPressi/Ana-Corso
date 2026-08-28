@@ -1,15 +1,25 @@
 import { lazy, Suspense } from "react"
 import { Route, Routes } from "react-router-dom"
 
+import { AdminProtectedRoute } from "@/components/auth/AdminProtectedRoute"
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Skeleton } from "@/components/ui/skeleton"
 
-/* Cada página vira um chunk próprio: a primeira tela carrega sem o peso do resto. */
+// Autenticação & Admin
+const Login = lazy(() => import("@/pages/Login"))
+const Cadastro = lazy(() => import("@/pages/Cadastro"))
+const AdminLogin = lazy(() => import("@/pages/AdminLogin"))
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"))
+const AdminUsers = lazy(() => import("@/pages/AdminUsers"))
+const AdminUserDetail = lazy(() => import("@/pages/AdminUserDetail"))
+const AdminClinics = lazy(() => import("@/pages/AdminClinics"))
+
+// Páginas da Aplicação
 const Dashboard = lazy(() => import("@/pages/Dashboard"))
 const Pacientes = lazy(() => import("@/pages/Pacientes"))
 const PacienteDetalhe = lazy(() => import("@/pages/PacienteDetalhe"))
 const PlanejamentoFacial = lazy(() => import("@/pages/PlanejamentoFacial"))
-
 const Academia = lazy(() => import("@/pages/Academia"))
 const Agenda = lazy(() => import("@/pages/Agenda"))
 const AntesDepois = lazy(() => import("@/pages/AntesDepois"))
@@ -33,7 +43,7 @@ const Recuperador = lazy(() => import("@/pages/Recuperador"))
 
 function PageFallback() {
   return (
-    <div className="mx-auto max-w-[1400px]">
+    <div className="mx-auto max-w-[1400px] p-6">
       <Skeleton className="h-8 w-56" />
       <Skeleton className="mt-3 h-4 w-80" />
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -49,41 +59,111 @@ function PageFallback() {
 export default function App() {
   return (
     <Routes>
+      {/* Rotas Públicas */}
       <Route
+        path="/login"
         element={
           <Suspense fallback={<PageFallback />}>
-            <DashboardLayout />
+            <Login />
           </Suspense>
         }
-      >
-        {/* Telas principais */}
-        <Route index element={<Dashboard />} />
-        <Route path="pacientes" element={<Pacientes />} />
-        <Route path="pacientes/:patientId" element={<PacienteDetalhe />} />
-        <Route path="planejamento-facial" element={<PlanejamentoFacial />} />
+      />
+      <Route
+        path="/cadastro"
+        element={
+          <Suspense fallback={<PageFallback />}>
+            <Cadastro />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin/login"
+        element={
+          <Suspense fallback={<PageFallback />}>
+            <AdminLogin />
+          </Suspense>
+        }
+      />
 
-        {/* Módulos em construção */}
-        <Route path="mapa-do-procedimento" element={<MapaProcedimento />} />
-        <Route path="calculadoras" element={<Calculadoras />} />
-        <Route path="precificacao" element={<Precificacao />} />
-        <Route path="protocolos" element={<Protocolos />} />
-        <Route path="plano-da-paciente" element={<PlanoPaciente />} />
-        <Route path="crm" element={<Crm />} />
-        <Route path="recuperador" element={<Recuperador />} />
-        <Route path="agenda" element={<Agenda />} />
-        <Route path="pos-procedimento" element={<PosProcedimento />} />
-        <Route path="intercorrencias" element={<Intercorrencias />} />
-        <Route path="antes-e-depois" element={<AntesDepois />} />
-        <Route path="marketing" element={<Marketing />} />
-        <Route path="financeiro" element={<Financeiro />} />
-        <Route path="estoque" element={<Estoque />} />
-        <Route path="academia" element={<Academia />} />
-        <Route path="consulta-rapida" element={<ConsultaRapida />} />
-        <Route path="ia-da-especialista" element={<IaEspecialista />} />
-        <Route path="documentos" element={<Documentos />} />
-        <Route path="configuracoes" element={<Configuracoes />} />
+      {/* Rotas de Administrador Protegidas */}
+      <Route element={<AdminProtectedRoute />}>
+        <Route
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <DashboardLayout />
+            </Suspense>
+          }
+        >
+          <Route
+            path="admin"
+            element={
+              <Suspense fallback={<PageFallback />}>
+                <AdminDashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/users"
+            element={
+              <Suspense fallback={<PageFallback />}>
+                <AdminUsers />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/users/:id"
+            element={
+              <Suspense fallback={<PageFallback />}>
+                <AdminUserDetail />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/clinics"
+            element={
+              <Suspense fallback={<PageFallback />}>
+                <AdminClinics />
+              </Suspense>
+            }
+          />
+        </Route>
+      </Route>
 
-        <Route path="*" element={<NotFound />} />
+      {/* Rotas da Aplicação Protegidas por Autenticação */}
+      <Route element={<ProtectedRoute />}>
+        <Route
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <DashboardLayout />
+            </Suspense>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="pacientes" element={<Pacientes />} />
+          <Route path="pacientes/:patientId" element={<PacienteDetalhe />} />
+          <Route path="planejamento-facial" element={<PlanejamentoFacial />} />
+          <Route path="mapa-do-procedimento" element={<MapaProcedimento />} />
+          <Route path="calculadoras" element={<Calculadoras />} />
+          <Route path="precificacao" element={<Precificacao />} />
+          <Route path="protocolos" element={<Protocolos />} />
+          <Route path="plano-da-paciente" element={<PlanoPaciente />} />
+          <Route path="crm" element={<Crm />} />
+          <Route path="recuperador" element={<Recuperador />} />
+          <Route path="agenda" element={<Agenda />} />
+          <Route path="pos-procedimento" element={<PosProcedimento />} />
+          <Route path="intercorrencias" element={<Intercorrencias />} />
+          <Route path="antes-e-depois" element={<AntesDepois />} />
+          <Route path="marketing" element={<Marketing />} />
+          <Route path="financeiro" element={<Financeiro />} />
+          <Route path="estoque" element={<Estoque />} />
+          <Route path="academia" element={<Academia />} />
+          <Route path="consulta-rapida" element={<ConsultaRapida />} />
+          <Route path="ia-da-especialista" element={<IaEspecialista />} />
+          <Route path="documentos" element={<Documentos />} />
+          <Route path="configuracoes" element={<Configuracoes />} />
+
+          <Route path="*" element={<NotFound />} />
+        </Route>
       </Route>
     </Routes>
   )
