@@ -71,6 +71,7 @@ export function PhotoGallery({ patient }: { patient: Patient }) {
         date: p.capturedAt ? new Date(p.capturedAt).toISOString().split("T")[0] : CLINIC_TODAY,
         angle: "frente",
         session: isBefore ? "Foto de Antes" : isAfter ? "Foto de Depois" : p.notes || "Foto clínica",
+        consent: true,
         src: p.accessUrl,
       }
     })

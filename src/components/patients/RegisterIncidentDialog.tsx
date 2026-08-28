@@ -59,20 +59,16 @@ export function RegisterIncidentDialog({ patient }: { patient: Patient }) {
     )
   }
 
-  function submit() {
+  async function submit() {
     setTouched(true)
     if (reportError) return
 
-    addIncident({
+    await addIncident({
       patientId: patient.id,
-      patientName: patient.name,
-      date,
-      typeId,
-      procedure: procedure?.procedure ?? patient.mainProcedure,
-      product: procedure?.product,
-      lot: procedure?.lot,
+      procedureRecordId: procedure?.id,
+      type: typeId,
       report: report.trim(),
-      conducts,
+      identifiedAt: date,
     })
 
     setOpen(false)

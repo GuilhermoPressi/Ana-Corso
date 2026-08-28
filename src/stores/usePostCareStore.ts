@@ -48,7 +48,7 @@ export function mapDbPostCareToFrontend(dbP: any): CareLog {
   }
 }
 
-export const usePostCareStore = create<PostCareState>((set, get) => ({
+export const usePostCareStore = create<PostCareState>((set) => ({
   logs: [],
   loading: false,
   error: null,

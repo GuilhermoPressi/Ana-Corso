@@ -49,6 +49,7 @@ type IncidentState = {
   }) => Promise<Incident | null>
   addEntry: (incidentId: string, note: string) => Promise<boolean>
   setStatus: (incidentId: string, status: IncidentStatus) => Promise<boolean>
+  removeIncident: (incidentId: string) => Promise<boolean>
 }
 
 export function mapDbIncidentToFrontend(dbI: any): Incident {
@@ -172,6 +173,11 @@ export const useIncidentStore = create<IncidentState>((set, get) => ({
     } catch {
       return false
     }
+  },
+
+  removeIncident: async (incidentId) => {
+    set((state) => ({ incidents: state.incidents.filter((item) => item.id !== incidentId) }))
+    return true
   },
 }))
 

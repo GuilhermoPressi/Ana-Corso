@@ -67,6 +67,7 @@ export type PhotoRecord = {
   /** Momento do registro: "Antes · toxina", "30 dias", "Retorno de 15 dias"... */
   session: string
   consent: boolean
+  src?: string
 }
 
 export type ProductUsage = {

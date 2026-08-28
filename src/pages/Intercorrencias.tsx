@@ -176,7 +176,7 @@ function IncidentCard({ incident }: { incident: Incident }) {
 
   function submitEntry() {
     if (note.trim().length < 5) return
-    addEntry(incident.id, note.trim(), "Dra. Ana Corso")
+    addEntry(incident.id, note.trim())
     setNote("")
     toast.success("Evolução registrada")
   }

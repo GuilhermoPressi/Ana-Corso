@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
-import { ArrowLeftRight, Camera, Images, Lock, Ruler, Sparkles } from "lucide-react"
+import { ArrowLeftRight, Camera, Images } from "lucide-react"
 
 import { PageHeader } from "@/components/layout/PageHeader"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -12,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { formatDate, formatDateLong } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import { usePatientStore } from "@/stores/usePatientStore"
 
 type GalleryPhoto = {
@@ -31,7 +30,6 @@ export default function AntesDepois() {
 
   const [selectedPatientId, setSelectedPatientId] = useState<string>("all")
   const [photos, setPhotos] = useState<GalleryPhoto[]>([])
-  const [loading, setLoading] = useState(false)
 
   const [beforeId, setBeforeId] = useState<string | null>(null)
   const [afterId, setAfterId] = useState<string | null>(null)
@@ -42,7 +40,6 @@ export default function AntesDepois() {
 
   useEffect(() => {
     async function loadAllPhotos() {
-      setLoading(true)
       try {
         const targetPatients = selectedPatientId === "all" ? patients : patients.filter((p) => p.id === selectedPatientId)
         const allLoaded: GalleryPhoto[] = []
@@ -67,8 +64,6 @@ export default function AntesDepois() {
         setPhotos(allLoaded)
       } catch {
         // ignore
-      } finally {
-        setLoading(false)
       }
     }
 
@@ -94,23 +89,24 @@ export default function AntesDepois() {
       <PageHeader
         title="Antes e Depois"
         description="Galeria comparativa da clínica. Selecione uma paciente ou analise o portfólio completo de resultados."
-      >
-        <div className="flex items-center gap-3">
-          <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
-            <SelectTrigger className="w-[240px]">
-              <SelectValue placeholder="Todas as pacientes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as pacientes</SelectItem>
-              {patients.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </PageHeader>
+        actions={
+          <div className="flex items-center gap-3">
+            <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
+              <SelectTrigger className="w-[240px]">
+                <SelectValue placeholder="Todas as pacientes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as pacientes</SelectItem>
+                {patients.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        }
+      />
 
       {/* Comparador Principal */}
       <Card className="overflow-hidden border-border/70 py-0 shadow-[var(--shadow-soft)]">
