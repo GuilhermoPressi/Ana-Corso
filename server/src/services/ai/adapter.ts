@@ -29,7 +29,8 @@ export class AIServiceAdapter {
     },
   ): Promise<AIResponseOutput> {
     const apiKey = process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY
-    const lastUserMessage = messages.findLast((m) => m.role === "user")?.content || ""
+    const userMsgs = messages.filter((m: AIMessageInput) => m.role === "user")
+    const lastUserMessage = userMsgs[userMsgs.length - 1]?.content || ""
 
     // If real API key is present in environment, call external LLM
     if (apiKey && process.env.OPENAI_API_KEY) {
