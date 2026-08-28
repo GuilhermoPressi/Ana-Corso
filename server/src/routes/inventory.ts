@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify"
 import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, InventoryMovementType } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "../db.js"
-import { requireAuth } from "../middlewares/auth.js"
+import { requireAuth, requirePermission } from "../middlewares/auth.js"
 
 const createProductSchema = z.object({
   name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
@@ -21,6 +21,7 @@ const createProductSchema = z.object({
 
 export async function inventoryRoutes(fastify: FastifyInstance) {
   fastify.addHook("preHandler", requireAuth)
+  fastify.addHook("preHandler", requirePermission("INVENTORY_READ"))
 
   fastify.addHook("preHandler", async (request, reply) => {
     if (!request.clinic) {

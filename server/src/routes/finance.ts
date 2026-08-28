@@ -116,8 +116,12 @@ export async function financeRoutes(fastify: FastifyInstance) {
     const now = new Date()
     const targetMonth = month && month.trim() ? month.trim() : now.toISOString().slice(0, 7)
 
-    const startDate = new Date(`${targetMonth}-01T00:00:00.000Z`)
-    const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0, 23, 59, 59, 999)
+    const [yearStr, monthStr] = targetMonth.split("-")
+    const year = parseInt(yearStr, 10)
+    const monthNum = parseInt(monthStr, 10)
+
+    const startDate = new Date(Date.UTC(year, monthNum - 1, 1, 0, 0, 0, 0))
+    const endDate = new Date(Date.UTC(year, monthNum, 0, 23, 59, 59, 999))
 
     const monthEntries = await prisma.ledgerEntry.findMany({
       where: {

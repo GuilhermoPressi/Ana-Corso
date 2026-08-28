@@ -346,9 +346,24 @@ export async function authRoutes(fastify: FastifyInstance) {
 
   // GET /api/auth/me
   fastify.get("/auth/me", { preHandler: [requireAuth] }, async (request) => {
+    const fullUser = await prisma.user.findUnique({
+      where: { id: request.user!.id },
+      select: {
+        clinics: {
+          select: {
+            role: true,
+            clinic: {
+              select: { id: true, name: true, slug: true, status: true },
+            },
+          },
+        },
+      },
+    })
+
     return {
       user: request.user,
       clinic: request.clinic || null,
+      clinics: fullUser?.clinics.map((c) => ({ ...c.clinic, role: c.role })) || [],
     }
   })
 

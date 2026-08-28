@@ -42,7 +42,7 @@ export async function aiRoutes(fastify: FastifyInstance) {
   })
 
   // POST /api/ai/conversations - Create new conversation
-  fastify.post("/api/ai/conversations", async (request, reply) => {
+  fastify.post("/ai/conversations", async (request, reply) => {
     const parseResult = createConversationSchema.safeParse(request.body)
     if (!parseResult.success) {
       return reply.status(400).send({

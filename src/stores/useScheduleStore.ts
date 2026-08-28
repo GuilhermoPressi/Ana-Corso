@@ -66,8 +66,14 @@ type ScheduleState = {
 
 export function mapDbEventToFrontend(dbE: any): ScheduleEvent {
   const dt = new Date(dbE.startsAt)
-  const dateStr = dt.toISOString().split("T")[0]
-  const timeStr = dt.toTimeString().slice(0, 5)
+  const year = dt.getFullYear()
+  const month = String(dt.getMonth() + 1).padStart(2, "0")
+  const day = String(dt.getDate()).padStart(2, "0")
+  const dateStr = `${year}-${month}-${day}`
+
+  const hours = String(dt.getHours()).padStart(2, "0")
+  const minutes = String(dt.getMinutes()).padStart(2, "0")
+  const timeStr = `${hours}:${minutes}`
 
   return {
     id: dbE.id,

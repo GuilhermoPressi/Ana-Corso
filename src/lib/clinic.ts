@@ -2,21 +2,23 @@
  * "Hoje" da clínica na demonstração. Todos os dados mockados giram em torno
  * desta data — centralizar evita que telas mostrem meses diferentes entre si.
  */
-export const CLINIC_TODAY = "2026-08-24"
+export const CLINIC_TODAY = new Date().toISOString().slice(0, 10)
 
-export const CLINIC_MONTH = CLINIC_TODAY.slice(0, 7) // "2026-08"
+export const CLINIC_MONTH = new Date().toISOString().slice(0, 7)
 
 /** Verdadeiro quando a data ISO cai no mês corrente da clínica. */
 export function isCurrentMonth(iso: string) {
-  return iso.slice(0, 7) === CLINIC_MONTH
+  const currentMonth = new Date().toISOString().slice(0, 7)
+  return iso.slice(0, 7) === currentMonth
 }
 
 export function clinicTodayLabel() {
+  const now = new Date()
   const formatted = new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
     day: "2-digit",
     month: "long",
-  }).format(new Date(2026, 7, 24))
+  }).format(now)
 
   return formatted.charAt(0).toUpperCase() + formatted.slice(1)
 }

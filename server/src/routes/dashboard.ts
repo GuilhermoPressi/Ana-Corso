@@ -32,11 +32,15 @@ export async function dashboardRoutes(fastify: FastifyInstance) {
     const now = new Date()
     const targetMonth = month && month.trim() ? month.trim() : now.toISOString().slice(0, 7)
 
-    const startDate = new Date(`${targetMonth}-01T00:00:00.000Z`)
-    const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0, 23, 59, 59, 999)
+    const [yearStr, monthStr] = targetMonth.split("-")
+    const year = parseInt(yearStr, 10)
+    const monthNum = parseInt(monthStr, 10)
 
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
-    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+    const startDate = new Date(Date.UTC(year, monthNum - 1, 1, 0, 0, 0, 0))
+    const endDate = new Date(Date.UTC(year, monthNum, 0, 23, 59, 59, 999))
+
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0))
+    const todayEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999))
 
     const [monthEntries, activePatientsCount, todayEvents, inventoryItems, proceduresGroup] = await Promise.all([
       prisma.ledgerEntry.findMany({

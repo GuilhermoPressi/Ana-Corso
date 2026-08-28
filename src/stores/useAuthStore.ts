@@ -20,12 +20,14 @@ export type AuthClinic = {
 type AuthState = {
   user: AuthUser | null
   clinic: AuthClinic | null
+  clinics: AuthClinic[]
   clinicRole: string | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
 
   initialize: () => Promise<void>
+  switchClinic: (clinicId: string) => Promise<void>
   login: (email: string, password: string) => Promise<boolean>
   register: (data: {
     name: string
@@ -38,9 +40,10 @@ type AuthState = {
   clearError: () => void
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   clinic: null,
+  clinics: [],
   clinicRole: null,
   isAuthenticated: false,
   isLoading: true,
@@ -58,6 +61,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({
           user: data.user,
           clinic: data.clinic,
+          clinics: data.clinics || [],
           clinicRole: data.clinic?.role || null,
           isAuthenticated: true,
           isLoading: false,
@@ -73,6 +77,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({
           user: null,
           clinic: null,
+          clinics: [],
           clinicRole: null,
           isAuthenticated: false,
           isLoading: false,
@@ -82,10 +87,22 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         user: null,
         clinic: null,
+        clinics: [],
         clinicRole: null,
         isAuthenticated: false,
         isLoading: false,
       })
+    }
+  },
+
+  switchClinic: async (clinicId: string) => {
+    try {
+      // Set header or cookie x-clinic-id
+      document.cookie = `ana_corso_clinic_id=${clinicId}; path=/; max-age=${30 * 24 * 60 * 60}`
+      await get().initialize()
+      window.location.reload()
+    } catch {
+      // ignore
     }
   },
 

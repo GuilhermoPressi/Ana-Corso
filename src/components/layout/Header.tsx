@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { LogOut, Menu, Plus, Search, ShieldAlert } from "lucide-react"
+import { Building2, LogOut, Menu, Plus, Search, ShieldAlert } from "lucide-react"
 
 import { NotificationCenter } from "@/components/layout/NotificationCenter"
 import { QuickReferenceSheet } from "@/components/clinical/QuickReferenceSheet"
@@ -40,7 +40,7 @@ export function Header({
   const navigate = useNavigate()
   const current = findNavItem(pathname)
   const profile = useClinicStore((state) => state.profile)
-  const { user, clinic, logout } = useAuthStore()
+  const { user, clinic, clinics, switchClinic, logout } = useAuthStore()
 
   const displayName = user?.name || profile.professional || "Usuário"
   const displayClinic = clinic?.name || profile.name
@@ -92,8 +92,10 @@ export function Header({
       <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
         <QuickReferenceSheet />
 
-        <Button size="sm" className="hidden rounded-full shadow-[0_8px_20px_-10px_hsl(335_78%_55%/0.9)] lg:inline-flex">
-          <Plus /> Novo atendimento
+        <Button size="sm" asChild className="hidden rounded-full shadow-[0_8px_20px_-10px_hsl(335_78%_55%/0.9)] lg:inline-flex">
+          <Link to="/agenda">
+            <Plus /> Novo atendimento
+          </Link>
         </Button>
 
         <NotificationCenter />
@@ -116,6 +118,25 @@ export function Header({
               <p className="mt-1 text-[11px] text-primary font-medium">{displayClinic}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {clinics.length > 1 && (
+              <>
+                <DropdownMenuLabel className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  Alternar Clínica
+                </DropdownMenuLabel>
+                {clinics.map((c) => (
+                  <DropdownMenuItem
+                    key={c.id}
+                    onClick={() => switchClinic(c.id)}
+                    className={c.id === clinic?.id ? "font-bold text-primary" : ""}
+                  >
+                    <Building2 className="size-4 mr-2" />
+                    <span className="truncate">{c.name}</span>
+                    {c.id === clinic?.id && <span className="ml-auto text-xs font-semibold">✓</span>}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem asChild>
               <Link to="/configuracoes">Configurações da Clínica</Link>
             </DropdownMenuItem>
