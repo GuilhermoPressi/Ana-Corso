@@ -51,7 +51,7 @@ export async function recoveryRoutes(fastify: FastifyInstance) {
     const pendingReturns = await prisma.patientReturn.findMany({
       where: {
         clinicId,
-        status: { in: [PatientReturnStatus.SCHEDULED] },
+        status: { in: [PatientReturnStatus.PENDING, PatientReturnStatus.OVERDUE] },
         dueAt: { lte: now },
       },
       include: {
