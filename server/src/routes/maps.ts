@@ -82,7 +82,7 @@ export async function mapRoutes(fastify: FastifyInstance) {
       })
     }
 
-    const parseResult = createMapSchema.safeParse({ ...request.body, patientId })
+    const parseResult = createMapSchema.safeParse({ ...(request.body as object), patientId })
     if (!parseResult.success) {
       return reply.status(400).send({
         error: {

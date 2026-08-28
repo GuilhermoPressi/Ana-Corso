@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify"
-import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, PlanningStatus } from "@prisma/client"
+import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, PlanningStatus, Prisma } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "../db.js"
 import { requireAuth } from "../middlewares/auth.js"
@@ -82,7 +82,7 @@ export async function planningRoutes(fastify: FastifyInstance) {
       })
     }
 
-    const parseResult = createPlanningSchema.safeParse({ ...request.body, patientId })
+    const parseResult = createPlanningSchema.safeParse({ ...(request.body as object), patientId })
     if (!parseResult.success) {
       return reply.status(400).send({
         error: {
@@ -115,7 +115,7 @@ export async function planningRoutes(fastify: FastifyInstance) {
               depth: r.depth || null,
               technique: r.technique || null,
               sessionsRecommended: r.sessionsRecommended,
-              extraFieldsData: r.extraFieldsData || null,
+              extraFieldsData: r.extraFieldsData ? (r.extraFieldsData as Prisma.InputJsonValue) : Prisma.JsonNull,
               notes: r.notes || null,
             })),
           },
@@ -210,7 +210,7 @@ export async function planningRoutes(fastify: FastifyInstance) {
                 depth: r.depth || null,
                 technique: r.technique || null,
                 sessionsRecommended: r.sessionsRecommended || 1,
-                extraFieldsData: r.extraFieldsData || null,
+                extraFieldsData: r.extraFieldsData ? (r.extraFieldsData as Prisma.InputJsonValue) : Prisma.JsonNull,
                 notes: r.notes || null,
               })),
             },
