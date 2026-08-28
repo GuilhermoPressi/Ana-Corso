@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ExternalLink, Megaphone, Sparkles, TrendingUp, UserRoundPlus } from "lucide-react"
 import { Link } from "react-router-dom"
 
