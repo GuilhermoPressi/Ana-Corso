@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   ClipboardList,
   Layers,
@@ -48,8 +48,15 @@ const draftId = () => `draft-${(draftSequence += 1)}`
 
 export default function Protocolos() {
   const protocols = useCatalogStore((state) => state.protocols)
+  const fetchProtocols = useCatalogStore((state) => state.fetchProtocols)
+  const fetchProposals = useCatalogStore((state) => state.fetchProposals)
   const addProtocol = useCatalogStore((state) => state.addProtocol)
   const removeProtocol = useCatalogStore((state) => state.removeProtocol)
+
+  useEffect(() => {
+    fetchProtocols()
+    fetchProposals()
+  }, [fetchProtocols, fetchProposals])
   const pricedProcedures = useFinanceStore((state) => state.procedures)
 
   const [name, setName] = useState("")

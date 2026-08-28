@@ -130,7 +130,7 @@ export function ProposalDialog({ patient, selected, state }: ProposalDialogProps
     (protocol ? summarizeProtocol(protocol).listTotal : 0)
   const savings = listTotal - total
 
-  function send() {
+  async function send() {
     const proposalItems = [
       ...resolvedItems.map((item) => ({
         id: item.id,
@@ -150,7 +150,7 @@ export function ProposalDialog({ patient, selected, state }: ProposalDialogProps
         : []),
     ]
 
-    addProposal({
+    await addProposal({
       patientId: patient.id,
       patientName: patient.name,
       title: `Plano de tratamento · ${patient.name}`,
@@ -160,7 +160,7 @@ export function ProposalDialog({ patient, selected, state }: ProposalDialogProps
       status: "enviada",
     })
 
-    addLead({
+    await addLead({
       name: patient.name,
       phone: patient.phone,
       interest: resolvedItems.map((item) => item.label).join(" + ") || "Plano de tratamento",

@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import {
   DragDropContext,
   Draggable,
@@ -58,10 +58,15 @@ const temperatureStyles = {
 
 export default function Crm() {
   const leads = usePatientStore((state) => state.leads)
+  const fetchLeads = usePatientStore((state) => state.fetchLeads)
   const moveLead = usePatientStore((state) => state.moveLead)
   const convertLead = usePatientStore((state) => state.convertLead)
   const removeLead = usePatientStore((state) => state.removeLead)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    fetchLeads()
+  }, [fetchLeads])
 
   const openTotal = useMemo(() => selectOpenProposals(leads), [leads])
 

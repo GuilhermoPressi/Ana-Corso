@@ -58,11 +58,11 @@ export function NewLeadDialog() {
   const nameError = form.name.trim().length < 3
   const valueError = !(parseDecimal(form.value) > 0)
 
-  function submit() {
+  async function submit() {
     setTouched(true)
     if (nameError || valueError) return
 
-    addLead({
+    const created = await addLead({
       name: form.name,
       phone: form.phone || "(51) 90000-0000",
       interest: form.interest,
@@ -71,13 +71,15 @@ export function NewLeadDialog() {
       note: form.note.trim() || undefined,
     })
 
-    toast.success(`${form.name.trim()} entrou no funil`, {
-      description: "O card está na coluna Novos contatos.",
-    })
+    if (created) {
+      toast.success(`${form.name.trim()} entrou no funil`, {
+        description: "O card está na coluna Novos contatos.",
+      })
 
-    setForm(empty)
-    setTouched(false)
-    setOpen(false)
+      setForm(empty)
+      setTouched(false)
+      setOpen(false)
+    }
   }
 
   return (

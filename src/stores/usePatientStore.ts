@@ -62,9 +62,10 @@ type PatientState = {
     returnReason: string
   }) => void
 
-  addLead: (input: NewLeadInput) => Lead
-  addScheduledLead: (input: NewLeadInput & { scheduledFor: string }) => Lead
-  moveLead: (id: string, stage: LeadStage, toIndex?: number) => void
+  fetchLeads: () => Promise<void>
+  addLead: (input: NewLeadInput) => Promise<Lead | null>
+  addScheduledLead: (input: NewLeadInput & { scheduledFor: string }) => Promise<Lead | null>
+  moveLead: (id: string, stage: LeadStage, toIndex?: number) => Promise<boolean>
   updateLead: (id: string, patch: Partial<Lead>) => void
   removeLead: (id: string) => void
   convertLead: (id: string) => Promise<string | undefined>
@@ -340,100 +341,181 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       }),
     })),
 
-  addLead: (input) => {
-    const lead: Lead = {
-      id: nextId("l"),
-      name: input.name.trim(),
-      phone: input.phone,
-      interest: input.interest,
-      source: input.source,
-      stage: "novos-contatos",
-      value: input.value,
-      createdAt: CLINIC_TODAY,
-      lastContact: CLINIC_TODAY,
-      owner: "Recepção",
-      temperature: "quente",
-      note: input.note,
-    }
+const leadStageDbToFrontend: Record<string, LeadStage> = {
+  NEW_CONTACT: "novos-contatos",
+  EVALUATION_SCHEDULED: "avaliacao-agendada",
+  PROPOSAL_SENT: "proposta-enviada",
+  WON: "fechado",
+  LOST: "perdido",
+}
 
-    set((state) => ({ leads: [lead, ...state.leads] }))
-    return lead
+const leadStageFrontendToDb: Record<LeadStage, string> = {
+  "novos-contatos": "NEW_CONTACT",
+  "avaliacao-agendada": "EVALUATION_SCHEDULED",
+  "proposta-enviada": "PROPOSAL_SENT",
+  fechado: "WON",
+  perdido: "LOST",
+}
+
+export function mapDbLeadToFrontend(dbL: any): Lead {
+  return {
+    id: dbL.id,
+    name: dbL.name,
+    phone: dbL.phone || "",
+    interest: dbL.interest,
+    source: dbL.source,
+    stage: leadStageDbToFrontend[dbL.stage] || "novos-contatos",
+    value: Number(dbL.value || 0),
+    createdAt: dbL.createdAt ? new Date(dbL.createdAt).toISOString().split("T")[0] : CLINIC_TODAY,
+    lastContact: dbL.lastContact ? new Date(dbL.lastContact).toISOString().split("T")[0] : CLINIC_TODAY,
+    owner: dbL.owner || "Recepção",
+    temperature: (dbL.temperature as any) || "morno",
+    note: dbL.note || undefined,
+    scheduledFor: dbL.scheduledFor ? new Date(dbL.scheduledFor).toISOString().split("T")[0] : undefined,
+  }
+}
+
+export const usePatientStore = create<PatientState>((set, get) => ({
+  patients: [],
+  leads: [],
+  loading: false,
+  error: null,
+  pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
+  historicalNewPatients: 0,
+
+  fetchLeads: async () => {
+    try {
+      const res = await fetch("/api/leads")
+      if (res.ok) {
+        const data = await res.json()
+        const mapped = (data.leads || []).map(mapDbLeadToFrontend)
+        set({ leads: mapped })
+      }
+    } catch {
+      // ignore
+    }
+  },
+  addLead: async (input) => {
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: input.name,
+          phone: input.phone || null,
+          interest: input.interest,
+          source: input.source,
+          value: input.value,
+          note: input.note || null,
+        }),
+      })
+
+      if (!res.ok) return null
+      const data = await res.json()
+      const created = mapDbLeadToFrontend(data.lead)
+      set((state) => ({ leads: [created, ...state.leads] }))
+      return created
+    } catch {
+      return null
+    }
   },
 
-  addScheduledLead: (input) => {
-    const lead: Lead = {
-      id: nextId("l"),
-      name: input.name.trim(),
-      phone: input.phone,
-      interest: input.interest,
-      source: input.source,
-      stage: "novos-contatos",
-      value: input.value,
-      createdAt: CLINIC_TODAY,
-      lastContact: CLINIC_TODAY,
-      owner: "Automação",
-      temperature: "frio",
-      note: input.note,
-      scheduledFor: input.scheduledFor,
-    }
+  addScheduledLead: async (input) => {
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: input.name,
+          phone: input.phone || null,
+          interest: input.interest,
+          source: input.source,
+          value: input.value,
+          note: input.note || null,
+          scheduledFor: input.scheduledFor,
+        }),
+      })
 
-    set((state) => ({ leads: [...state.leads, lead] }))
-    return lead
+      if (!res.ok) return null
+      const data = await res.json()
+      const created = mapDbLeadToFrontend(data.lead)
+      set((state) => ({ leads: [...state.leads, created] }))
+      return created
+    } catch {
+      return null
+    }
   },
 
-  moveLead: (id, stage, toIndex) =>
-    set((state) => {
-      const lead = state.leads.find((item) => item.id === id)
-      if (!lead) return state
+  moveLead: async (id, stage, toIndex) => {
+    const currentLeads = get().leads
+    const lead = currentLeads.find((item) => item.id === id)
+    if (!lead) return false
 
-      const moved: Lead = { ...lead, stage, lastContact: CLINIC_TODAY }
-      const rest = state.leads.filter((item) => item.id !== id)
+    // Optimistic update
+    const dbStage = leadStageFrontendToDb[stage]
+    const moved: Lead = { ...lead, stage, lastContact: CLINIC_TODAY }
+    const rest = currentLeads.filter((item) => item.id !== id)
 
-      if (toIndex === undefined) return { leads: [...rest, moved] }
-
+    let nextLeads: Lead[]
+    if (toIndex === undefined) {
+      nextLeads = [...rest, moved]
+    } else {
       const targetIds = rest.filter((item) => item.stage === stage).map((item) => item.id)
       const anchorId = targetIds[toIndex]
       const absolute = anchorId ? rest.findIndex((item) => item.id === anchorId) : rest.length
+      nextLeads = [...rest]
+      nextLeads.splice(absolute, 0, moved)
+    }
 
-      const next = [...rest]
-      next.splice(absolute, 0, moved)
-      return { leads: next }
-    }),
+    set({ leads: nextLeads })
+
+    try {
+      const res = await fetch(`/api/leads/${id}/stage`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stage: dbStage,
+          position: toIndex ?? 0,
+        }),
+      })
+
+      if (!res.ok) {
+        // Rollback on failure
+        set({ leads: currentLeads })
+        return false
+      }
+      return true
+    } catch {
+      set({ leads: currentLeads })
+      return false
+    }
+  },
 
   updateLead: (id, patch) =>
     set((state) => ({
       leads: state.leads.map((lead) => (lead.id === id ? { ...lead, ...patch } : lead)),
     })),
 
-  removeLead: (id) => set((state) => ({ leads: state.leads.filter((lead) => lead.id !== id) })),
-
-  // Refinement 15: Convert Lead to Patient calls REAL API POST /api/patients
-  convertLead: async (id) => {
-    const lead = get().leads.find((item) => item.id === id)
-    if (!lead || lead.stage === "fechado") return undefined
-
-    const newPatient = await get().addPatient({
-      name: lead.name,
-      phone: lead.phone,
-      email: "",
-      city: "Porto Alegre · RS",
-      birthDate: "1990-01-01",
-      mainProcedure: lead.interest,
-      professional: "Dra. Profissional",
-      origin: lead.source,
-      skinType: "A definir na anamnese",
-      allergies: "A confirmar na anamnese",
-      observations: `Veio do CRM · proposta de ${lead.value.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      })}.`,
-    })
-
-    if (newPatient) {
-      get().moveLead(id, "fechado")
-      return newPatient.id
+  removeLead: async (id) => {
+    try {
+      await fetch(`/api/leads/${id}/archive`, { method: "POST" })
+      set((state) => ({ leads: state.leads.filter((l) => l.id !== id) }))
+    } catch {
+      // ignore
     }
-    return undefined
+  },
+
+  convertLead: async (id) => {
+    try {
+      const res = await fetch(`/api/leads/${id}/convert`, { method: "POST" })
+      if (!res.ok) return undefined
+      const data = await res.json()
+      await get().loadPatients()
+      await get().fetchLeads()
+      return data.patient?.id
+    } catch {
+      return undefined
+    }
   },
 }))
 
