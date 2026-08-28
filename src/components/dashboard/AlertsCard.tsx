@@ -124,9 +124,11 @@ export function AlertsCard() {
       })
     }
 
+import type { Lead } from "@/data/leads"
+
     // Leads parados
     const stalled = selectLeadsByStage(leads, "novos-contatos").filter(
-      (lead) => lead.createdAt < CLINIC_TODAY && !lead.scheduledFor,
+      (lead: Lead) => lead.createdAt < CLINIC_TODAY && !lead.scheduledFor,
     )
     if (stalled.length > 0) {
       result.push({

@@ -120,27 +120,29 @@ export default function Protocolos() {
     )
   }
 
-  function save() {
+  async function save() {
     if (!canSave) return
 
-    const protocol = addProtocol({
+    const protocol = await addProtocol({
       name: name.trim(),
       description: description.trim() || "Sem descrição.",
       steps: parsedSteps,
       packagePrice: packageValue,
     })
 
-    toast.success(`${protocol.name} salvo`, {
-      description:
-        summary.discount > 0
-          ? `${formatCurrency(summary.discount)} de economia para a paciente (${percent(summary.discountPercent)}).`
-          : "Pacote salvo sem desconto sobre o avulso.",
-    })
+    if (protocol) {
+      toast.success(`${protocol.name} salvo`, {
+        description:
+          summary.discount > 0
+            ? `${formatCurrency(summary.discount)} de economia para a paciente (${percent(summary.discountPercent)}).`
+            : "Pacote salvo sem desconto sobre o avulso.",
+      })
 
-    setName("")
-    setDescription("")
-    setPackagePrice("")
-    setSteps([{ id: draftId(), procedure: "Bioestimulador", label: "", day: "1", listPrice: "3200" }])
+      setName("")
+      setDescription("")
+      setPackagePrice("")
+      setSteps([{ id: draftId(), procedure: "Bioestimulador", label: "", day: "1", listPrice: "3200" }])
+    }
   }
 
   return (

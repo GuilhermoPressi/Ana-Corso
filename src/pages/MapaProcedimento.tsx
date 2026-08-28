@@ -118,14 +118,12 @@ export default function MapaProcedimento() {
     setPending3d(null)
   }
 
-  function save() {
+  async function save() {
     if (!patient || points.length === 0) return
 
-    saveMap({
-      patientId: patient.id,
-      patientName: patient.name,
-      date: CLINIC_TODAY,
+    await saveMap(patient.id, {
       procedure,
+      mode: view === "3d" ? "THREE_D" : "TWO_D",
       points,
     })
 

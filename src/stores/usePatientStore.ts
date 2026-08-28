@@ -131,6 +131,9 @@ export function mapDbPatientToFrontend(dbP: any): Patient {
       reason: ret.reason,
       status: ret.status === "COMPLETED" ? "realizado" : "agendado",
     })),
+    tags: dbP.tags || [],
+    photos: dbP.photos || [],
+    products: dbP.products || [],
   }
 }
 
@@ -515,6 +518,10 @@ export function selectOpenProposals(leads: Lead[]) {
   return leads
     .filter(isActiveProposal)
     .reduce((sum, lead) => sum + lead.value, 0)
+}
+
+export function selectLeadsByStage(leads: Lead[], stage: LeadStage) {
+  return leads.filter((lead) => lead.stage === stage)
 }
 
 export function isActiveProposal(lead: Lead) {

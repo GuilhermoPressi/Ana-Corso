@@ -205,8 +205,10 @@ export function TodayAgenda() {
 
           <TabsContent value="leads" className="min-h-0 flex-1">
             <ScrollArea className="h-full max-h-[calc(100vh-14rem)] min-h-[320px]">
+import type { Lead } from "@/data/leads"
+
               <div className="flex flex-col gap-1 pr-3">
-                {newLeads.map((item) => (
+                {newLeads.map((item: Lead) => (
                   <div key={item.id} className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-muted/50">
                     <div className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-full bg-accent">
                       <Sparkles className="size-4 text-primary" />
@@ -217,7 +219,7 @@ export function TodayAgenda() {
                         <p className="truncate text-[13px] font-semibold">{item.name}</p>
                         <Badge
                           variant="outline"
-                          className={cn("shrink-0 text-[10px] capitalize", temperatureStyles[item.temperature])}
+                          className={cn("shrink-0 text-[10px] capitalize", temperatureStyles[(item.temperature as keyof typeof temperatureStyles) || "morno"])}
                         >
                           {item.temperature === "quente" && <Flame className="size-3" />}
                           {item.temperature}

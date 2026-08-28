@@ -36,6 +36,7 @@ type ProcedureMapState = {
   addPointToMap: (mapId: string, point: Omit<MapPoint, "id">) => Promise<boolean>
   removePointFromMap: (mapId: string, pointId: string) => Promise<boolean>
   completeMap: (mapId: string) => Promise<boolean>
+  removeMap: (id: string) => void
 }
 
 export function mapDbProcedureMapToFrontend(dbM: any): ProcedureMap {
@@ -208,8 +209,8 @@ export const useProcedureMapStore = create<ProcedureMapState>((set, get) => ({
       return false
     } catch {
       return false
-    }
-  },
+  removeMap: (id) =>
+    set((state) => ({ maps: state.maps.filter((item) => item.id !== id) })),
 }))
 
 export function mapsForPatient(maps: ProcedureMap[], patientId: string) {
