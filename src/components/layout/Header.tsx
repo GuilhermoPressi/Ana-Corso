@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { Bell, LogOut, Menu, Plus, Search, ShieldAlert } from "lucide-react"
+import { LogOut, Menu, Plus, Search, ShieldAlert } from "lucide-react"
 
 import { NotificationCenter } from "@/components/layout/NotificationCenter"
 import { QuickReferenceSheet } from "@/components/clinical/QuickReferenceSheet"

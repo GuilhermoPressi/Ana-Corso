@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
-import { CheckCircle, PlayCircle, BookOpen, GraduationCap, Video } from "lucide-react"
+import { CheckCircle, PlayCircle, GraduationCap } from "lucide-react"
 import { toast } from "sonner"
 
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 
 type Lesson = {
@@ -40,7 +40,6 @@ type Course = {
 export default function Academia() {
   const [courses, setCourses] = useState<Course[]>([])
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function loadCourses() {
@@ -55,8 +54,6 @@ export default function Academia() {
         }
       } catch {
         // ignore
-      } finally {
-        setLoading(false)
       }
     }
     loadCourses()

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import { useNavigate, useParams } from "react"
-import { CheckCircle2, ShieldCheck, UserPlus } from "lucide-react"
+import { useNavigate, useParams } from "react-router-dom"
+import { UserPlus } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"

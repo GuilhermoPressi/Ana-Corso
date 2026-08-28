@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Calendar, CheckCircle2, Clock, FileHeart, Plus, Sparkles, Stethoscope } from "lucide-react"
+import { CheckCircle2, Plus } from "lucide-react"
 import { toast } from "sonner"
 
 import { PageHeader } from "@/components/layout/PageHeader"
@@ -55,7 +55,6 @@ export default function PlanoDaPaciente() {
 
   const [selectedPatientId, setSelectedPatientId] = useState<string>("")
   const [plans, setPlans] = useState<TreatmentPlan[]>([])
-  const [loading, setLoading] = useState(false)
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [planName, setPlanName] = useState("Plano de Harmonização Facial")
@@ -75,7 +74,6 @@ export default function PlanoDaPaciente() {
   useEffect(() => {
     async function fetchPlans() {
       if (!selectedPatientId) return
-      setLoading(true)
       try {
         const res = await fetch(`/api/patients/${selectedPatientId}/plans`)
         if (res.ok) {
@@ -84,8 +82,6 @@ export default function PlanoDaPaciente() {
         }
       } catch {
         // ignore
-      } finally {
-        setLoading(false)
       }
     }
     fetchPlans()
@@ -253,7 +249,7 @@ export default function PlanoDaPaciente() {
             <h3 className="font-display text-sm font-semibold">Cronograma de Sessões e Procedimentos</h3>
 
             <div className="grid grid-cols-1 gap-3">
-              {activePlan.items.map((item, idx) => {
+              {activePlan.items.map((item) => {
                 const isDone = item.status === "COMPLETED"
                 return (
                   <Card key={item.id} className={`border-border/70 p-4 transition-all ${isDone ? "bg-muted/40 opacity-80" : ""}`}>

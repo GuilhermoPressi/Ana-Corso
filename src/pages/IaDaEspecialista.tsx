@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react"
-import { Bot, Send, Sparkles, User, FileText, CheckCircle2 } from "lucide-react"
+import { Bot, Send, Sparkles, FileText } from "lucide-react"
 import { toast } from "sonner"
 
 import { PageHeader } from "@/components/layout/PageHeader"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -154,7 +153,7 @@ export default function IaDaEspecialista() {
     }
   }
 
-  function handleAddToRecord(content: string) {
+  function handleAddToRecord(_content: string) {
     toast.success("Orientação copiada e pronta para adicionar ao prontuário da paciente.")
   }
 
