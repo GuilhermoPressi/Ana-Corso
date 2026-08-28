@@ -22,7 +22,7 @@ export function AdminProtectedRoute() {
     return <Navigate to="/admin/login" replace />
   }
 
-  if (user?.systemRole !== "admin") {
+  if (user?.systemRole?.toUpperCase() !== "ADMIN") {
     return <Navigate to="/" replace />
   }
 

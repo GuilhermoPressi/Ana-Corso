@@ -27,7 +27,7 @@ export default function AdminLogin() {
 
     if (success) {
       const user = useAuthStore.getState().user
-      if (user?.systemRole === "admin") {
+      if (user?.systemRole?.toUpperCase() === "ADMIN") {
         navigate("/admin")
       } else {
         setLocalError("Esta conta não possui privilégios de administrador do sistema.")
