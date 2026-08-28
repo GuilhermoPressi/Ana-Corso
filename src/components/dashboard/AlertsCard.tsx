@@ -123,6 +123,8 @@ export function AlertsCard() {
         action: "Abrir recuperador",
         to: "/recuperador",
       })
+    }
+
     // Leads parados
     const stalled = selectLeadsByStage(leads, "novos-contatos").filter(
       (lead: Lead) => lead.createdAt < CLINIC_TODAY && !lead.scheduledFor,
