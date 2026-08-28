@@ -10,6 +10,8 @@ import {
   isCurrentMonth as tzIsCurrentMonth,
 } from "./timezone.js"
 
+export { getClinicDateKey }
+
 export const CLINIC_TODAY = getClinicToday()
 
 export const CLINIC_MONTH = getClinicMonthKey()
