@@ -23,7 +23,6 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { depthOptions, faceRegions, techniqueOptions } from "@/data/faceRegions"
-import { CLINIC_TODAY } from "@/lib/clinic"
 import { cn, formatCurrency, formatDateLong, initials } from "@/lib/utils"
 import { useInventoryStore } from "@/stores/useInventoryStore"
 import { usePatientStore } from "@/stores/usePatientStore"

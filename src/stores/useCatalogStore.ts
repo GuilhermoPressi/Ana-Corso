@@ -94,7 +94,7 @@ export function mapDbProposalToFrontend(dbP: any): Proposal {
   }
 }
 
-export const useCatalogStore = create<CatalogState>((set, get) => ({
+export const useCatalogStore = create<CatalogState>((set) => ({
   protocols: [],
   proposals: [],
   loading: false,

@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CLINIC_TODAY, clinicTodayLabel } from "@/lib/clinic"
 import { cn, formatCurrency, formatDate, initials, parseLocalDate } from "@/lib/utils"
+import type { Lead } from "@/data/leads"
 import { isActiveProposal, selectLeadsByStage, usePatientStore } from "@/stores/usePatientStore"
 import { eventsOn, useScheduleStore, type EventStatus } from "@/stores/useScheduleStore"
 
@@ -205,8 +206,6 @@ export function TodayAgenda() {
 
           <TabsContent value="leads" className="min-h-0 flex-1">
             <ScrollArea className="h-full max-h-[calc(100vh-14rem)] min-h-[320px]">
-import type { Lead } from "@/data/leads"
-
               <div className="flex flex-col gap-1 pr-3">
                 {newLeads.map((item: Lead) => (
                   <div key={item.id} className="flex items-start gap-3 rounded-xl px-2 py-2.5 hover:bg-muted/50">

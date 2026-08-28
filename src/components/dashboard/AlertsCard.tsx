@@ -20,6 +20,7 @@ import {
   selectLowStock,
   useInventoryStore,
 } from "@/stores/useInventoryStore"
+import type { Lead } from "@/data/leads"
 import { selectLeadsByStage, usePatientStore } from "@/stores/usePatientStore"
 
 type AlertLevel = "critico" | "atencao" | "info"
@@ -122,10 +123,6 @@ export function AlertsCard() {
         action: "Abrir recuperador",
         to: "/recuperador",
       })
-    }
-
-import type { Lead } from "@/data/leads"
-
     // Leads parados
     const stalled = selectLeadsByStage(leads, "novos-contatos").filter(
       (lead: Lead) => lead.createdAt < CLINIC_TODAY && !lead.scheduledFor,

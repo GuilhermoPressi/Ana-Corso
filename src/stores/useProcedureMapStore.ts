@@ -65,7 +65,7 @@ export function mapDbProcedureMapToFrontend(dbM: any): ProcedureMap {
   }
 }
 
-export const useProcedureMapStore = create<ProcedureMapState>((set, get) => ({
+export const useProcedureMapStore = create<ProcedureMapState>((set) => ({
   maps: [],
   loading: false,
   error: null,
