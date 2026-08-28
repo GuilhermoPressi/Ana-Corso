@@ -52,8 +52,7 @@ type PatientState = {
   updatePatientApi: (id: string, patch: Partial<Patient>) => Promise<boolean>
   archivePatient: (id: string) => Promise<boolean>
   restorePatient: (id: string) => Promise<boolean>
-  
-  // Legacy / Store Operations
+
   updatePatient: (id: string, patch: Partial<Patient>) => void
   registerProcedure: (input: {
     patientId: string
@@ -69,6 +68,12 @@ type PatientState = {
   updateLead: (id: string, patch: Partial<Lead>) => void
   removeLead: (id: string) => void
   convertLead: (id: string) => Promise<string | undefined>
+}
+
+let sequence = 0
+function nextId(prefix: string) {
+  sequence += 1
+  return `${prefix}-${sequence}`
 }
 
 export function mapDbPatientToFrontend(dbP: any): Patient {
@@ -100,33 +105,67 @@ export function mapDbPatientToFrontend(dbP: any): Patient {
     totalSpent: 0,
     sessions: 0,
     ticket: 0,
-    tags: ["Paciente cadastrada"],
-    mainProcedure: dbP.mainProcedure || "Procedimento Geral",
-    professional: dbP.responsibleProfessional || "Dra. Profissional",
-    origin: (dbP.leadSource as Patient["origin"]) || "Recepção",
-    skinType: dbP.clinicalProfile?.skinType || "A definir na anamnese",
+    nextReturn: undefined,
+    mainProcedure: dbP.mainProcedure || "Consulta / Avaliação",
+    professional: dbP.responsibleProfessional || "Dra. Ana Corso",
+    origin: (dbP.leadSource as any) || "Instagram",
+    skinType: dbP.clinicalProfile?.skinType || "Não informado",
     allergies: dbP.clinicalProfile?.allergies || "Nenhuma relatada",
     observations: dbP.clinicalProfile?.clinicalNotes || "",
-    procedures: [],
-    timeline: [
-      {
-        id: `t-${dbP.id}`,
-        date: sinceFormatted,
-        kind: "mensagem",
-        title: "Cadastro no PostgreSQL",
-        description: `Ficha registrada no banco real · origem ${dbP.leadSource || "Recepção"}.`,
-      },
-    ],
-    returns: [],
-    photos: [],
-    products: [],
+    procedures: (dbP.procedureRecords || []).map((pr: any) => ({
+      id: pr.id,
+      date: pr.performedAt ? new Date(pr.performedAt).toISOString().split("T")[0] : CLINIC_TODAY,
+      procedure: pr.procedureName,
+      regions: pr.regions || [],
+      product: pr.productUsages?.[0]?.productNameSnapshot || "Produto Padrão",
+      lot: pr.productUsages?.[0]?.lotSnapshot || "—",
+      quantity: pr.productUsages?.[0] ? `${pr.productUsages[0].quantity} ${pr.productUsages[0].unitSnapshot}` : "—",
+      professional: pr.professionalName,
+      value: Number(pr.value),
+      notes: pr.notes || undefined,
+    })),
+    timeline: [],
+    returns: (dbP.returns || []).map((ret: any) => ({
+      id: ret.id,
+      date: ret.dueAt ? new Date(ret.dueAt).toISOString().split("T")[0] : CLINIC_TODAY,
+      reason: ret.reason,
+      status: ret.status === "COMPLETED" ? "realizado" : "agendado",
+    })),
   }
 }
 
-let sequence = 0
-function nextId(prefix: string) {
-  sequence += 1
-  return `${prefix}-${sequence}`
+const leadStageDbToFrontend: Record<string, LeadStage> = {
+  NEW_CONTACT: "novos-contatos",
+  EVALUATION_SCHEDULED: "avaliacao-agendada",
+  PROPOSAL_SENT: "proposta-enviada",
+  WON: "fechado",
+  LOST: "perdido",
+}
+
+const leadStageFrontendToDb: Record<LeadStage, string> = {
+  "novos-contatos": "NEW_CONTACT",
+  "avaliacao-agendada": "EVALUATION_SCHEDULED",
+  "proposta-enviada": "PROPOSAL_SENT",
+  fechado: "WON",
+  perdido: "LOST",
+}
+
+export function mapDbLeadToFrontend(dbL: any): Lead {
+  return {
+    id: dbL.id,
+    name: dbL.name,
+    phone: dbL.phone || "",
+    interest: dbL.interest,
+    source: dbL.source,
+    stage: leadStageDbToFrontend[dbL.stage] || "novos-contatos",
+    value: Number(dbL.value || 0),
+    createdAt: dbL.createdAt ? new Date(dbL.createdAt).toISOString().split("T")[0] : CLINIC_TODAY,
+    lastContact: dbL.lastContact ? new Date(dbL.lastContact).toISOString().split("T")[0] : CLINIC_TODAY,
+    owner: dbL.owner || "Recepção",
+    temperature: (dbL.temperature as any) || "morno",
+    note: dbL.note || undefined,
+    scheduledFor: dbL.scheduledFor ? new Date(dbL.scheduledFor).toISOString().split("T")[0] : undefined,
+  }
 }
 
 export const usePatientStore = create<PatientState>((set, get) => ({
@@ -171,13 +210,13 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       if (!res.ok) return null
       const data = await res.json()
       const mapped = mapDbPatientToFrontend(data.patient)
-      
-      // Update local state if present
+
       set((state) => ({
         patients: state.patients.some((p) => p.id === id)
           ? state.patients.map((p) => (p.id === id ? mapped : p))
           : [mapped, ...state.patients],
       }))
+
       return mapped
     } catch {
       return null
@@ -190,34 +229,21 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       const res = await fetch("/api/patients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: input.name,
-          phone: input.phone,
-          email: input.email,
-          city: input.city,
-          birthDate: input.birthDate,
-          mainProcedure: input.mainProcedure,
-          responsibleProfessional: input.professional,
-          leadSource: input.origin,
-          skinType: input.skinType,
-          allergies: input.allergies,
-          clinicalNotes: input.observations,
-        }),
+        body: JSON.stringify(input),
       })
 
       const data = await res.json()
       if (!res.ok) {
-        set({ loading: false, error: data.error?.message || "Erro ao criar paciente." })
+        set({ loading: false, error: data.error?.message || "Erro ao cadastrar paciente." })
         return null
       }
 
-      const newPatient = mapDbPatientToFrontend(data.patient)
+      const created = mapDbPatientToFrontend(data.patient)
       set((state) => ({
-        patients: [newPatient, ...state.patients],
+        patients: [created, ...state.patients],
         loading: false,
       }))
-
-      return newPatient
+      return created
     } catch (err: any) {
       set({ loading: false, error: err.message || "Erro de conexão." })
       return null
@@ -225,23 +251,12 @@ export const usePatientStore = create<PatientState>((set, get) => ({
   },
 
   updatePatientApi: async (id, patch) => {
-    set({ loading: true })
+    set({ loading: true, error: null })
     try {
       const res = await fetch(`/api/patients/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: patch.name,
-          phone: patch.phone,
-          email: patch.email,
-          city: patch.city,
-          birthDate: patch.birthDate,
-          mainProcedure: patch.mainProcedure,
-          responsibleProfessional: patch.professional,
-          skinType: patch.skinType,
-          allergies: patch.allergies,
-          clinicalNotes: patch.observations,
-        }),
+        body: JSON.stringify(patch),
       })
 
       if (!res.ok) {
@@ -341,48 +356,6 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       }),
     })),
 
-const leadStageDbToFrontend: Record<string, LeadStage> = {
-  NEW_CONTACT: "novos-contatos",
-  EVALUATION_SCHEDULED: "avaliacao-agendada",
-  PROPOSAL_SENT: "proposta-enviada",
-  WON: "fechado",
-  LOST: "perdido",
-}
-
-const leadStageFrontendToDb: Record<LeadStage, string> = {
-  "novos-contatos": "NEW_CONTACT",
-  "avaliacao-agendada": "EVALUATION_SCHEDULED",
-  "proposta-enviada": "PROPOSAL_SENT",
-  fechado: "WON",
-  perdido: "LOST",
-}
-
-export function mapDbLeadToFrontend(dbL: any): Lead {
-  return {
-    id: dbL.id,
-    name: dbL.name,
-    phone: dbL.phone || "",
-    interest: dbL.interest,
-    source: dbL.source,
-    stage: leadStageDbToFrontend[dbL.stage] || "novos-contatos",
-    value: Number(dbL.value || 0),
-    createdAt: dbL.createdAt ? new Date(dbL.createdAt).toISOString().split("T")[0] : CLINIC_TODAY,
-    lastContact: dbL.lastContact ? new Date(dbL.lastContact).toISOString().split("T")[0] : CLINIC_TODAY,
-    owner: dbL.owner || "Recepção",
-    temperature: (dbL.temperature as any) || "morno",
-    note: dbL.note || undefined,
-    scheduledFor: dbL.scheduledFor ? new Date(dbL.scheduledFor).toISOString().split("T")[0] : undefined,
-  }
-}
-
-export const usePatientStore = create<PatientState>((set, get) => ({
-  patients: [],
-  leads: [],
-  loading: false,
-  error: null,
-  pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
-  historicalNewPatients: 0,
-
   fetchLeads: async () => {
     try {
       const res = await fetch("/api/leads")
@@ -395,6 +368,7 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       // ignore
     }
   },
+
   addLead: async (input) => {
     try {
       const res = await fetch("/api/leads", {
@@ -480,7 +454,6 @@ export const usePatientStore = create<PatientState>((set, get) => ({
       })
 
       if (!res.ok) {
-        // Rollback on failure
         set({ leads: currentLeads })
         return false
       }
@@ -532,21 +505,22 @@ export function selectNewPatientsThisMonth(state: PatientState) {
   return state.historicalNewPatients + state.patients.filter((p) => isCurrentMonth(p.since)).length
 }
 
-export function selectLeadsByStage(leads: Lead[], stage: LeadStage) {
-  return leads.filter((lead) => lead.stage === stage)
-}
-
-const openStages: LeadStage[] = ["novos-contatos", "avaliacao-agendada", "proposta-enviada"]
-
-export function isActiveProposal(lead: Lead) {
-  if (!openStages.includes(lead.stage)) return false
-  return !lead.scheduledFor || lead.scheduledFor <= CLINIC_TODAY
+export function selectScheduledLeads(leads: Lead[]) {
+  return leads
+    .filter((lead) => Boolean(lead.scheduledFor) && lead.stage !== "fechado")
+    .sort((a, b) => (a.scheduledFor! > b.scheduledFor! ? 1 : -1))
 }
 
 export function selectOpenProposals(leads: Lead[]) {
-  return leads.filter(isActiveProposal).reduce((sum, lead) => sum + lead.value, 0)
+  return leads
+    .filter(isActiveProposal)
+    .reduce((sum, lead) => sum + lead.value, 0)
 }
 
-export function selectScheduledLeads(leads: Lead[]) {
-  return leads.filter((lead) => lead.scheduledFor && lead.scheduledFor > CLINIC_TODAY)
+export function isActiveProposal(lead: Lead) {
+  return (
+    lead.stage === "novos-contatos" ||
+    lead.stage === "avaliacao-agendada" ||
+    lead.stage === "proposta-enviada"
+  )
 }
