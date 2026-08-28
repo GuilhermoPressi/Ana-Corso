@@ -43,7 +43,6 @@ const procedures = [
 
 const professionals = ["Dra. Ana Corso", "Est. Marcela Reis"]
 
-/** Reaproveita as regiões já mapeadas no Planejamento Facial. */
 const regionsByProcedure: Record<string, string[]> = {
   "Toxina botulínica": planningLines[0].regions.map((region) => region.name),
   Preenchimento: planningLines[1].regions.map((region) => region.name),
@@ -61,6 +60,7 @@ export function RegisterProcedureDialog({ patient }: { patient: Patient }) {
   const [value, setValue] = useState("")
   const [professional, setProfessional] = useState(patient.professional || professionals[0])
   const [notes, setNotes] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   const allProducts = useInventoryStore((state) => state.products)
   const pricedProcedures = useFinanceStore((state) => state.procedures)
@@ -93,10 +93,11 @@ export function RegisterProcedureDialog({ patient }: { patient: Patient }) {
     setNotes("")
   }
 
-  function submit() {
+  async function submit() {
     if (valueError) return
 
-    const outcome = register({
+    setSubmitting(true)
+    const outcome = await register({
       patient,
       procedure,
       regions,
@@ -106,6 +107,12 @@ export function RegisterProcedureDialog({ patient }: { patient: Patient }) {
       professional,
       notes,
     })
+    setSubmitting(false)
+
+    if (!outcome.ok) {
+      toast.error(outcome.errorMessage || "Falha ao registrar procedimento.")
+      return
+    }
 
     setOpen(false)
     reset()
@@ -119,14 +126,6 @@ export function RegisterProcedureDialog({ patient }: { patient: Patient }) {
         .filter(Boolean)
         .join(" · "),
     })
-
-    if (outcome.shortage > 0) {
-      toast.warning("Estoque insuficiente", {
-        description: `Faltaram ${outcome.shortage.toLocaleString("pt-BR")} ${
-          product?.contentUnit ?? ""
-        } de ${product?.name}. O saldo zerou e a diferença não foi baixada.`,
-      })
-    }
   }
 
   return (
@@ -141,7 +140,7 @@ export function RegisterProcedureDialog({ patient }: { patient: Patient }) {
         <DialogHeader>
           <DialogTitle className="font-display">Registrar procedimento</DialogTitle>
           <DialogDescription>
-            Um registro alimenta a ficha, o estoque, o financeiro, a agenda e o CRM de uma vez.
+            Um registro alimenta a ficha, o estoque, o financeiro, a agenda e os relatórios no PostgreSQL.
           </DialogDescription>
         </DialogHeader>
 
@@ -307,10 +306,9 @@ export function RegisterProcedureDialog({ patient }: { patient: Patient }) {
             />
           </div>
 
-          {/* Prévia da automação */}
           <div className="rounded-xl border border-primary/20 bg-primary/[0.04] px-4 py-3.5">
             <p className="flex items-center gap-1.5 text-[12px] font-semibold text-primary">
-              <Sparkles className="size-3.5" /> O que o sistema vai fazer sozinho
+              <Sparkles className="size-3.5" /> O que o PostgreSQL vai registrar
             </p>
             <div className="mt-2.5 flex flex-col gap-2">
               <AutoLine
@@ -318,11 +316,7 @@ export function RegisterProcedureDialog({ patient }: { patient: Patient }) {
                 detail={`${formatDate(addDays(CLINIC_TODAY, rule.clinicalDays))} · ${rule.clinicalReason}`}
               />
               <AutoLine
-                label={`Recontato comercial em ${rule.commercialDays} dias`}
-                detail={`${formatDate(addDays(CLINIC_TODAY, rule.commercialDays))} · ${rule.commercialReason}`}
-              />
-              <AutoLine
-                label="Baixa no estoque e lançamento no caixa"
+                label="Baixa atômica no estoque e receita no caixa"
                 detail={
                   product && quantityValue > 0
                     ? `${quantityValue.toLocaleString("pt-BR")} ${product.contentUnit} de ${product.name} · custo direto ${formatCurrency(
@@ -339,8 +333,8 @@ export function RegisterProcedureDialog({ patient }: { patient: Patient }) {
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancelar
           </Button>
-          <Button onClick={submit} disabled={valueError} className="rounded-full">
-            <Plus /> {valueError ? "Informe o valor cobrado" : "Registrar procedimento"}
+          <Button onClick={submit} disabled={valueError || submitting} className="rounded-full">
+            <Plus /> {submitting ? "Registrando..." : valueError ? "Informe o valor cobrado" : "Registrar procedimento"}
           </Button>
         </DialogFooter>
       </DialogContent>

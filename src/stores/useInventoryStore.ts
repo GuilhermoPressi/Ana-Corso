@@ -26,9 +26,7 @@ export type NewProductInput = {
 
 export type ConsumeResult = {
   ok: boolean
-  /** Quantidade efetivamente baixada — menor que a pedida se faltou saldo. */
   consumed: number
-  /** Custo do que saiu, para lançar como custo direto no financeiro. */
   cost: number
   shortage: number
 }
@@ -36,136 +34,149 @@ export type ConsumeResult = {
 type InventoryState = {
   products: Product[]
   movements: StockMovement[]
-  /** Janela, em dias, para considerar um lote "próximo do vencimento". */
+  loading: boolean
+  error: string | null
   expiryWindowDays: number
 
-  addProduct: (input: NewProductInput) => Product
-  restock: (productId: string, packs: number) => void
-  /** Dá baixa no saldo e registra a movimentação. Devolve o custo consumido. */
-  consume: (input: {
-    productId: string
-    quantity: number
-    reason: string
-    patientId?: string
-    patientName?: string
-  }) => ConsumeResult
-  removeProduct: (productId: string) => void
+  fetchProducts: () => Promise<void>
+  fetchMovements: () => Promise<void>
+  addProduct: (input: NewProductInput) => Promise<Product | null>
+  restock: (productId: string, packs: number) => Promise<boolean>
 }
 
-let sequence = 0
-const nextId = (prefix: string) => `${prefix}-${(sequence += 1)}`
+export function mapDbItemToFrontendProduct(dbItem: any): Product {
+  const expiresAtFormatted = dbItem.expiresAt
+    ? new Date(dbItem.expiresAt).toISOString().split("T")[0]
+    : CLINIC_TODAY
+
+  return {
+    id: dbItem.id,
+    name: dbItem.name,
+    brand: dbItem.brand,
+    category: dbItem.category,
+    contentUnit: dbItem.contentUnit as ContentUnit,
+    contentPerPack: Number(dbItem.contentPerPack),
+    packLabel: dbItem.packLabel,
+    quantity: Number(dbItem.quantity),
+    minQuantity: Number(dbItem.minQuantity),
+    packCost: Number(dbItem.packCost),
+    lot: dbItem.lot,
+    expiresAt: expiresAtFormatted,
+    supplier: dbItem.supplier || "",
+  }
+}
 
 export const useInventoryStore = create<InventoryState>((set, get) => ({
   products: [],
   movements: [],
+  loading: false,
+  error: null,
   expiryWindowDays: 30,
 
-
-  addProduct: (input) => {
-    const product: Product = {
-      id: nextId("prod"),
-      name: input.name.trim(),
-      brand: input.brand.trim(),
-      category: input.category,
-      contentUnit: input.contentUnit,
-      contentPerPack: input.contentPerPack,
-      packLabel: input.packLabel,
-      quantity: input.packs * input.contentPerPack,
-      minQuantity: input.minPacks * input.contentPerPack,
-      packCost: input.packCost,
-      lot: input.lot.trim(),
-      expiresAt: input.expiresAt,
-      supplier: input.supplier.trim(),
-    }
-
-    set((state) => ({
-      products: [product, ...state.products],
-      movements: [
-        {
-          id: nextId("mov"),
-          productId: product.id,
-          productName: product.name,
-          date: CLINIC_TODAY,
-          kind: "entrada",
-          quantity: product.quantity,
-          unit: product.contentUnit,
-          reason: `Cadastro inicial · lote ${product.lot}`,
-        },
-        ...state.movements,
-      ],
-    }))
-
-    return product
-  },
-
-  restock: (productId, packs) =>
-    set((state) => {
-      const product = state.products.find((item) => item.id === productId)
-      if (!product || packs <= 0) return state
-
-      const quantity = packs * product.contentPerPack
-
-      return {
-        products: state.products.map((item) =>
-          item.id === productId ? { ...item, quantity: item.quantity + quantity } : item,
-        ),
-        movements: [
-          {
-            id: nextId("mov"),
-            productId,
-            productName: product.name,
-            date: CLINIC_TODAY,
-            kind: "entrada",
-            quantity,
-            unit: product.contentUnit,
-            reason: `Reposição · ${packs} ${product.packLabel}`,
-          },
-          ...state.movements,
-        ],
+  fetchProducts: async () => {
+    set({ loading: true, error: null })
+    try {
+      const res = await fetch("/api/inventory")
+      if (res.ok) {
+        const data = await res.json()
+        const mapped = (data.items || []).map(mapDbItemToFrontendProduct)
+        set({ products: mapped, loading: false })
+      } else {
+        set({ loading: false })
       }
-    }),
-
-  consume: ({ productId, quantity, reason, patientId, patientName }) => {
-    const product = get().products.find((item) => item.id === productId)
-    if (!product || quantity <= 0) return { ok: false, consumed: 0, cost: 0, shortage: quantity }
-
-    const consumed = Math.min(quantity, product.quantity)
-    const shortage = quantity - consumed
-    const cost = consumed * (product.packCost / product.contentPerPack)
-
-    set((state) => ({
-      products: state.products.map((item) =>
-        item.id === productId ? { ...item, quantity: item.quantity - consumed } : item,
-      ),
-      movements: [
-        {
-          id: nextId("mov"),
-          productId,
-          productName: product.name,
-          date: CLINIC_TODAY,
-          kind: "saida",
-          quantity: consumed,
-          unit: product.contentUnit,
-          reason,
-          patientId,
-          patientName,
-        },
-        ...state.movements,
-      ],
-    }))
-
-    return { ok: shortage === 0, consumed, cost, shortage }
+    } catch {
+      set({ loading: false })
+    }
   },
 
-  removeProduct: (productId) =>
-    set((state) => ({ products: state.products.filter((item) => item.id !== productId) })),
+  fetchMovements: async () => {
+    try {
+      const res = await fetch("/api/inventory/movements")
+      if (res.ok) {
+        const data = await res.json()
+        const mapped = (data.movements || []).map((m: any) => ({
+          id: m.id,
+          productId: m.inventoryItemId,
+          productName: m.productNameSnapshot,
+          date: m.createdAt ? new Date(m.createdAt).toISOString().split("T")[0] : CLINIC_TODAY,
+          kind: m.type === "IN" ? "entrada" : "saida",
+          quantity: Number(m.quantity),
+          unit: m.unit,
+          reason: m.reason,
+        }))
+        set({ movements: mapped })
+      }
+    } catch {
+      // ignore
+    }
+  },
+
+  addProduct: async (input) => {
+    set({ loading: true, error: null })
+    try {
+      const res = await fetch("/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: input.name,
+          brand: input.brand,
+          category: input.category,
+          contentUnit: input.contentUnit,
+          contentPerPack: input.contentPerPack,
+          packLabel: input.packLabel,
+          packs: input.packs,
+          minPacks: input.minPacks,
+          packCost: input.packCost,
+          lot: input.lot,
+          expiresAt: input.expiresAt || null,
+          supplier: input.supplier || null,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        set({ loading: false, error: data.error?.message || "Erro ao cadastrar produto." })
+        return null
+      }
+
+      const newProduct = mapDbItemToFrontendProduct(data.product)
+      set((state) => ({
+        products: [newProduct, ...state.products],
+        loading: false,
+      }))
+
+      await get().fetchMovements()
+      return newProduct
+    } catch (err: any) {
+      set({ loading: false, error: err.message || "Erro de conexão." })
+      return null
+    }
+  },
+
+  restock: async (productId, packs) => {
+    set({ loading: true, error: null })
+    try {
+      const res = await fetch(`/api/inventory/${productId}/restock`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ packs }),
+      })
+
+      if (!res.ok) {
+        set({ loading: false })
+        return false
+      }
+
+      await get().fetchProducts()
+      await get().fetchMovements()
+      set({ loading: false })
+      return true
+    } catch {
+      set({ loading: false })
+      return false
+    }
+  },
 }))
-
-
-
-/* ------------------------------------------------------------------ *
- * Seletores derivados
- * ------------------------------------------------------------------ */
 
 export function unitCostOf(product: Product) {
   return product.packCost / product.contentPerPack
@@ -179,7 +190,6 @@ export function packsOf(product: Product) {
   return product.quantity / product.contentPerPack
 }
 
-/** Dias até o vencimento a partir do "hoje" da clínica. Negativo quando vencido. */
 export function daysUntilExpiry(product: Product) {
   return Math.round(
     (parseLocalDate(product.expiresAt).getTime() - parseLocalDate(CLINIC_TODAY).getTime()) /
@@ -212,7 +222,6 @@ export function selectTotalStockValue(products: Product[]) {
   return products.reduce((sum, product) => sum + stockValueOf(product), 0)
 }
 
-/** Produto com saldo suficiente para atender um procedimento da categoria. */
 export function suggestProductFor(products: Product[], category: string) {
   return (
     products.find((product) => product.category === category && product.quantity > 0) ??

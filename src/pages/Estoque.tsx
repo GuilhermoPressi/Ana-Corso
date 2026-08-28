@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -58,6 +58,13 @@ function expiryLabel(days: number) {
 export default function Estoque() {
   const products = useInventoryStore((state) => state.products)
   const movements = useInventoryStore((state) => state.movements)
+  const fetchProducts = useInventoryStore((state) => state.fetchProducts)
+  const fetchMovements = useInventoryStore((state) => state.fetchMovements)
+
+  useEffect(() => {
+    fetchProducts()
+    fetchMovements()
+  }, [fetchProducts, fetchMovements])
   const windowDays = useInventoryStore((state) => state.expiryWindowDays)
   const restock = useInventoryStore((state) => state.restock)
 

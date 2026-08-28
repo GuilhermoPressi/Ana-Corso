@@ -7,8 +7,13 @@ import { config } from "./config.js"
 import { adminRoutes } from "./routes/admin.js"
 import { authRoutes } from "./routes/auth.js"
 import { clinicRoutes } from "./routes/clinic.js"
+import { dashboardRoutes } from "./routes/dashboard.js"
+import { financeRoutes } from "./routes/finance.js"
 import { healthRoutes } from "./routes/health.js"
+import { inventoryRoutes } from "./routes/inventory.js"
 import { patientRoutes } from "./routes/patients.js"
+import { procedureRoutes } from "./routes/procedures.js"
+import { scheduleRoutes } from "./routes/schedule.js"
 
 export function buildApp() {
   const app = Fastify({
@@ -77,6 +82,11 @@ export function buildApp() {
   app.register(adminRoutes, { prefix: "/api" })
   app.register(clinicRoutes, { prefix: "/api" })
   app.register(patientRoutes, { prefix: "/api" })
+  app.register(inventoryRoutes, { prefix: "/api" })
+  app.register(scheduleRoutes, { prefix: "/api" })
+  app.register(procedureRoutes, { prefix: "/api" })
+  app.register(financeRoutes, { prefix: "/api" })
+  app.register(dashboardRoutes, { prefix: "/api" })
 
   return app
 }

@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { CalendarPlus, Download, Sparkles } from "lucide-react"
 import { Link } from "react-router-dom"
 
@@ -14,14 +14,25 @@ import { CLINIC_TODAY, clinicTodayLabel } from "@/lib/clinic"
 import { selectNewPatientsThisMonth, usePatientStore } from "@/stores/usePatientStore"
 import { summarizeMonth, useFinanceStore } from "@/stores/useFinanceStore"
 import { eventsOn, useScheduleStore } from "@/stores/useScheduleStore"
+import { useInventoryStore } from "@/stores/useInventoryStore"
 
 export default function Dashboard() {
   const ledger = useFinanceStore((state) => state.ledger)
   const baseline = useFinanceStore((state) => state.baseline)
-  const operational = useFinanceStore((state) => state.operational)
+  const fetchEntries = useFinanceStore((state) => state.fetchEntries)
   const newPatients = usePatientStore(selectNewPatientsThisMonth)
   const patients = usePatientStore((state) => state.patients)
+  const loadPatients = usePatientStore((state) => state.loadPatients)
   const events = useScheduleStore((state) => state.events)
+  const fetchEvents = useScheduleStore((state) => state.fetchEvents)
+  const fetchProducts = useInventoryStore((state) => state.fetchProducts)
+
+  useEffect(() => {
+    loadPatients()
+    fetchEvents()
+    fetchProducts()
+    fetchEntries()
+  }, [loadPatients, fetchEvents, fetchProducts, fetchEntries])
 
   const todayCount = eventsOn(events, CLINIC_TODAY).filter((event) => event.kind !== "bloqueio").length
   const openReturns = patients.reduce(

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   Bar,
   BarChart,
@@ -49,7 +49,12 @@ const percent = (value: number) =>
 export default function Financeiro() {
   const ledger = useFinanceStore((state) => state.ledger)
   const baseline = useFinanceStore((state) => state.baseline)
+  const fetchEntries = useFinanceStore((state) => state.fetchEntries)
   const [mode, setMode] = useState<"reais" | "percentual">("reais")
+
+  useEffect(() => {
+    fetchEntries()
+  }, [fetchEntries])
 
   const summary = useMemo(() => summarizeMonth(ledger, baseline), [ledger, baseline])
   const profitability = useMemo(() => profitabilityByCategory(ledger, baseline), [ledger, baseline])

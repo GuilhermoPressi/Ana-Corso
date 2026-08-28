@@ -13,24 +13,19 @@ export type LedgerEntry = {
   category: string
   amount: number
   patientId?: string
-  /** Receitas lançadas a partir de um atendimento contam para o ticket médio. */
   countsAsAppointment?: boolean
-  /** Produto e material consumidos nesta receita — base da margem de contribuição. */
   directCost?: number
 }
 
-/** Procedimento precificado na tela de Precificação Inteligente. */
 export type CategoryTotal = {
   name: string
   revenue: number
   sessions: number
-  /** Custo de produto e material consumido no período. */
   directCost: number
 }
 
 export type Baseline = {
   expenses: number
-  /** Faturamento do mês já realizado, agrupado por procedimento. */
   revenueByCategory: CategoryTotal[]
 }
 
@@ -43,24 +38,21 @@ export type PricedProcedure = {
   cardFeePercent: number
   taxPercent: number
   marginPercent: number
-  /** Preço praticado, definido pela profissional (pode divergir do recomendado). */
   price: number
   createdAt: string
 }
 
 type FinanceState = {
   ledger: LedgerEntry[]
-  /**
-   * Parte do mês que não está lançada linha a linha no mock. As entradas do
-   * ledger somam a esta base para formar os números do dashboard.
-   */
   baseline: Baseline
   goal: number
   revenueSeries: RevenuePoint[]
-  /** Indicadores operacionais que não vêm do caixa. */
   operational: { returnRate: number; occupancy: number; avgHoursPerDay: number }
   procedures: PricedProcedure[]
+  loading: boolean
+  error: string | null
 
+  fetchEntries: (from?: string, to?: string) => Promise<void>
   registerRevenue: (input: {
     description: string
     category: string
@@ -68,8 +60,8 @@ type FinanceState = {
     patientId?: string
     countsAsAppointment?: boolean
     directCost?: number
-  }) => void
-  registerExpense: (input: { description: string; category: string; amount: number }) => void
+  }) => Promise<boolean>
+  registerExpense: (input: { description: string; category: string; amount: number }) => Promise<boolean>
   addProcedure: (procedure: Omit<PricedProcedure, "id" | "createdAt">) => PricedProcedure
   removeProcedure: (id: string) => void
 }
@@ -80,47 +72,112 @@ function nextId(prefix: string) {
   return `${prefix}-${sequence}`
 }
 
+export function mapDbLedgerToFrontend(dbL: any): LedgerEntry {
+  const dt = dbL.occurredAt ? new Date(dbL.occurredAt) : new Date()
+  const dateStr = dt.toISOString().split("T")[0]
 
-export const useFinanceStore = create<FinanceState>((set) => ({
+  return {
+    id: dbL.id,
+    date: dateStr,
+    kind: dbL.kind === "REVENUE" ? "receita" : "despesa",
+    description: dbL.description,
+    category: dbL.category,
+    amount: Number(dbL.amount),
+    patientId: dbL.patientId || undefined,
+    countsAsAppointment: dbL.countsAsAppointment ?? true,
+    directCost: dbL.directCost ? Number(dbL.directCost) : 0,
+  }
+}
+
+export const useFinanceStore = create<FinanceState>((set, get) => ({
   ledger: [],
   baseline: { expenses: 0, revenueByCategory: [] },
   goal: 0,
   revenueSeries: [],
   operational: { returnRate: 0, occupancy: 0, avgHoursPerDay: 0 },
   procedures: [],
+  loading: false,
+  error: null,
 
-  registerRevenue: ({
+  fetchEntries: async (from, to) => {
+    set({ loading: true, error: null })
+    try {
+      const q = new URLSearchParams()
+      if (from) q.append("from", from)
+      if (to) q.append("to", to)
+
+      const res = await fetch(`/api/finance/entries?${q.toString()}`)
+      if (res.ok) {
+        const data = await res.json()
+        const mapped = (data.entries || []).map(mapDbLedgerToFrontend)
+        set({ ledger: mapped, loading: false })
+      } else {
+        set({ loading: false })
+      }
+    } catch {
+      set({ loading: false })
+    }
+  },
+
+  registerRevenue: async ({
     description,
     category,
     amount,
-    patientId,
-    countsAsAppointment = true,
-    directCost = 0,
-  }) =>
-    set((state) => ({
-      ledger: [
-        {
-          id: nextId("e"),
-          date: CLINIC_TODAY,
-          kind: "receita",
-          description,
+  }) => {
+    set({ loading: true, error: null })
+    try {
+      const res = await fetch("/api/finance/entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "REVENUE",
           category,
+          description,
           amount,
-          directCost,
-          patientId,
-          countsAsAppointment,
-        },
-        ...state.ledger,
-      ],
-    })),
+        }),
+      })
 
-  registerExpense: ({ description, category, amount }) =>
-    set((state) => ({
-      ledger: [
-        { id: nextId("e"), date: CLINIC_TODAY, kind: "despesa", description, category, amount },
-        ...state.ledger,
-      ],
-    })),
+      if (!res.ok) {
+        set({ loading: false })
+        return false
+      }
+
+      await get().fetchEntries()
+      set({ loading: false })
+      return true
+    } catch {
+      set({ loading: false })
+      return false
+    }
+  },
+
+  registerExpense: async ({ description, category, amount }) => {
+    set({ loading: true, error: null })
+    try {
+      const res = await fetch("/api/finance/entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "EXPENSE",
+          category,
+          description,
+          amount,
+        }),
+      })
+
+      if (!res.ok) {
+        set({ loading: false })
+        return false
+      }
+
+      await get().fetchEntries()
+      set({ loading: false })
+      return true
+    } catch {
+      set({ loading: false })
+      return false
+    }
+  },
 
   addProcedure: (procedure) => {
     const created: PricedProcedure = { ...procedure, id: nextId("proc"), createdAt: CLINIC_TODAY }
@@ -132,17 +189,6 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     set((state) => ({ procedures: state.procedures.filter((item) => item.id !== id) })),
 }))
 
-
-
-
-/* ------------------------------------------------------------------ *
- * Seletores derivados
- *
- * Recebem as fatias cruas da store em vez do estado inteiro: assim o componente
- * seleciona referências estáveis e memoiza o cálculo, sem quebrar a igualdade
- * que o zustand usa para decidir re-renders.
- * ------------------------------------------------------------------ */
-
 export type MonthSummary = {
   revenue: number
   expenses: number
@@ -150,13 +196,9 @@ export type MonthSummary = {
   margin: number
   appointments: number
   ticket: number
-  /** Produto e material CONSUMIDOS no mês — base da margem de contribuição. */
   directCost: number
-  /** Despesas de compra de produto no mês (saída de caixa, não consumo). */
   productPurchases: number
-  /** Despesas que não variam com o volume de atendimentos. */
   fixedCost: number
-  /** Receita menos custo direto consumido. */
   contribution: number
 }
 
@@ -180,15 +222,12 @@ export function summarizeMonth(ledger: LedgerEntry[], baseline: Baseline): Month
 
   const profit = revenue - expenses
 
-  // Consumo do estoque: é o que sai fisicamente ao atender, não o que se compra.
   const directCost =
     baseline.revenueByCategory.reduce((sum, item) => sum + item.directCost, 0) +
     monthEntries
       .filter((e) => e.kind === "receita")
       .reduce((sum, e) => sum + (e.directCost ?? 0), 0)
 
-  // Custo fixo vem das despesas que não são compra de produto — nunca por
-  // subtração do consumo, que pode divergir da compra dentro do mesmo mês.
   const productPurchases = monthEntries
     .filter((e) => e.kind === "despesa" && e.category === "Produtos")
     .reduce((sum, e) => sum + e.amount, 0)
@@ -209,7 +248,6 @@ export function summarizeMonth(ledger: LedgerEntry[], baseline: Baseline): Month
   }
 }
 
-/** Faturamento por procedimento no mês, do maior para o menor. */
 export function revenueByCategory(ledger: LedgerEntry[], baseline: Baseline): CategoryTotal[] {
   const totals = new Map<string, Omit<CategoryTotal, "name">>()
 
@@ -237,15 +275,12 @@ export function revenueByCategory(ledger: LedgerEntry[], baseline: Baseline): Ca
 }
 
 export type ProfitabilityRow = CategoryTotal & {
-  /** Receita menos custo direto: o que sobra para pagar os custos fixos. */
   contribution: number
   contributionMargin: number
   contributionPerSession: number
-  /** Fatia da margem de contribuição total da clínica. */
   share: number
 }
 
-/** Lucratividade por procedimento, da maior contribuição em reais para a menor. */
 export function profitabilityByCategory(
   ledger: LedgerEntry[],
   baseline: Baseline,
@@ -270,7 +305,6 @@ export function profitabilityByCategory(
     .sort((a, b) => b.contribution - a.contribution)
 }
 
-/** Despesas do mês agrupadas por categoria, separando o que é custo direto de produto. */
 export function expensesByCategory(ledger: LedgerEntry[], baseline: Baseline) {
   const totals = new Map<string, number>()
 

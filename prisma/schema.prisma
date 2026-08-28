@@ -61,6 +61,10 @@ enum PatientStatus {
 enum ClinicActivityEntityType {
   CLINIC
   PATIENT
+  PROCEDURE
+  SCHEDULE
+  INVENTORY
+  FINANCE
 }
 
 enum ClinicActivityAction {
@@ -69,6 +73,55 @@ enum ClinicActivityAction {
   PATIENT_UPDATED
   PATIENT_ARCHIVED
   PATIENT_RESTORED
+  PROCEDURE_CREATED
+  SCHEDULE_CREATED
+  SCHEDULE_UPDATED
+  SCHEDULE_CANCELLED
+  RETURN_COMPLETED
+  INVENTORY_CREATED
+  INVENTORY_RESTOCKED
+  INVENTORY_ADJUSTED
+  FINANCE_ENTRY_CREATED
+  FINANCE_ENTRY_VOIDED
+}
+
+enum ScheduleEventKind {
+  PROCEDURE
+  RETURN
+  EVALUATION
+  COMMERCIAL_CONTACT
+  BLOCK
+}
+
+enum ScheduleEventStatus {
+  CONFIRMED
+  WAITING
+  COMPLETED
+  CANCELLED
+}
+
+enum InventoryMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+enum PatientReturnStatus {
+  PENDING
+  COMPLETED
+  OVERDUE
+  CANCELLED
+}
+
+enum LedgerKind {
+  REVENUE
+  EXPENSE
+}
+
+enum LedgerSource {
+  PROCEDURE
+  MANUAL
+  ADJUSTMENT
 }
 
 model Clinic {
@@ -76,6 +129,7 @@ model Clinic {
   name                 String
   slug                 String       @unique
   status               ClinicStatus @default(ACTIVE)
+  timezone             String       @default("America/Sao_Paulo")
   createdAt            DateTime     @default(now()) @map("created_at")
   updatedAt            DateTime     @updatedAt @map("updated_at")
 
@@ -90,6 +144,14 @@ model Clinic {
   users                ClinicUser[]
   patients             Patient[]
   activityLogs         ClinicActivityLog[]
+  procedureRecords     ProcedureRecord[]
+  productUsages        ProcedureProductUsage[]
+  inventoryItems       InventoryItem[]
+  inventoryMovements   InventoryMovement[]
+  scheduleEvents       ScheduleEvent[]
+  returns              PatientReturn[]
+  ledgerEntries        LedgerEntry[]
+  idempotencyKeys      IdempotencyKey[]
 
   @@map("clinics")
 }
@@ -108,15 +170,20 @@ model User {
   blockedAt     DateTime?  @map("blocked_at")
   blockedReason String?    @map("blocked_reason")
 
-  clinics             ClinicUser[]
-  sessions            Session[]
-  loginEvents         LoginEvent[]
-  adminAuditLogs      AdminAuditLog[]      @relation("AdminUser")
-  targetAuditLogs     AdminAuditLog[]      @relation("TargetUser")
-  passwordResetTokens PasswordResetToken[]
-  createdPatients     Patient[]            @relation("PatientCreatedBy")
-  updatedPatients     Patient[]            @relation("PatientUpdatedBy")
-  clinicActivityLogs  ClinicActivityLog[]
+  clinics              ClinicUser[]
+  sessions             Session[]
+  loginEvents          LoginEvent[]
+  adminAuditLogs       AdminAuditLog[]      @relation("AdminUser")
+  targetAuditLogs      AdminAuditLog[]      @relation("TargetUser")
+  passwordResetTokens  PasswordResetToken[]
+  createdPatients      Patient[]            @relation("PatientCreatedBy")
+  updatedPatients      Patient[]            @relation("PatientUpdatedBy")
+  clinicActivityLogs   ClinicActivityLog[]
+  createdProcedures    ProcedureRecord[]    @relation("ProcedureCreatedBy")
+  createdMovements     InventoryMovement[]  @relation("MovementCreatedBy")
+  createdSchedules     ScheduleEvent[]      @relation("ScheduleCreatedBy")
+  createdLedgerEntries LedgerEntry[]        @relation("LedgerCreatedBy")
+  idempotencyKeys      IdempotencyKey[]
 
   @@map("users")
 }
@@ -225,6 +292,10 @@ model Patient {
   createdByUser   User?                   @relation("PatientCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   updatedByUser   User?                   @relation("PatientUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
   clinicalProfile PatientClinicalProfile?
+  procedureRecords ProcedureRecord[]
+  scheduleEvents  ScheduleEvent[]
+  returns         PatientReturn[]
+  ledgerEntries   LedgerEntry[]
 
   @@unique([clinicId, cpf])
   @@index([clinicId])
@@ -263,4 +334,214 @@ model ClinicActivityLog {
 
   @@index([clinicId, createdAt])
   @@map("clinic_activity_logs")
+}
+
+model IdempotencyKey {
+  id           String   @id @default(uuid())
+  clinicId     String   @map("clinic_id")
+  userId       String?  @map("user_id")
+  key          String
+  operation    String
+  status       String   // "PENDING", "COMPLETED"
+  resourceId   String?  @map("resource_id")
+  responseCode Int?     @map("response_code")
+  responseBody Json?    @map("response_body")
+  createdAt    DateTime @default(now()) @map("created_at")
+  expiresAt    DateTime @map("expires_at")
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([clinicId, key])
+  @@index([expiresAt])
+  @@map("idempotency_keys")
+}
+
+model ProcedureRecord {
+  id                 String   @id @default(uuid())
+  clinicId           String   @map("clinic_id")
+  patientId          String   @map("patient_id")
+  procedureName      String   @map("procedure_name")
+  procedureCategory  String   @map("procedure_category")
+  performedAt        DateTime @default(now()) @map("performed_at")
+  professionalUserId String?  @map("professional_user_id")
+  professionalName   String   @map("professional_name")
+  regions            String[] @default([])
+  value              Decimal  @db.Decimal(12, 2)
+  directCost         Decimal  @default(0) @db.Decimal(12, 2) @map("direct_cost")
+  notes              String?  @db.Text
+  createdByUserId    String?  @map("created_by_user_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  clinic           Clinic                  @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  patient          Patient                 @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  createdByUser    User?                   @relation("ProcedureCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  productUsages    ProcedureProductUsage[]
+  inventoryOutputs InventoryMovement[]
+  ledgerEntry      LedgerEntry?
+  patientReturn    PatientReturn?
+
+  @@index([clinicId])
+  @@index([clinicId, performedAt])
+  @@index([patientId])
+  @@map("procedure_records")
+}
+
+model ProcedureProductUsage {
+  id                  String   @id @default(uuid())
+  clinicId            String   @map("clinic_id")
+  procedureRecordId   String   @map("procedure_record_id")
+  inventoryItemId     String   @map("inventory_item_id")
+  productNameSnapshot String   @map("product_name_snapshot")
+  brandSnapshot       String   @map("brand_snapshot")
+  lotSnapshot         String   @map("lot_snapshot")
+  unitSnapshot        String   @map("unit_snapshot")
+  quantity            Decimal  @db.Decimal(12, 4)
+  unitCostSnapshot    Decimal  @db.Decimal(12, 4) @map("unit_cost_snapshot")
+  totalCost           Decimal  @db.Decimal(12, 2) @map("total_cost")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  clinic          Clinic          @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  procedureRecord ProcedureRecord @relation(fields: [procedureRecordId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem   @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+
+  @@index([clinicId])
+  @@index([procedureRecordId])
+  @@map("procedure_product_usages")
+}
+
+model InventoryItem {
+  id             String    @id @default(uuid())
+  clinicId       String    @map("clinic_id")
+  name           String
+  brand          String
+  category       String
+  contentUnit    String    @map("content_unit")
+  contentPerPack Decimal   @db.Decimal(12, 4) @map("content_per_pack")
+  packLabel      String    @map("pack_label")
+  quantity       Decimal   @db.Decimal(12, 4)
+  minQuantity    Decimal   @db.Decimal(12, 4) @map("min_quantity")
+  packCost       Decimal   @db.Decimal(12, 2) @map("pack_cost")
+  lot            String
+  expiresAt      DateTime? @map("expires_at") @db.Date
+  supplier       String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  archivedAt     DateTime? @map("archived_at")
+
+  clinic        Clinic                  @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  movements     InventoryMovement[]
+  productUsages ProcedureProductUsage[]
+
+  @@index([clinicId])
+  @@index([clinicId, category])
+  @@map("inventory_items")
+}
+
+model InventoryMovement {
+  id                  String                @id @default(uuid())
+  clinicId            String                @map("clinic_id")
+  inventoryItemId     String                @map("inventory_item_id")
+  procedureRecordId   String?               @map("procedure_record_id")
+  patientId           String?               @map("patient_id")
+  type                InventoryMovementType
+  productNameSnapshot String                @map("product_name_snapshot")
+  lotSnapshot         String                @map("lot_snapshot")
+  quantity            Decimal               @db.Decimal(12, 4)
+  unit                String
+  reason              String
+  createdByUserId     String?               @map("created_by_user_id")
+  createdAt           DateTime              @default(now()) @map("created_at")
+
+  clinic          Clinic           @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  inventoryItem   InventoryItem    @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  procedureRecord ProcedureRecord? @relation(fields: [procedureRecordId], references: [id], onDelete: SetNull)
+  createdByUser   User?            @relation("MovementCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId, createdAt])
+  @@index([inventoryItemId])
+  @@map("inventory_movements")
+}
+
+model ScheduleEvent {
+  id                 String              @id @default(uuid())
+  clinicId           String              @map("clinic_id")
+  patientId          String?             @map("patient_id")
+  patientName        String?             @map("patient_name")
+  title              String
+  kind               ScheduleEventKind   @default(PROCEDURE)
+  status             ScheduleEventStatus @default(CONFIRMED)
+  startsAt           DateTime            @map("starts_at")
+  durationMin        Int                 @default(30) @map("duration_min")
+  professionalUserId String?             @map("professional_user_id")
+  professionalName   String?             @map("professional_name")
+  room               String?
+  value              Decimal?            @db.Decimal(12, 2)
+  note               String?
+  auto               Boolean             @default(false)
+  createdByUserId    String?             @map("created_by_user_id")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  cancelledAt        DateTime?           @map("cancelled_at")
+
+  clinic        Clinic          @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  patient       Patient?        @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  createdByUser User?           @relation("ScheduleCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  returns       PatientReturn[]
+
+  @@index([clinicId, startsAt])
+  @@index([clinicId, status])
+  @@map("schedule_events")
+}
+
+model PatientReturn {
+  id                String              @id @default(uuid())
+  clinicId          String              @map("clinic_id")
+  patientId         String              @map("patient_id")
+  procedureRecordId String?             @unique @map("procedure_record_id")
+  scheduleEventId   String?             @map("schedule_event_id")
+  dueAt             DateTime            @map("due_at") @db.Date
+  status            PatientReturnStatus @default(PENDING)
+  reason            String
+  completedAt       DateTime?           @map("completed_at")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  clinic          Clinic           @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  patient         Patient          @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  procedureRecord ProcedureRecord? @relation(fields: [procedureRecordId], references: [id], onDelete: SetNull)
+  scheduleEvent   ScheduleEvent?   @relation(fields: [scheduleEventId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId, dueAt])
+  @@index([patientId])
+  @@map("patient_returns")
+}
+
+model LedgerEntry {
+  id                  String       @id @default(uuid())
+  clinicId            String       @map("clinic_id")
+  patientId           String?      @map("patient_id")
+  procedureRecordId   String?      @unique @map("procedure_record_id")
+  kind                LedgerKind
+  source              LedgerSource @default(MANUAL)
+  category            String
+  description         String
+  amount              Decimal      @db.Decimal(12, 2)
+  directCost          Decimal      @default(0) @db.Decimal(12, 2) @map("direct_cost")
+  countsAsAppointment Boolean      @default(true) @map("counts_as_appointment")
+  occurredAt          DateTime     @default(now()) @map("occurred_at")
+  createdByUserId     String?      @map("created_by_user_id")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+  voidedAt            DateTime?    @map("voided_at")
+
+  clinic          Clinic           @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  patient         Patient?         @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  procedureRecord ProcedureRecord? @relation(fields: [procedureRecordId], references: [id], onDelete: SetNull)
+  createdByUser   User?            @relation("LedgerCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId, occurredAt])
+  @@index([clinicId, kind])
+  @@map("ledger_entries")
 }

@@ -72,8 +72,13 @@ function monthLabel(yearMonth: string) {
 
 export default function Agenda() {
   const events = useScheduleStore((state) => state.events)
+  const fetchEvents = useScheduleStore((state) => state.fetchEvents)
   const [viewMonth, setViewMonth] = useState(CLINIC_MONTH)
   const [selectedDay, setSelectedDay] = useState(CLINIC_TODAY)
+
+  useEffect(() => {
+    fetchEvents()
+  }, [fetchEvents])
 
   const { days, leadingBlanks } = useMemo(() => monthMatrix(`${viewMonth}-01`), [viewMonth])
   const monthEvents = useMemo(() => eventsInMonth(events, viewMonth), [events, viewMonth])
