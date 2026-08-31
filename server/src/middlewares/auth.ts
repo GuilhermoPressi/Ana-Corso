@@ -18,6 +18,7 @@ export type SafeClinic = {
   slug: string
   role: string
   status: string
+  timezone: string
 }
 
 declare module "fastify" {
@@ -127,6 +128,7 @@ export async function authenticateSession(request: FastifyRequest, reply: Fastif
       slug: userClinicRel.clinic.slug,
       role: userClinicRel.role,
       status: userClinicRel.clinic.status,
+      timezone: userClinicRel.clinic.timezone || "America/Sao_Paulo",
     }
     request.clinicRole = userClinicRel.role
   }
