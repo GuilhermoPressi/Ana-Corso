@@ -115,10 +115,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         body: JSON.stringify({ email, password }),
       })
 
-      const data = await response.json()
+      const contentType = response.headers.get("content-type") || ""
+      let data: any = null
+
+      if (contentType.includes("application/json")) {
+        try {
+          data = await response.json()
+        } catch {
+          data = null
+        }
+      }
 
       if (!response.ok) {
-        set({ error: data.error?.message || "Falha na autenticação." })
+        const errorMsg =
+          data?.error?.message ||
+          "Não foi possível conectar ao servidor. Tente novamente em alguns instantes."
+        set({ error: errorMsg })
+        return false
+      }
+
+      if (!data || !data.user) {
+        set({ error: "Não foi possível conectar ao servidor. Tente novamente em alguns instantes." })
         return false
       }
 
@@ -139,8 +156,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       return true
-    } catch (err: any) {
-      set({ error: err.message || "Erro de conexão com o servidor." })
+    } catch {
+      set({ error: "Não foi possível conectar ao servidor. Tente novamente em alguns instantes." })
       return false
     }
   },
@@ -154,10 +171,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         body: JSON.stringify(formData),
       })
 
-      const data = await response.json()
+      const contentType = response.headers.get("content-type") || ""
+      let data: any = null
+
+      if (contentType.includes("application/json")) {
+        try {
+          data = await response.json()
+        } catch {
+          data = null
+        }
+      }
 
       if (!response.ok) {
-        set({ error: data.error?.message || "Falha no cadastro." })
+        const errorMsg =
+          data?.error?.message ||
+          "Não foi possível conectar ao servidor. Tente novamente em alguns instantes."
+        set({ error: errorMsg })
+        return false
+      }
+
+      if (!data || !data.user) {
+        set({ error: "Não foi possível conectar ao servidor. Tente novamente em alguns instantes." })
         return false
       }
 
@@ -178,8 +212,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       return true
-    } catch (err: any) {
-      set({ error: err.message || "Erro de conexão com o servidor." })
+    } catch {
+      set({ error: "Não foi possível conectar ao servidor. Tente novamente em alguns instantes." })
       return false
     }
   },
