@@ -64,12 +64,12 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const isReceptionist = clinic?.role === "RECEPTIONIST"
 
   return (
-    <div className="flex h-full flex-col bg-sidebar">
+    <div className="flex h-full min-h-0 flex-col bg-sidebar">
       <div className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-5">
         <Logo />
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <nav className="flex flex-col gap-5 px-3 py-5">
           {/* Grupo Administrativo para contas SystemRole = ADMIN */}
           {isAdmin && (

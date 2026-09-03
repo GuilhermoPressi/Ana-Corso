@@ -59,7 +59,7 @@ export function Header({
             <Menu />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-[280px] p-0">
+        <SheetContent side="left" className="w-[280px] p-0 flex flex-col h-full">
           <SheetTitle className="sr-only">Navegação</SheetTitle>
           <SidebarNav onNavigate={() => onMobileOpenChange(false)} />
         </SheetContent>

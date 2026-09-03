@@ -9,7 +9,7 @@ export function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[264px] border-r border-sidebar-border lg:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden h-screen w-[264px] flex-col border-r border-sidebar-border lg:flex">
         <SidebarNav />
       </aside>
 
