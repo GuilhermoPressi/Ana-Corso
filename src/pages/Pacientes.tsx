@@ -61,35 +61,45 @@ export default function Pacientes() {
     loadPatients()
   }, [loadPatients])
 
-  const counts = useMemo(() => countByStatus(patients), [patients])
+  const safePatients = patients || []
+  const counts = useMemo(() => countByStatus(safePatients), [safePatients])
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
 
-    const result = patients.filter((patient) => {
+    const result = safePatients.filter((patient) => {
+      if (!patient) return false
+      const name = patient.name || ""
+      const phone = patient.phone || ""
+      const email = patient.email || ""
+      const tags = patient.tags || []
+      const procedures = patient.procedures || []
+
       const matchesSearch =
         !term ||
-        patient.name.toLowerCase().includes(term) ||
-        patient.phone.includes(term) ||
-        patient.email.toLowerCase().includes(term) ||
-        patient.tags.some((tag) => tag.toLowerCase().includes(term))
+        name.toLowerCase().includes(term) ||
+        phone.includes(term) ||
+        email.toLowerCase().includes(term) ||
+        tags.some((tag) => tag && tag.toLowerCase().includes(term))
 
       const matchesStatus = status === "todas" || patient.status === status
       const matchesProcedure =
         procedure === procedureFilters[0] ||
         patient.mainProcedure === procedure ||
-        patient.procedures.some((item) => item.procedure === procedure)
+        procedures.some((item) => item && item.procedure === procedure)
 
       return matchesSearch && matchesStatus && matchesProcedure
     })
 
     return [...result].sort((a, b) => {
-      if (sort === "valor") return b.totalSpent - a.totalSpent
-      if (sort === "nome") return a.name.localeCompare(b.name, "pt-BR")
-      if (sort === "sessoes") return b.sessions - a.sessions
-      return new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime()
+      if (sort === "valor") return (b.totalSpent || 0) - (a.totalSpent || 0)
+      if (sort === "nome") return (a.name || "").localeCompare(b.name || "", "pt-BR")
+      if (sort === "sessoes") return (b.sessions || 0) - (a.sessions || 0)
+      const dateA = a.lastVisit ? new Date(a.lastVisit).getTime() : 0
+      const dateB = b.lastVisit ? new Date(b.lastVisit).getTime() : 0
+      return dateB - dateA
     })
-  }, [patients, search, status, procedure, sort])
+  }, [safePatients, search, status, procedure, sort])
 
   const hasFilters = search !== "" || status !== "todas" || procedure !== procedureFilters[0]
 

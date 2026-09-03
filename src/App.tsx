@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom"
 
 import { AdminProtectedRoute } from "@/components/auth/AdminProtectedRoute"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
+import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -143,9 +144,11 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route
           element={
-            <Suspense fallback={<PageFallback />}>
-              <DashboardLayout />
-            </Suspense>
+            <ErrorBoundary>
+              <Suspense fallback={<PageFallback />}>
+                <DashboardLayout />
+              </Suspense>
+            </ErrorBoundary>
           }
         >
           <Route index element={<Dashboard />} />

@@ -53,14 +53,27 @@ function isFilled(value: FieldValue) {
 }
 
 export default function PlanejamentoFacial() {
-  const patients = usePatientStore((state) => state.patients)
-  const [patientId, setPatientId] = useState<string>(patients[0].id)
+  const { patients, loadPatients } = usePatientStore()
+  const [patientId, setPatientId] = useState<string>("")
   const [activeLineId, setActiveLineId] = useState(planningLines[0].id)
   const [selected, setSelected] = useState<string[]>([keyOf("toxina", "frontal")])
   const [state, setState] = useState<PlanningState>({})
   const [expanded, setExpanded] = useState<string[]>([keyOf("toxina", "frontal")])
 
-  const patient = patients.find((item) => item.id === patientId)
+  useEffect(() => {
+    if (!patients || patients.length === 0) {
+      loadPatients()
+    }
+  }, [loadPatients, patients?.length])
+
+  useEffect(() => {
+    if (!patientId && patients && patients.length > 0) {
+      setPatientId(patients[0].id)
+    }
+  }, [patients, patientId])
+
+  const safePatients = patients || []
+  const patient = safePatients.find((item) => item.id === patientId) ?? safePatients[0]
   const activeLine = planningLines.find((line) => line.id === activeLineId) ?? planningLines[0]
 
   const selectedInLine = selected.filter((key) => key.startsWith(`${activeLine.id}:`))

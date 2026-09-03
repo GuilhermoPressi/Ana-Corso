@@ -45,19 +45,41 @@ let pointSequence = 0
 const pointId = () => `pt-${(pointSequence += 1)}`
 
 export default function MapaProcedimento() {
-  const patients = usePatientStore((state) => state.patients)
-  const products = useInventoryStore((state) => state.products)
-  const maps = useProcedureMapStore((state) => state.maps)
-  const saveMap = useProcedureMapStore((state) => state.saveMap)
-  const removeMap = useProcedureMapStore((state) => state.removeMap)
+  const { patients, loadPatients } = usePatientStore()
+  const { products, loadProducts } = useInventoryStore()
+  const { maps, fetchMaps, saveMap, removeMap } = useProcedureMapStore()
 
-  const [patientId, setPatientId] = useState(patients[0].id)
+  const [patientId, setPatientId] = useState<string>("")
   const [procedure, setProcedure] = useState(procedures[0])
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
   const [points, setPoints] = useState<MapPoint[]>([])
   const [view, setView] = useState<"2d" | "3d">("2d")
   /** Coordenada clicada na malha que ainda não virou ponto registrado. */
   const [pending3d, setPending3d] = useState<[number, number, number] | null>(null)
+
+  useEffect(() => {
+    if (!patients || patients.length === 0) {
+      loadPatients()
+    }
+  }, [loadPatients, patients?.length])
+
+  useEffect(() => {
+    if (!products || products.length === 0) {
+      loadProducts()
+    }
+  }, [loadProducts, products?.length])
+
+  useEffect(() => {
+    if (!patientId && patients && patients.length > 0) {
+      setPatientId(patients[0].id)
+    }
+  }, [patients, patientId])
+
+  useEffect(() => {
+    if (patientId) {
+      fetchMaps(patientId)
+    }
+  }, [patientId, fetchMaps])
 
   // A checagem só dispara quando a aba 3D é aberta.
   const modelAvailability = useModelAvailability(MODEL_URL, view === "3d")
@@ -69,12 +91,16 @@ export default function MapaProcedimento() {
   const [technique, setTechnique] = useState(techniqueOptions[0])
   const [note, setNote] = useState("")
 
-  const patient = patients.find((item) => item.id === patientId)
+  const safePatients = patients || []
+  const safeProducts = products || []
+  const safeMaps = maps || []
+
+  const patient = safePatients.find((item) => item.id === patientId) ?? safePatients[0]
   const region = faceRegions.find((item) => item.id === selectedRegion)
 
   const productOptions = useMemo(
-    () => products.filter((item) => item.category === procedure),
-    [products, procedure],
+    () => safeProducts.filter((item) => item && item.category === procedure),
+    [safeProducts, procedure],
   )
   const product = productOptions.find((item) => item.id === productId) ?? productOptions[0]
 
@@ -91,7 +117,7 @@ export default function MapaProcedimento() {
         })),
     [points],
   )
-  const history = useMemo(() => mapsForPatient(maps, patientId), [maps, patientId])
+  const history = useMemo(() => mapsForPatient(safeMaps, patientId), [safeMaps, patientId])
 
   function addPoint() {
     if (!region || quantity.trim().length === 0) return
