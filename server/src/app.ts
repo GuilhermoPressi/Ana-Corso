@@ -48,12 +48,21 @@ export function buildApp() {
   app.register(fastifyCors, {
     origin: (origin, cb) => {
       if (!origin) return cb(null, true)
-      const allowedOrigins = [config.FRONTEND_URL].filter(Boolean)
-      if (
+      const allowedOrigins = [
+        config.FRONTEND_URL,
+        "https://app.anacorso.com.br",
+        "http://app.anacorso.com.br",
+        "http://179.199.133.252",
+      ].filter(Boolean)
+
+      const isAllowed =
         allowedOrigins.includes(origin) ||
+        origin.endsWith(".anacorso.com.br") ||
+        origin === "https://anacorso.com.br" ||
         (config.NODE_ENV !== "production" &&
           (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")))
-      ) {
+
+      if (isAllowed) {
         return cb(null, true)
       }
       return cb(new Error("Origem não permitida pelo CORS"), false)
