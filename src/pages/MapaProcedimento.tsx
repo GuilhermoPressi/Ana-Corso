@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from "react"
+import { lazy, Suspense, useEffect, useMemo, useState } from "react"
 import { Box, History, MapPin, Plus, Rotate3d, Save, Square, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 
@@ -46,7 +46,7 @@ const pointId = () => `pt-${(pointSequence += 1)}`
 
 export default function MapaProcedimento() {
   const { patients, loadPatients } = usePatientStore()
-  const { products, loadProducts } = useInventoryStore()
+  const { products, fetchProducts } = useInventoryStore()
   const { maps, fetchMaps, saveMap, removeMap } = useProcedureMapStore()
 
   const [patientId, setPatientId] = useState<string>("")
@@ -65,9 +65,9 @@ export default function MapaProcedimento() {
 
   useEffect(() => {
     if (!products || products.length === 0) {
-      loadProducts()
+      fetchProducts()
     }
-  }, [loadProducts, products?.length])
+  }, [fetchProducts, products?.length])
 
   useEffect(() => {
     if (!patientId && patients && patients.length > 0) {
