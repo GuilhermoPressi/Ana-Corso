@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { ArrowUpDown, ChevronRight, Filter, MessageCircle, Search, X } from "lucide-react"
+import { ArrowUpDown, ChevronLeft, ChevronRight, Filter, MessageCircle, Search, X } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 import { PageHeader } from "@/components/layout/PageHeader"
@@ -51,15 +51,25 @@ type SortId = (typeof sortOptions)[number]["id"]
 
 export default function Pacientes() {
   const navigate = useNavigate()
-  const { patients, loadPatients, loading } = usePatientStore()
+  const { patients, loadPatients, loading, pagination } = usePatientStore()
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState<"todas" | PatientStatus>("todas")
   const [procedure, setProcedure] = useState(procedureFilters[0])
   const [sort, setSort] = useState<SortId>("recentes")
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
-    loadPatients()
-  }, [loadPatients])
+    setPage(1)
+  }, [search, status])
+
+  useEffect(() => {
+    loadPatients({
+      search: search.trim() || undefined,
+      status: status === "todas" ? undefined : status,
+      page,
+      limit: 25,
+    })
+  }, [loadPatients, search, status, page])
 
   const safePatients = patients || []
   const counts = useMemo(() => countByStatus(safePatients), [safePatients])
@@ -113,7 +123,7 @@ export default function Pacientes() {
     <div className="mx-auto max-w-[1400px]">
       <PageHeader
         title="Pacientes"
-        description={`${counts.todas} pacientes cadastradas · ${counts.ativa} ativas`}
+        description={`${pagination.total || counts.todas} pacientes cadastradas no total`}
         actions={
           <>
             <Button variant="outline" size="sm">
@@ -311,14 +321,40 @@ export default function Pacientes() {
           </Table>
         </div>
 
-        {!loading && filtered.length > 0 && (
-          <div className="flex items-center justify-between border-t border-border/70 bg-muted/25 px-4 py-3 text-[12px] text-muted-foreground">
+        {!loading && (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/70 bg-muted/25 px-4 py-3 text-[12px] text-muted-foreground">
             <span>
-              Exibindo {filtered.length} de {patients.length} pacientes
+              Exibindo {pagination.total > 0 ? (page - 1) * pagination.limit + 1 : 0}–
+              {Math.min(page * pagination.limit, pagination.total)} de {pagination.total} pacientes
             </span>
-            <span className="tabular-nums">
-              Investimento somado: {formatCurrency(filtered.reduce((sum, p) => sum + p.totalSpent, 0))}
-            </span>
+
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1 || loading}
+                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                  className="h-8 px-2 text-xs"
+                >
+                  <ChevronLeft className="size-3.5 mr-1" /> Anterior
+                </Button>
+
+                <span className="px-2.5 text-xs font-semibold text-foreground">
+                  Página {page} de {pagination.totalPages}
+                </span>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= pagination.totalPages || loading}
+                  onClick={() => setPage((p) => Math.min(p + 1, pagination.totalPages))}
+                  className="h-8 px-2 text-xs"
+                >
+                  Próxima <ChevronRight className="size-3.5 ml-1" />
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Card>

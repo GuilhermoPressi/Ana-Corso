@@ -169,6 +169,30 @@ export function NewPatientDialog({ trigger }: { trigger?: ReactNode }) {
           </div>
 
           <div>
+            <Label htmlFor="np-cpf" className="text-[13px]">
+              CPF <span className="text-muted-foreground">(para emissão de NF)</span>
+            </Label>
+            <Input
+              id="np-cpf"
+              value={form.cpf || ""}
+              onChange={(event) => {
+                const raw = event.target.value.replace(/\D/g, "").slice(0, 11)
+                const formatted =
+                  raw.length <= 3
+                    ? raw
+                    : raw.length <= 6
+                      ? `${raw.slice(0, 3)}.${raw.slice(3)}`
+                      : raw.length <= 9
+                        ? `${raw.slice(0, 3)}.${raw.slice(3, 6)}.${raw.slice(6)}`
+                        : `${raw.slice(0, 3)}.${raw.slice(3, 6)}.${raw.slice(6, 9)}-${raw.slice(9)}`
+                set("cpf", formatted)
+              }}
+              placeholder="000.000.000-00"
+              className="mt-1.5"
+            />
+          </div>
+
+          <div>
             <Label htmlFor="np-birth" className="text-[13px]">
               Data de Nascimento
             </Label>

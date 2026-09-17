@@ -10,6 +10,7 @@ import { CLINIC_TODAY, isCurrentMonth } from "@/lib/clinic"
 
 export type NewPatientInput = {
   name: string
+  cpf?: string
   phone: string
   email: string
   city: string
@@ -95,6 +96,7 @@ export function mapDbPatientToFrontend(dbP: any): Patient {
   return {
     id: dbP.id,
     name: dbP.name,
+    cpf: dbP.cpf || "",
     birthDate: birthDateFormatted,
     phone: dbP.phone || "",
     email: dbP.email || "",

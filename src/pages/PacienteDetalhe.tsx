@@ -311,7 +311,8 @@ export default function PacienteDetalhe() {
               </CardHeader>
               <CardContent className="grid gap-4">
                 <InfoRow icon={Phone} label="Telefone" value={patient.phone} />
-                <InfoRow icon={Mail} label="E-mail" value={patient.email} />
+                <InfoRow icon={Mail} label="E-mail" value={patient.email || "Não informado"} />
+                <InfoRow icon={FileText} label="CPF (para NF)" value={patient.cpf ? patient.cpf : "Não informado"} />
                 <InfoRow icon={MapPin} label="Cidade" value={patient.city} />
                 <InfoRow
                   icon={CalendarPlus}

@@ -82,6 +82,7 @@ export type ProductUsage = {
 export type Patient = {
   id: string
   name: string
+  cpf?: string
   birthDate: string
   phone: string
   email: string

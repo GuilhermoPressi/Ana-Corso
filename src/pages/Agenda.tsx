@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CLINIC_MONTH, CLINIC_TODAY, monthMatrix } from "@/lib/clinic"
 import { cn, formatCurrency, formatDateLong } from "@/lib/utils"
+import { NewEventDialog } from "@/components/schedule/NewEventDialog"
 import {
   eventKindLabel,
   eventsInMonth,
@@ -103,6 +104,7 @@ export default function Agenda() {
       <PageHeader
         title="Agenda Inteligente"
         description="Calendário da clínica com os retornos que o sistema agenda sozinho."
+        actions={<NewEventDialog defaultDate={selectedDay} />}
       />
 
       <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -250,18 +252,21 @@ export default function Agenda() {
 
         {/* Dia selecionado */}
         <Card className="flex h-full flex-col border-border/70 shadow-[var(--shadow-soft)]">
-          <CardHeader>
-            <CardTitle className="font-display text-base">
-              {selectedDay === CLINIC_TODAY ? "Hoje" : formatDateLong(selectedDay)}
-            </CardTitle>
-            <CardDescription className="mt-1">
-              {dayEvents.length === 0
-                ? "Nenhum compromisso neste dia"
-                : `${dayEvents.length} ${dayEvents.length === 1 ? "compromisso" : "compromissos"} · ${occupiedHours(
-                    events,
-                    selectedDay,
-                  ).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} h ocupadas`}
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <div>
+              <CardTitle className="font-display text-base">
+                {selectedDay === CLINIC_TODAY ? "Hoje" : formatDateLong(selectedDay)}
+              </CardTitle>
+              <CardDescription className="mt-1">
+                {dayEvents.length === 0
+                  ? "Nenhum compromisso neste dia"
+                  : `${dayEvents.length} ${dayEvents.length === 1 ? "compromisso" : "compromissos"} · ${occupiedHours(
+                      events,
+                      selectedDay,
+                    ).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} h ocupadas`}
+              </CardDescription>
+            </div>
+            <NewEventDialog defaultDate={selectedDay} />
           </CardHeader>
 
           <CardContent className="flex flex-col gap-2.5">
@@ -273,6 +278,16 @@ export default function Agenda() {
                 <p className="mt-3.5 max-w-xs text-[13px] leading-relaxed text-muted-foreground">
                   Dia livre. Uma boa janela para encaixar quem está na lista de espera.
                 </p>
+                <div className="mt-4">
+                  <NewEventDialog
+                    defaultDate={selectedDay}
+                    trigger={
+                      <Button size="sm" variant="outline">
+                        Agendar neste dia
+                      </Button>
+                    }
+                  />
+                </div>
               </div>
             ) : (
               dayEvents.map((event) => <EventRow key={event.id} event={event} />)

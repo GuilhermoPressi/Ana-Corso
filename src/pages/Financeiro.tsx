@@ -35,6 +35,8 @@ import {
   type ProfitabilityRow,
 } from "@/stores/useFinanceStore"
 
+import { NewEntryDialog } from "@/components/finance/NewEntryDialog"
+
 const chartColors = [
   "var(--chart-1)",
   "var(--chart-2)",
@@ -82,7 +84,8 @@ export default function Financeiro() {
     <div className="mx-auto max-w-[1400px]">
       <PageHeader
         title="Financeiro"
-        description={`Fechamento de agosto · atualizado em ${clinicTodayLabel().toLowerCase()}`}
+        description={`Fechamento financeiro · atualizado em ${clinicTodayLabel().toLowerCase()}`}
+        actions={<NewEntryDialog />}
       />
 
       {/* Visão geral */}
