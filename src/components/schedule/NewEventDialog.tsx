@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Calendar, Clock, Plus, User, UserPlus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -57,7 +57,7 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
   const [selectedPatientId, setSelectedPatientId] = useState<string>("")
   const [customTitle, setCustomTitle] = useState("")
   const [professional, setProfessional] = useState("Dra. Ana Corso")
-  const [room, setRoom] = useState("Gabinete 01")
+  const room = "Gabinete 01"
   const [value, setValue] = useState("")
   const [note, setNote] = useState("")
 
