@@ -107,11 +107,11 @@ export const planningLines: PlanningLine[] = [
         description: "Linhas horizontais e sustentação da sobrancelha",
         extraFields: [
           {
-            id: "padrao-contracao-frontal",
-            label: "Padrão de contração (Frontal)",
+            id: "padrao-contracao",
+            label: "Padrão de contração",
             help: "Classificação específica da contração do músculo frontal.",
             type: "choice",
-            options: ["total", "lateral", "central"],
+            options: ["Total", "Lateral", "Central"],
             required: true,
           },
         ],

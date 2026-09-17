@@ -41,9 +41,22 @@ function keyOf(lineId: string, regionId: string) {
   return `${lineId}:${regionId}`
 }
 
-function fieldsFor(line: PlanningLine, regionId: string): PlanningField[] {
+export function fieldsFor(line: PlanningLine, regionId: string): PlanningField[] {
   const region = line.regions.find((item) => item.id === regionId)
-  return [...line.fields, ...(region?.extraFields ?? [])]
+  if (!region?.extraFields || region.extraFields.length === 0) {
+    return line.fields
+  }
+
+  const extraMap = new Map(region.extraFields.map((field) => [field.id, field]))
+
+  // 1. Substituir os campos gerais que coincidem no ID pelo extraField da região
+  const mergedFields = line.fields.map((baseField) => extraMap.get(baseField.id) || baseField)
+
+  // 2. Adicionar os campos extras com IDs novos
+  const baseIds = new Set(line.fields.map((field) => field.id))
+  const newFields = region.extraFields.filter((field) => !baseIds.has(field.id))
+
+  return [...mergedFields, ...newFields]
 }
 
 function isFilled(value: FieldValue) {
@@ -376,14 +389,33 @@ export default function PlanejamentoFacial() {
 
                     {open && (
                       <div className="flex flex-col gap-5 border-t border-border/70 bg-card px-4 py-5">
-                        {fields.map((field) => (
-                          <FieldControl
-                            key={field.id}
-                            field={field}
-                            value={state[key]?.[field.id]}
-                            onChange={(value) => setValue(key, field.id, value)}
-                          />
-                        ))}
+                        {fields.map((field) => {
+                          const rawVal =
+                            state[key]?.[field.id] ??
+                            (field.id === "padrao-contracao" ? state[key]?.["padrao-contracao-frontal"] : undefined)
+
+                          // Normalizar se o valor legado for em minúsculo ("total" -> "Total")
+                          let val = rawVal
+                          if (
+                            typeof rawVal === "string" &&
+                            field.options &&
+                            !field.options.includes(rawVal)
+                          ) {
+                            const match = field.options.find(
+                              (opt) => opt.toLowerCase() === rawVal.toLowerCase(),
+                            )
+                            if (match) val = match
+                          }
+
+                          return (
+                            <FieldControl
+                              key={field.id}
+                              field={field}
+                              value={val}
+                              onChange={(value) => setValue(key, field.id, value)}
+                            />
+                          )
+                        })}
                       </div>
                     )}
                   </div>
