@@ -57,11 +57,17 @@ type FinanceState = {
     description: string
     category: string
     amount: number
+    occurredAt?: string
     patientId?: string
     countsAsAppointment?: boolean
     directCost?: number
-  }) => Promise<boolean>
-  registerExpense: (input: { description: string; category: string; amount: number }) => Promise<boolean>
+  }) => Promise<{ success: boolean; error?: string }>
+  registerExpense: (input: {
+    description: string
+    category: string
+    amount: number
+    occurredAt?: string
+  }) => Promise<{ success: boolean; error?: string }>
   addProcedure: (procedure: Omit<PricedProcedure, "id" | "createdAt">) => PricedProcedure
   removeProcedure: (id: string) => void
 }
@@ -123,6 +129,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     description,
     category,
     amount,
+    occurredAt,
   }) => {
     set({ loading: true, error: null })
     try {
@@ -134,24 +141,31 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
           category,
           description,
           amount,
+          occurredAt,
         }),
       })
 
       if (!res.ok) {
-        set({ loading: false })
-        return false
+        const data = await res.json().catch(() => ({}))
+        const errorMsg =
+          res.status === 403
+            ? "Você não possui permissão para criar lançamentos."
+            : data?.error?.message || "Falha ao salvar lançamento financeiro."
+        set({ loading: false, error: errorMsg })
+        return { success: false, error: errorMsg }
       }
 
       await get().fetchEntries()
       set({ loading: false })
-      return true
-    } catch {
-      set({ loading: false })
-      return false
+      return { success: true }
+    } catch (err: any) {
+      const errorMsg = err?.message || "Erro de conexão ao salvar receita."
+      set({ loading: false, error: errorMsg })
+      return { success: false, error: errorMsg }
     }
   },
 
-  registerExpense: async ({ description, category, amount }) => {
+  registerExpense: async ({ description, category, amount, occurredAt }) => {
     set({ loading: true, error: null })
     try {
       const res = await fetch("/api/finance/entries", {
@@ -162,20 +176,27 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
           category,
           description,
           amount,
+          occurredAt,
         }),
       })
 
       if (!res.ok) {
-        set({ loading: false })
-        return false
+        const data = await res.json().catch(() => ({}))
+        const errorMsg =
+          res.status === 403
+            ? "Você não possui permissão para criar lançamentos."
+            : data?.error?.message || "Falha ao salvar lançamento financeiro."
+        set({ loading: false, error: errorMsg })
+        return { success: false, error: errorMsg }
       }
 
       await get().fetchEntries()
       set({ loading: false })
-      return true
-    } catch {
-      set({ loading: false })
-      return false
+      return { success: true }
+    } catch (err: any) {
+      const errorMsg = err?.message || "Erro de conexão ao salvar despesa."
+      set({ loading: false, error: errorMsg })
+      return { success: false, error: errorMsg }
     }
   },
 

@@ -3,7 +3,7 @@ import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, LedgerKin
 import { z } from "zod"
 import { prisma } from "../db.js"
 import { requireAuth, requirePermission } from "../middlewares/auth.js"
-import { getClinicMonthKey, getClinicMonthRange } from "../utils/timezone.js"
+import { createUtcFromClinicLocal, getClinicMonthKey, getClinicMonthRange } from "../utils/timezone.js"
 
 const createEntrySchema = z.object({
   kind: z.nativeEnum(LedgerKind),
@@ -15,7 +15,6 @@ const createEntrySchema = z.object({
 
 export async function financeRoutes(fastify: FastifyInstance) {
   fastify.addHook("preHandler", requireAuth)
-  fastify.addHook("preHandler", requirePermission("FINANCE_READ"))
 
   fastify.addHook("preHandler", async (request, reply) => {
     if (!request.clinic) {
@@ -30,83 +29,105 @@ export async function financeRoutes(fastify: FastifyInstance) {
     }
   })
 
-  // GET /api/finance/entries
-  fastify.get("/finance/entries", async (request) => {
-    const querySchema = z.object({
-      from: z.string().optional(),
-      to: z.string().optional(),
-    })
-
-    const { from, to } = querySchema.parse(request.query)
-    const clinicId = request.clinic!.id
-
-    const whereClause: any = { clinicId, voidedAt: null }
-
-    if (from || to) {
-      whereClause.occurredAt = {}
-      if (from) whereClause.occurredAt.gte = new Date(`${from}T00:00:00.000Z`)
-      if (to) whereClause.occurredAt.lte = new Date(`${to}T23:59:59.999Z`)
-    }
-
-    const entries = await prisma.ledgerEntry.findMany({
-      where: whereClause,
-      orderBy: { occurredAt: "desc" },
-    })
-
-    return { entries }
-  })
-
-  // POST /api/finance/entries (Manual revenue or expense)
-  fastify.post("/finance/entries", async (request, reply) => {
-    const parseResult = createEntrySchema.safeParse(request.body)
-    if (!parseResult.success) {
-      return reply.status(400).send({
-        error: {
-          code: "INVALID_INPUT",
-          message: parseResult.error.errors[0]?.message || "Dados inválidos.",
-        },
-      })
-    }
-
-    const body = parseResult.data
-    const clinicId = request.clinic!.id
-    const userId = request.user!.id
-    const occurredAt = body.occurredAt ? new Date(body.occurredAt) : new Date()
-
-    const entry = await prisma.$transaction(async (tx) => {
-      const created = await tx.ledgerEntry.create({
-        data: {
-          clinicId,
-          kind: body.kind,
-          source: LedgerSource.MANUAL,
-          category: body.category.trim(),
-          description: body.description.trim(),
-          amount: body.amount,
-          directCost: 0,
-          countsAsAppointment: false,
-          occurredAt,
-          createdByUserId: userId,
-        },
+  // GET /api/finance/entries (requer FINANCE_READ)
+  fastify.get(
+    "/finance/entries",
+    { preHandler: [requirePermission("FINANCE_READ")] },
+    async (request) => {
+      const querySchema = z.object({
+        from: z.string().optional(),
+        to: z.string().optional(),
       })
 
-      await tx.clinicActivityLog.create({
-        data: {
-          clinicId,
-          userId,
-          entityType: ClinicActivityEntityType.FINANCE,
-          entityId: created.id,
-          action: ClinicActivityAction.FINANCE_ENTRY_CREATED,
-        },
+      const { from, to } = querySchema.parse(request.query)
+      const clinicId = request.clinic!.id
+
+      const whereClause: any = { clinicId, voidedAt: null }
+
+      if (from || to) {
+        whereClause.occurredAt = {}
+        if (from) whereClause.occurredAt.gte = new Date(`${from}T00:00:00.000Z`)
+        if (to) whereClause.occurredAt.lte = new Date(`${to}T23:59:59.999Z`)
+      }
+
+      const entries = await prisma.ledgerEntry.findMany({
+        where: whereClause,
+        orderBy: { occurredAt: "desc" },
       })
 
-      return created
-    })
+      return { entries }
+    },
+  )
 
-    return reply.status(201).send({ entry })
-  })
+  // POST /api/finance/entries (Manual revenue or expense - requer FINANCE_WRITE)
+  fastify.post(
+    "/finance/entries",
+    { preHandler: [requirePermission("FINANCE_WRITE")] },
+    async (request, reply) => {
+      const parseResult = createEntrySchema.safeParse(request.body)
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          error: {
+            code: "INVALID_INPUT",
+            message: parseResult.error.errors[0]?.message || "Dados inválidos.",
+          },
+        })
+      }
 
-  // GET /api/finance/summary?month=YYYY-MM
-  fastify.get("/finance/summary", async (request) => {
+      const body = parseResult.data
+      const clinicId = request.clinic!.id
+      const userId = request.user!.id
+      const tz = request.clinic?.timezone || "America/Sao_Paulo"
+
+      let occurredAt = new Date()
+      if (body.occurredAt) {
+        const raw = body.occurredAt.trim()
+        if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+          const [y, m, d] = raw.split("-").map(Number)
+          occurredAt = createUtcFromClinicLocal(y, m, d, 12, 0, 0, 0, tz)
+        } else {
+          occurredAt = new Date(raw)
+        }
+      }
+
+      const entry = await prisma.$transaction(async (tx) => {
+        const created = await tx.ledgerEntry.create({
+          data: {
+            clinicId,
+            kind: body.kind,
+            source: LedgerSource.MANUAL,
+            category: body.category.trim(),
+            description: body.description.trim(),
+            amount: body.amount,
+            directCost: 0,
+            countsAsAppointment: false,
+            occurredAt,
+            createdByUserId: userId,
+          },
+        })
+
+        await tx.clinicActivityLog.create({
+          data: {
+            clinicId,
+            userId,
+            entityType: ClinicActivityEntityType.FINANCE,
+            entityId: created.id,
+            action: ClinicActivityAction.FINANCE_ENTRY_CREATED,
+          },
+        })
+
+        return created
+      })
+
+      return reply.status(201).send({ entry })
+    },
+  )
+
+  // GET /api/finance/summary?month=YYYY-MM (requer FINANCE_READ)
+  fastify.get(
+    "/finance/summary",
+    { preHandler: [requirePermission("FINANCE_READ")] },
+    async (request) => {
     const querySchema = z.object({
       month: z.string().optional(),
     })

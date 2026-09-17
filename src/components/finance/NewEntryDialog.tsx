@@ -24,7 +24,7 @@ import {
 import { CLINIC_TODAY } from "@/lib/clinic"
 import { useFinanceStore, type LedgerKind } from "@/stores/useFinanceStore"
 
-const categories = [
+const EXPENSE_CATEGORIES = [
   "Aluguel",
   "Funcionários",
   "Marketing",
@@ -39,16 +39,36 @@ const categories = [
   "Outros",
 ]
 
+const REVENUE_CATEGORIES = [
+  "Procedimentos",
+  "Consultas / Avaliações",
+  "Pacotes / Protocolos",
+  "Venda de produtos",
+  "Sinal / Entrada",
+  "Outras receitas",
+]
+
 export function NewEntryDialog() {
   const [open, setOpen] = useState(false)
   const [kind, setKind] = useState<LedgerKind>("despesa")
-  const [category, setCategory] = useState(categories[0])
+  const [category, setCategory] = useState(EXPENSE_CATEGORIES[0])
   const [description, setDescription] = useState("")
   const [amount, setAmount] = useState("")
   const [date, setDate] = useState(CLINIC_TODAY)
   const [loading, setLoading] = useState(false)
 
   const { registerExpense, registerRevenue } = useFinanceStore()
+
+  const handleKindChange = (newKind: LedgerKind) => {
+    setKind(newKind)
+    if (newKind === "despesa") {
+      setCategory(EXPENSE_CATEGORIES[0])
+    } else {
+      setCategory(REVENUE_CATEGORIES[0])
+    }
+  }
+
+  const currentCategories = kind === "despesa" ? EXPENSE_CATEGORIES : REVENUE_CATEGORIES
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,30 +85,33 @@ export function NewEntryDialog() {
 
     setLoading(true)
 
-    let success = false
+    let res: { success: boolean; error?: string }
     if (kind === "despesa") {
-      success = await registerExpense({
+      res = await registerExpense({
         description: description.trim(),
         category,
         amount: numAmount,
+        occurredAt: date,
       })
     } else {
-      success = await registerRevenue({
+      res = await registerRevenue({
         description: description.trim(),
         category,
         amount: numAmount,
+        occurredAt: date,
       })
     }
 
     setLoading(false)
 
-    if (success) {
+    if (res.success) {
       toast.success(kind === "despesa" ? "Despesa registrada com sucesso!" : "Receita registrada com sucesso!")
       setOpen(false)
       setDescription("")
       setAmount("")
+      setDate(CLINIC_TODAY)
     } else {
-      toast.error("Falha ao salvar lançamento financeiro.")
+      toast.error(res.error || "Não foi possível salvar o lançamento financeiro.")
     }
   }
 
@@ -117,7 +140,7 @@ export function NewEntryDialog() {
                 type="button"
                 variant={kind === "despesa" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setKind("despesa")}
+                onClick={() => handleKindChange("despesa")}
                 className="gap-2 text-xs"
               >
                 <ArrowDownRight className="size-4 text-destructive" /> Saída / Despesa
@@ -126,7 +149,7 @@ export function NewEntryDialog() {
                 type="button"
                 variant={kind === "receita" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setKind("receita")}
+                onClick={() => handleKindChange("receita")}
                 className="gap-2 text-xs"
               >
                 <ArrowUpRight className="size-4 text-success" /> Entrada / Receita
@@ -134,15 +157,17 @@ export function NewEntryDialog() {
             </div>
           </div>
 
-          {/* Categoria */}
+          {/* Categoria adaptativa */}
           <div className="space-y-1.5">
-            <Label className="text-xs">Categoria *</Label>
+            <Label className="text-xs">
+              {kind === "despesa" ? "Categoria da despesa *" : "Categoria da receita *"}
+            </Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger className="text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((cat) => (
+                {currentCategories.map((cat) => (
                   <SelectItem key={cat} value={cat} className="text-xs">
                     {cat}
                   </SelectItem>
@@ -151,11 +176,15 @@ export function NewEntryDialog() {
             </Select>
           </div>
 
-          {/* Descrição */}
+          {/* Descrição adaptativa */}
           <div className="space-y-1.5">
             <Label className="text-xs">Descrição *</Label>
             <Input
-              placeholder="Ex: Aluguel da clínica - Mês 09"
+              placeholder={
+                kind === "despesa"
+                  ? "Ex: Aluguel da clínica - Setembro"
+                  : "Ex: Procedimento realizado / Receita avulsa"
+              }
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="text-xs"
