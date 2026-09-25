@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react"
 import { ArrowUpDown, ChevronLeft, ChevronRight, Filter, MessageCircle, Search, Trash2, X } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -32,7 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { procedureFilters, type PatientStatus } from "@/data/patients"
+import { procedureFilters, type Patient, type PatientStatus } from "@/data/patients"
 import { countByStatus, usePatientStore } from "@/stores/usePatientStore"
 import { cn, formatCurrency, formatDate, initials } from "@/lib/utils"
 
