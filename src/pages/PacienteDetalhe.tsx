@@ -16,9 +16,11 @@ import {
   Phone,
   Sparkles,
   Syringe,
+  Trash2,
   TriangleAlert,
 } from "lucide-react"
 import { Link, useNavigate, useParams } from "react-router-dom"
+import { toast } from "sonner"
 
 import { PhotoGallery } from "@/components/patients/PhotoGallery"
 import { RegisterIncidentDialog } from "@/components/patients/RegisterIncidentDialog"
@@ -27,7 +29,14 @@ import { WhatsAppButton } from "@/components/whatsapp/WhatsAppButton"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -100,12 +109,28 @@ export default function PacienteDetalhe() {
   const { patientId } = useParams()
   const navigate = useNavigate()
   const fetchPatient = usePatientStore((state) => state.fetchPatient)
+  const deletePatient = usePatientStore((state) => state.deletePatient)
   const storePatient = usePatientStore((state) =>
     patientId ? state.patients.find((item) => item.id === patientId) : undefined,
   )
 
   const [patient, setPatient] = useState<Patient | undefined>(storePatient)
   const [loading, setLoading] = useState(!storePatient)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDeletePatient = async () => {
+    if (!patient) return
+    setDeleting(true)
+    const success = await deletePatient(patient.id)
+    setDeleting(false)
+    if (success) {
+      toast.success(`Contato de ${patient.name} foi excluído com sucesso!`)
+      navigate("/pacientes")
+    } else {
+      toast.error("Não foi possível excluir o contato.")
+    }
+  }
 
   useEffect(() => {
     if (patientId) {
@@ -230,7 +255,39 @@ export default function PacienteDetalhe() {
                 </Button>
                 <RegisterIncidentDialog patient={patient} />
                 <RegisterProcedureDialog patient={patient} />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDeleteOpen(true)}
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="size-4" /> Excluir contato
+                </Button>
               </div>
+
+              <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="font-display text-lg text-destructive">Excluir Contato</DialogTitle>
+                    <DialogDescription className="text-xs">
+                      Tem certeza que deseja excluir o cadastro de <strong>{patient.name}</strong>? Esta ação removerá a paciente e seus históricos vinculados.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="gap-2 pt-2">
+                    <Button variant="outline" size="sm" onClick={() => setDeleteOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDeletePatient}
+                      disabled={deleting}
+                    >
+                      {deleting ? "Excluindo..." : "Confirmar exclusão"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
 
             <Separator className="my-5" />

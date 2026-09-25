@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react"
-import { ArrowUpDown, ChevronLeft, ChevronRight, Filter, MessageCircle, Search, X } from "lucide-react"
+import { ArrowUpDown, ChevronLeft, ChevronRight, Filter, MessageCircle, Search, Trash2, X } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 import { PageHeader } from "@/components/layout/PageHeader"
 import { NewPatientDialog } from "@/components/patients/NewPatientDialog"
@@ -8,6 +8,14 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -51,12 +59,28 @@ type SortId = (typeof sortOptions)[number]["id"]
 
 export default function Pacientes() {
   const navigate = useNavigate()
-  const { patients, loadPatients, loading, pagination } = usePatientStore()
+  const { patients, loadPatients, loading, pagination, deletePatient } = usePatientStore()
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState<"todas" | PatientStatus>("todas")
   const [procedure, setProcedure] = useState(procedureFilters[0])
   const [sort, setSort] = useState<SortId>("recentes")
   const [page, setPage] = useState(1)
+  const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDeleteConfirm = async () => {
+    if (!patientToDelete) return
+    setDeleting(true)
+    const success = await deletePatient(patientToDelete.id)
+    setDeleting(false)
+    if (success) {
+      toast.success(`Contato de ${patientToDelete.name} excluído!`)
+      setPatientToDelete(null)
+      loadPatients({ search: search.trim() || undefined, status: status === "todas" ? undefined : status, page, limit: 25 })
+    } else {
+      toast.error("Não foi possível excluir o contato.")
+    }
+  }
 
   useEffect(() => {
     setPage(1)
@@ -312,7 +336,21 @@ export default function Pacientes() {
                     </TableCell>
 
                     <TableCell className="pr-4">
-                      <ChevronRight className="size-4 text-muted-foreground" />
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setPatientToDelete(patient)
+                          }}
+                          title="Excluir contato"
+                          className="h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                        <ChevronRight className="size-4 text-muted-foreground" />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -320,6 +358,30 @@ export default function Pacientes() {
             </TableBody>
           </Table>
         </div>
+
+        <Dialog open={Boolean(patientToDelete)} onOpenChange={(open) => !open && setPatientToDelete(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-display text-lg text-destructive">Excluir Contato</DialogTitle>
+              <DialogDescription className="text-xs">
+                Tem certeza que deseja excluir o cadastro de <strong>{patientToDelete?.name}</strong>? Esta ação removerá a paciente e seus históricos vinculados.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 pt-2">
+              <Button variant="outline" size="sm" onClick={() => setPatientToDelete(null)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteConfirm}
+                disabled={deleting}
+              >
+                {deleting ? "Excluindo..." : "Confirmar exclusão"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {!loading && (
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/70 bg-muted/25 px-4 py-3 text-[12px] text-muted-foreground">

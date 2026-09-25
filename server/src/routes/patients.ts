@@ -489,4 +489,42 @@ export async function patientRoutes(fastify: FastifyInstance) {
 
     return { patient: restored, message: "Paciente restaurada com sucesso." }
   })
+
+  // DELETE /api/patients/:id (Excluir paciente/contato definitivamente)
+  fastify.delete("/patients/:id", async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const clinicId = request.clinic!.id
+    const userId = request.user!.id
+
+    const patient = await prisma.patient.findFirst({
+      where: { id, clinicId },
+    })
+
+    if (!patient) {
+      return reply.status(404).send({
+        error: { code: "NOT_FOUND", message: "Paciente não encontrada." },
+      })
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Deletar perfil clínico e logs se existirem
+      await tx.patientClinicalProfile.deleteMany({ where: { patientId: id } })
+      await tx.procedureMap.deleteMany({ where: { patientId: id } })
+      await tx.procedureRecord.deleteMany({ where: { patientId: id } })
+
+      await tx.patient.delete({ where: { id } })
+
+      await tx.clinicActivityLog.create({
+        data: {
+          clinicId,
+          userId,
+          entityType: ClinicActivityEntityType.PATIENT,
+          entityId: id,
+          action: ClinicActivityAction.PATIENT_ARCHIVED,
+        },
+      })
+    })
+
+    return { message: "Paciente excluída com sucesso." }
+  })
 }

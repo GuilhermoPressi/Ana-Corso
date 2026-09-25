@@ -188,8 +188,12 @@ export function NewPatientDialog({ trigger }: { trigger?: ReactNode }) {
                 set("cpf", formatted)
               }}
               placeholder="000.000.000-00"
+              aria-invalid={touched && Boolean(form.cpf && form.cpf.replace(/\D/g, "").length > 0 && form.cpf.replace(/\D/g, "").length !== 11)}
               className="mt-1.5"
             />
+            {touched && form.cpf && form.cpf.replace(/\D/g, "").length > 0 && form.cpf.replace(/\D/g, "").length !== 11 && (
+              <p className="mt-1.5 text-[11px] text-destructive">CPF deve conter 11 dígitos.</p>
+            )}
           </div>
 
           <div>

@@ -52,6 +52,7 @@ type PatientState = {
   addPatient: (input: NewPatientInput) => Promise<Patient | null>
   updatePatientApi: (id: string, patch: Partial<Patient>) => Promise<boolean>
   archivePatient: (id: string) => Promise<boolean>
+  deletePatient: (id: string) => Promise<boolean>
   restorePatient: (id: string) => Promise<boolean>
 
   updatePatient: (id: string, patch: Partial<Patient>) => void
@@ -286,6 +287,21 @@ export const usePatientStore = create<PatientState>((set, get) => ({
   archivePatient: async (id) => {
     try {
       const res = await fetch(`/api/patients/${id}/archive`, { method: "POST" })
+      if (res.ok) {
+        set((state) => ({
+          patients: state.patients.filter((p) => p.id !== id),
+        }))
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
+  },
+
+  deletePatient: async (id) => {
+    try {
+      const res = await fetch(`/api/patients/${id}`, { method: "DELETE" })
       if (res.ok) {
         set((state) => ({
           patients: state.patients.filter((p) => p.id !== id),
