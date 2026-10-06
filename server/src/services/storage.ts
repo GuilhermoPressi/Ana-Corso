@@ -64,6 +64,17 @@ export class StorageService {
   }
 
   /**
+   * Saves an arbitrary object under a caller-built storage key
+   * (e.g. clinics/{clinicId}/crm/{conversationId}/{messageId}.jpg)
+   */
+  static async saveObject(storageKey: string, buffer: Buffer): Promise<string> {
+    const fullPath = path.join(LOCAL_STORAGE_DIR, storageKey)
+    fs.mkdirSync(path.dirname(fullPath), { recursive: true })
+    fs.writeFileSync(fullPath, buffer)
+    return storageKey
+  }
+
+  /**
    * Reads a file buffer securely from storage
    */
   static async getFile(storageKey: string): Promise<Buffer | null> {
