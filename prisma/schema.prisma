@@ -1526,6 +1526,7 @@ model CrmMessage {
   @@unique([conversationId, externalId])
   @@index([conversationId, sentAt])
   @@index([clinicId, externalId])
+  @@index([clinicId, direction, createdAt])
   @@map("crm_messages")
 }
 

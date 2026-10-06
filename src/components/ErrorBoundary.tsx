@@ -3,6 +3,7 @@ import { AlertTriangle, RotateCcw } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { isStaleBuildError, reloadForNewBuild } from "@/lib/stale-build"
 
 interface Props {
   children: ReactNode
@@ -25,6 +26,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Tela de uma versão anterior do app (após deploy): recarrega para pegar a nova.
+    if (isStaleBuildError(error) && reloadForNewBuild()) return
     console.error("Uncaught error caught by ErrorBoundary:", error, errorInfo)
   }
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import {
   DragDropContext,
   Draggable,
@@ -11,7 +11,6 @@ import {
   GripVertical,
   KanbanSquare,
   MessageCircle,
-  MessagesSquare,
   MoreHorizontal,
   CalendarClock,
   Snowflake,
@@ -23,7 +22,6 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import { ContactsTab } from "@/components/crm/ContactsTab"
-import { ConversationsTab } from "@/components/crm/ConversationsTab"
 import { NewLeadDialog } from "@/components/crm/NewLeadDialog"
 
 import { PageHeader } from "@/components/layout/PageHeader"
@@ -38,8 +36,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { usePolling } from "@/hooks/usePolling"
-import { crmApi } from "@/lib/crm-api"
 import { leadStages, type Lead, type LeadStage } from "@/data/leads"
 import { cn, formatCurrency, formatDate } from "@/lib/utils"
 import { buildWhatsAppLink, contextualMessage, firstNameOf } from "@/lib/whatsapp"
@@ -64,56 +60,45 @@ const temperatureStyles = {
   frio: "border-border bg-muted text-muted-foreground",
 } as const
 
-type CrmTab = "pipeline" | "conversas" | "contatos"
+type CrmTab = "pipeline" | "contatos"
 
 export default function Crm() {
   const [params, setParams] = useSearchParams()
-  const tabParam = params.get("aba")
-  const tab: CrmTab = tabParam === "conversas" || tabParam === "contatos" ? tabParam : "pipeline"
-  const conversationId = params.get("conversa")
-  const [focusContactId, setFocusContactId] = useState<string | null>(null)
-  const [unread, setUnread] = useState(0)
+  const navigate = useNavigate()
+  const tab: CrmTab = params.get("aba") === "contatos" ? "contatos" : "pipeline"
+  const focusContactId = params.get("contato")
 
-  const update = useCallback(
-    (next: { aba?: CrmTab; conversa?: string | null }) => {
-      setParams(
-        (current) => {
-          const result = new URLSearchParams(current)
-          if (next.aba) {
-            if (next.aba === "pipeline") result.delete("aba")
-            else result.set("aba", next.aba)
-            if (next.aba !== "conversas") result.delete("conversa")
-          }
-          if (next.conversa !== undefined) {
-            if (next.conversa) result.set("conversa", next.conversa)
-            else result.delete("conversa")
-          }
-          return result
-        },
-        { replace: next.aba === undefined },
-      )
+  // Links antigos (/crm?aba=conversas) agora levam para a página Conversas.
+  const legacyConversation = params.get("aba") === "conversas"
+  useEffect(() => {
+    if (!legacyConversation) return
+    const conversa = params.get("conversa")
+    navigate(conversa ? `/conversas?conversa=${conversa}` : "/conversas", { replace: true })
+  }, [legacyConversation, params, navigate])
+
+  const changeTab = useCallback(
+    (next: CrmTab) => {
+      setParams(next === "pipeline" ? {} : { aba: next })
     },
     [setParams],
   )
 
-  const clearFocus = useCallback(() => setFocusContactId(null), [])
-
-  // Fora da aba Conversas, mantém o contador de não lidas atualizado.
-  usePolling(
-    async () => {
-      if (tab === "conversas") return
-      const data = await crmApi.unreadTotal()
-      setUnread(data.unread)
-    },
-    20000,
-    [tab],
-  )
+  const clearFocus = useCallback(() => {
+    setParams(
+      (current) => {
+        const result = new URLSearchParams(current)
+        result.delete("contato")
+        return result
+      },
+      { replace: true },
+    )
+  }, [setParams])
 
   return (
     <div className="mx-auto max-w-[1500px]">
       <PageHeader
-        title="CRM e Atendimento"
-        description="Funil comercial, conversas do WhatsApp e contatos da clínica em um só lugar."
+        title="CRM de Pacientes e Leads"
+        description="Do primeiro contato ao fechamento, com o valor de cada proposta sempre à vista."
         actions={
           tab === "pipeline" ? (
             <>
@@ -126,18 +111,10 @@ export default function Crm() {
         }
       />
 
-      <Tabs value={tab} onValueChange={(value) => update({ aba: value as CrmTab })} className="gap-4">
+      <Tabs value={tab} onValueChange={(value) => changeTab(value as CrmTab)} className="gap-4">
         <TabsList>
           <TabsTrigger value="pipeline" className="px-3">
             <KanbanSquare /> Funil
-          </TabsTrigger>
-          <TabsTrigger value="conversas" className="px-3">
-            <MessagesSquare /> Conversas
-            {unread > 0 && (
-              <span className="grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-                {unread}
-              </span>
-            )}
           </TabsTrigger>
           <TabsTrigger value="contatos" className="px-3">
             <ContactRound /> Contatos
@@ -147,24 +124,11 @@ export default function Crm() {
         <TabsContent value="pipeline">
           <CrmPipeline />
         </TabsContent>
-        <TabsContent value="conversas">
-          <ConversationsTab
-            selectedId={conversationId}
-            onSelect={(id) => update({ conversa: id })}
-            onUnreadChange={setUnread}
-            onOpenContact={(contactId) => {
-              setFocusContactId(contactId)
-              update({ aba: "contatos" })
-            }}
-          />
-        </TabsContent>
         <TabsContent value="contatos">
           <ContactsTab
             focusContactId={focusContactId}
             onFocusHandled={clearFocus}
-            onOpenConversation={(id) => {
-              setParams({ aba: "conversas", conversa: id })
-            }}
+            onOpenConversation={(id) => navigate(`/conversas?conversa=${id}`)}
           />
         </TabsContent>
       </Tabs>
