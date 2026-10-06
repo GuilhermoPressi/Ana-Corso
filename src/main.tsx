@@ -5,7 +5,10 @@ import { BrowserRouter, HashRouter } from "react-router-dom"
 import App from "@/App"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
+import { installStaleBuildRecovery } from "@/lib/stale-build"
 import "./index.css"
+
+installStaleBuildRecovery()
 
 /** O build de demonstração roda em host estático, onde só o hash sobrevive a um refresh. */
 const Router = import.meta.env.VITE_ROUTER === "hash" ? HashRouter : BrowserRouter

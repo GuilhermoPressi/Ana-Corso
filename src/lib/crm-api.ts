@@ -126,7 +126,8 @@ async function sendRequest(url: string, body: unknown) {
   })
   const json = await res.json().catch(() => null)
   if (json?.message) return { message: json.message as Message, error: json.error?.message as string | undefined }
-  throw new ApiError(res.status, json?.error?.code ?? "ERROR", json?.error?.message ?? `Erro ${res.status}`)
+  const fallback = res.status === 413 ? "Arquivo grande demais para envio (limite de 10 MB)." : `Erro ${res.status}`
+  throw new ApiError(res.status, json?.error?.code ?? "ERROR", json?.error?.message ?? fallback)
 }
 
 export const crmApi = {
