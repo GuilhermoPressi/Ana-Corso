@@ -140,7 +140,11 @@ export const crmApi = {
     if (search.trim()) params.set("search", search.trim())
     return request<{ conversations: Conversation[]; counts: ConversationCounts }>("GET", `/api/crm/conversations?${params}`)
   },
-  unreadTotal: () => request<{ unread: number }>("GET", "/api/crm/unread"),
+  unreadTotal: () =>
+    request<{
+      unread: number
+      latestInbound: { id: string; conversationId: string; contactName: string; receivedAt: string } | null
+    }>("GET", "/api/crm/unread"),
   getConversation: (id: string) =>
     request<{ conversation: Conversation; messages: Message[] }>("GET", `/api/crm/conversations/${id}`),
   markRead: (id: string) => request<{ ok: true }>("POST", `/api/crm/conversations/${id}/read`, {}),

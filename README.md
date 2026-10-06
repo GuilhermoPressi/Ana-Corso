@@ -81,13 +81,15 @@ próprio e a primeira carga não paga o custo do Recharts fora do dashboard.
   diluições de 1 a 5 ml).
 - **Precificação Inteligente** (`/precificacao`) — cria procedimentos com custo real, preço mínimo e preço
   recomendado, abre o preço praticado em custo/taxa/imposto/lucro e guarda tudo numa tabela de preços.
-- **CRM e Atendimento** (`/crm`) — três abas:
+- **Conversas** (`/conversas`, no grupo Visão geral) — caixa de entrada do WhatsApp da clínica via Evolution
+  API, com filtros (abertas, não lidas, minhas, sem responsável, finalizadas), busca, responsável,
+  finalizar/reabrir, status de envio (enviada/entregue/lida), envio de texto e anexos, mídia recebida, notas
+  internas, etiquetas e respostas rápidas (`/atalho`). Atualiza por polling a cada poucos segundos.
+  Em qualquer tela, mensagens novas mostram um contador no menu e no título da aba do navegador e tocam um
+  som (`InboxNotifier`, montado no `DashboardLayout`; o som é liberado após o primeiro clique na página).
+- **CRM de Pacientes e Leads** (`/crm`) — duas abas:
   - **Funil**: kanban de 5 colunas com arrastar e soltar, valor somado de propostas abertas, taxa de
     conversão e conversão de lead em ficha de paciente.
-  - **Conversas** (`/crm?aba=conversas`): caixa de entrada do WhatsApp da clínica via Evolution API, com
-    filtros (abertas, não lidas, minhas, sem responsável, finalizadas), busca, responsável, finalizar/reabrir,
-    status de envio (enviada/entregue/lida), envio de texto e anexos, mídia recebida, notas internas,
-    etiquetas e respostas rápidas (`/atalho`). Atualiza por polling a cada poucos segundos.
   - **Contatos** (`/crm?aba=contatos`): contatos criados automaticamente pelas mensagens (ou à mão), com
     etiquetas, observações, vínculo com paciente e criação de lead no funil.
   A conexão do número (QR Code) fica em **Configurações → WhatsApp**. Veja "WhatsApp (Evolution API)" abaixo.

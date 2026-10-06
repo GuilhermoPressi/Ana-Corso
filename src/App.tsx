@@ -28,6 +28,7 @@ const Calculadoras = lazy(() => import("@/pages/Calculadoras"))
 const Configuracoes = lazy(() => import("@/pages/Configuracoes"))
 const ConsultaRapida = lazy(() => import("@/pages/ConsultaRapida"))
 const Crm = lazy(() => import("@/pages/Crm"))
+const Conversas = lazy(() => import("@/pages/Conversas"))
 const Documentos = lazy(() => import("@/pages/Documentos"))
 const Estoque = lazy(() => import("@/pages/Estoque"))
 const Financeiro = lazy(() => import("@/pages/Financeiro"))
@@ -161,6 +162,7 @@ export default function App() {
           <Route path="protocolos" element={<Protocolos />} />
           <Route path="plano-da-paciente" element={<PlanoPaciente />} />
           <Route path="crm" element={<Crm />} />
+          <Route path="conversas" element={<Conversas />} />
           <Route path="recuperador" element={<Recuperador />} />
           <Route path="agenda" element={<Agenda />} />
           <Route path="pos-procedimento" element={<PosProcedimento />} />

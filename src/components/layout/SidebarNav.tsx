@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { navigation, secondaryNavigation, type NavItem } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/stores/useAuthStore"
+import { useInboxStore } from "@/stores/useInboxStore"
 
 const adminNavItems: NavItem[] = [
   { title: "Painel SaaS", url: "/admin", icon: ShieldAlert, ready: true },
@@ -16,6 +17,8 @@ const adminNavItems: NavItem[] = [
 
 function NavRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   const Icon = item.icon
+  const unread = useInboxStore((s) => s.unread)
+  const liveCount = item.url === "/conversas" && unread > 0 ? (unread > 99 ? "99+" : String(unread)) : null
   return (
     <NavLink
       to={item.url}
@@ -40,7 +43,15 @@ function NavRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }
           />
           <Icon className={cn("size-4 shrink-0 transition-colors", isActive && "text-primary")} />
           <span className="truncate">{item.short ?? item.title}</span>
-          {item.badge && (
+          {liveCount && (
+            <span
+              aria-label={`${liveCount} mensagens não lidas`}
+              className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[10px] font-semibold tabular-nums text-primary-foreground shadow-[0_0_0_3px_hsl(335_78%_55%/0.18)]"
+            >
+              {liveCount}
+            </span>
+          )}
+          {!liveCount && item.badge && (
             <Badge variant="secondary" className="ml-auto h-5 rounded-full px-1.5 text-[10px] font-semibold">
               {item.badge}
             </Badge>

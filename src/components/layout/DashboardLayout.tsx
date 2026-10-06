@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Outlet } from "react-router-dom"
 
+import { InboxNotifier } from "@/components/crm/InboxNotifier"
 import { Header } from "@/components/layout/Header"
 import { SidebarNav } from "@/components/layout/SidebarNav"
 
@@ -9,6 +10,7 @@ export function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen bg-background">
+      <InboxNotifier />
       <aside className="fixed inset-y-0 left-0 z-40 hidden h-screen w-[264px] flex-col border-r border-sidebar-border lg:flex">
         <SidebarNav />
       </aside>

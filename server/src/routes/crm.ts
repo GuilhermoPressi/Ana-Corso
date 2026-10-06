@@ -392,11 +392,34 @@ export async function crmRoutes(fastify: FastifyInstance) {
 
   fastify.get("/crm/unread", CRM_READ, async (request) => {
     const clinicId = request.clinic!.id
-    const result = await prisma.crmConversation.aggregate({
-      where: { clinicId, status: CrmConversationStatus.OPEN },
-      _sum: { unreadCount: true },
-    })
-    return { unread: result._sum.unreadCount ?? 0 }
+    const [result, latest] = await Promise.all([
+      prisma.crmConversation.aggregate({
+        where: { clinicId, status: CrmConversationStatus.OPEN },
+        _sum: { unreadCount: true },
+      }),
+      // Última mensagem recebida: o front compara o id para saber quando tocar o som.
+      prisma.crmMessage.findFirst({
+        where: { clinicId, direction: CrmMessageDirection.INBOUND },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          conversationId: true,
+          createdAt: true,
+          conversation: { select: { contact: { select: { name: true } } } },
+        },
+      }),
+    ])
+    return {
+      unread: result._sum.unreadCount ?? 0,
+      latestInbound: latest
+        ? {
+            id: latest.id,
+            conversationId: latest.conversationId,
+            contactName: latest.conversation.contact.name,
+            receivedAt: latest.createdAt,
+          }
+        : null,
+    }
   })
 
   fastify.get("/crm/conversations/:id", CRM_READ, async (request, reply) => {

@@ -52,6 +52,7 @@ import {
 } from "@/lib/crm-api"
 import { cn, initials } from "@/lib/utils"
 import { useAuthStore } from "@/stores/useAuthStore"
+import { useInboxStore } from "@/stores/useInboxStore"
 
 const filters: { id: ConversationFilter; label: string; count?: keyof ConversationCounts }[] = [
   { id: "open", label: "Abertas", count: "open" },
@@ -340,9 +341,13 @@ function ConversationThread({
       setMessages(data.messages)
       if (data.conversation.unreadCount > 0 && !markingRead.current) {
         markingRead.current = true
+        const readCount = data.conversation.unreadCount
         crmApi
           .markRead(conversationId)
-          .then(onChanged)
+          .then(() => {
+            useInboxStore.getState().markConversationRead(readCount)
+            onChanged()
+          })
           .catch(() => {})
           .finally(() => {
             markingRead.current = false
