@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { WhatsAppConnectionCard } from "@/components/crm/WhatsAppConnectionCard"
 import { formatDate } from "@/lib/utils"
 import { useClinicStore } from "@/stores/useClinicStore"
 
@@ -170,6 +171,7 @@ export default function Configuracoes() {
         <TabsList className="mb-4">
           <TabsTrigger value="perfil">Perfil da Clínica</TabsTrigger>
           <TabsTrigger value="equipe">Equipe e Profissionais ({members.length})</TabsTrigger>
+          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
         </TabsList>
 
         <TabsContent value="perfil">
@@ -402,6 +404,10 @@ export default function Configuracoes() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="whatsapp">
+          <WhatsAppConnectionCard />
         </TabsContent>
       </Tabs>
     </div>

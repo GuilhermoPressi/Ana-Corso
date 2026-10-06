@@ -81,8 +81,16 @@ próprio e a primeira carga não paga o custo do Recharts fora do dashboard.
   diluições de 1 a 5 ml).
 - **Precificação Inteligente** (`/precificacao`) — cria procedimentos com custo real, preço mínimo e preço
   recomendado, abre o preço praticado em custo/taxa/imposto/lucro e guarda tudo numa tabela de preços.
-- **CRM de Pacientes e Leads** (`/crm`) — funil kanban de 5 colunas com arrastar e soltar, valor somado de
-  propostas abertas, taxa de conversão e conversão de lead em ficha de paciente.
+- **CRM e Atendimento** (`/crm`) — três abas:
+  - **Funil**: kanban de 5 colunas com arrastar e soltar, valor somado de propostas abertas, taxa de
+    conversão e conversão de lead em ficha de paciente.
+  - **Conversas** (`/crm?aba=conversas`): caixa de entrada do WhatsApp da clínica via Evolution API, com
+    filtros (abertas, não lidas, minhas, sem responsável, finalizadas), busca, responsável, finalizar/reabrir,
+    status de envio (enviada/entregue/lida), envio de texto e anexos, mídia recebida, notas internas,
+    etiquetas e respostas rápidas (`/atalho`). Atualiza por polling a cada poucos segundos.
+  - **Contatos** (`/crm?aba=contatos`): contatos criados automaticamente pelas mensagens (ou à mão), com
+    etiquetas, observações, vínculo com paciente e criação de lead no funil.
+  A conexão do número (QR Code) fica em **Configurações → WhatsApp**. Veja "WhatsApp (Evolution API)" abaixo.
 - **Financeiro** (`/financeiro`) — entradas, custos e lucro do mês, com a visão de **lucratividade por
   procedimento** (margem de contribuição em reais e em %), composição dos custos e o extrato de lançamentos.
 - **Estoque** (`/estoque`) — saldo por lote e validade, alertas de mínimo e de vencimento, reposição,
@@ -252,6 +260,32 @@ telas, não um módulo.
 Todo o conteúdo vem de mocks tipados em `src/data/`, carregados como estado inicial das stores. Não há
 chamadas de rede nem persistência: recarregar a página volta ao estado semeado. Para plugar uma API ou o
 Supabase, troque o seed das stores pela camada de fetch mantendo os mesmos tipos e as mesmas ações.
+
+## WhatsApp (Evolution API)
+
+A API fala com um único servidor [Evolution API](https://doc.evolution-api.com) (v2) e cria uma instância
+por clínica (`anacorso-<slug>-<hex>`). Variáveis da API:
+
+| Variável | Uso |
+|---|---|
+| `EVOLUTION_API_URL` | URL base do servidor Evolution (ex.: `https://evolution.seudominio.com.br`) |
+| `EVOLUTION_API_KEY` | Chave global da Evolution (header `apikey`) |
+| `PUBLIC_API_URL` | URL pública pela qual a Evolution alcança esta API. Se vazia, usa `FRONTEND_URL` (o nginx repassa `/api`). |
+
+Fluxo:
+
+1. Em **Configurações → WhatsApp**, OWNER/ADMIN clica em **Conectar WhatsApp**. A API cria a instância com o
+   webhook `POST {PUBLIC_API_URL}/api/webhooks/evolution/<token>` (token aleatório por clínica) e mostra o QR Code.
+2. A Evolution envia `QRCODE_UPDATED`, `CONNECTION_UPDATE`, `MESSAGES_UPSERT`, `MESSAGES_UPDATE` e `SEND_MESSAGE`.
+   O webhook responde na hora e processa em seguida: cria/atualiza contato (casando telefone com e sem o nono
+   dígito e vinculando paciente/lead de mesmo número), conversa e mensagem (deduplicada pelo id do WhatsApp),
+   baixa a mídia para o storage (`uploads/clinics/<id>/crm/...`) e atualiza os status de entrega/leitura.
+   Grupos, status e canais são ignorados.
+3. Mensagens enviadas pelo celular também entram no histórico.
+
+Tabelas: `whatsapp_instances`, `crm_contacts`, `crm_conversations`, `crm_messages`, `crm_quick_replies`
+(migration `20261006180000_crm_whatsapp_inbox`). Rotas em `server/src/routes/crm.ts` (permissões `CRM_READ`,
+`CRM_WRITE` e `CLINIC_SETTINGS_MANAGE` para conectar/desconectar) e `server/src/routes/evolution-webhook.ts`.
 
 ## Nota de configuração
 

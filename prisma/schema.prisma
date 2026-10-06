@@ -251,6 +251,11 @@ model Clinic {
   aiUsages             AIUsage[]
   featureOverrides     ClinicFeatureOverride[]
   notifications        Notification[]
+  whatsappInstance     WhatsAppInstance?
+  crmContacts          CrmContact[]
+  crmConversations     CrmConversation[]
+  crmMessages          CrmMessage[]
+  crmQuickReplies      CrmQuickReply[]
 
   @@map("clinics")
 }
@@ -299,6 +304,8 @@ model User {
   aiConversations      AIConversation[]
   aiUsages             AIUsage[]
   notifications        Notification[]
+  assignedCrmConversations CrmConversation[] @relation("CrmConversationAssignee")
+  sentCrmMessages      CrmMessage[]         @relation("CrmMessageSender")
 
   @@map("users")
 }
@@ -420,6 +427,7 @@ model Patient {
   postCareFollowUps PostCareFollowUp[]
   treatmentPlans  PatientTreatmentPlan[]
   aiConversations AIConversation[]
+  crmContacts     CrmContact[]
 
   @@unique([clinicId, cpf])
   @@index([clinicId])
@@ -707,6 +715,7 @@ model Lead {
   createdByUser User?      @relation("LeadCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   assignedUser  User?      @relation("LeadAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
   proposals     Proposal[]
+  crmContacts   CrmContact[]
 
   @@index([clinicId, stage])
   @@index([clinicId, position])
@@ -1378,4 +1387,158 @@ model Notification {
   @@index([clinicId, userId])
   @@index([clinicId, readAt])
   @@map("notifications")
+}
+
+// ============================================================================
+// CRM de atendimento via WhatsApp (Evolution API)
+// ============================================================================
+
+enum WhatsAppConnectionStatus {
+  DISCONNECTED
+  CONNECTING
+  CONNECTED
+}
+
+enum CrmConversationStatus {
+  OPEN
+  CLOSED
+}
+
+enum CrmMessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CrmMessageKind {
+  TEXT
+  IMAGE
+  AUDIO
+  VIDEO
+  DOCUMENT
+  STICKER
+  LOCATION
+  NOTE
+  OTHER
+}
+
+enum CrmMessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  RECEIVED
+}
+
+model WhatsAppInstance {
+  id           String                   @id @default(uuid())
+  clinicId     String                   @unique @map("clinic_id")
+  instanceName String                   @unique @map("instance_name")
+  webhookToken String                   @unique @map("webhook_token")
+  status       WhatsAppConnectionStatus @default(DISCONNECTED)
+  qrCode       String?                  @map("qr_code") @db.Text
+  qrUpdatedAt  DateTime?                @map("qr_updated_at")
+  phoneNumber  String?                  @map("phone_number")
+  profileName  String?                  @map("profile_name")
+  connectedAt  DateTime?                @map("connected_at")
+  createdAt    DateTime                 @default(now()) @map("created_at")
+  updatedAt    DateTime                 @updatedAt @map("updated_at")
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@map("whatsapp_instances")
+}
+
+model CrmContact {
+  id        String   @id @default(uuid())
+  clinicId  String   @map("clinic_id")
+  name      String
+  phone     String
+  email     String?
+  pushName  String?  @map("push_name")
+  avatarUrl String?  @map("avatar_url") @db.Text
+  tags      String[] @default([])
+  notes     String?  @db.Text
+  source    String   @default("whatsapp")
+  leadId    String?  @map("lead_id")
+  patientId String?  @map("patient_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  clinic        Clinic            @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  lead          Lead?             @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  patient       Patient?          @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  conversations CrmConversation[]
+
+  @@unique([clinicId, phone])
+  @@index([clinicId, name])
+  @@index([clinicId, updatedAt])
+  @@map("crm_contacts")
+}
+
+model CrmConversation {
+  id                 String                @id @default(uuid())
+  clinicId           String                @map("clinic_id")
+  contactId          String                @map("contact_id")
+  remoteJid          String                @map("remote_jid")
+  status             CrmConversationStatus @default(OPEN)
+  assignedUserId     String?               @map("assigned_user_id")
+  unreadCount        Int                   @default(0) @map("unread_count")
+  lastMessageAt      DateTime?             @map("last_message_at")
+  lastMessagePreview String?               @map("last_message_preview")
+  lastInboundAt      DateTime?             @map("last_inbound_at")
+  closedAt           DateTime?             @map("closed_at")
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+
+  clinic       Clinic       @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  contact      CrmContact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  assignedUser User?        @relation("CrmConversationAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  messages     CrmMessage[]
+
+  @@unique([clinicId, contactId])
+  @@index([clinicId, status, lastMessageAt])
+  @@index([clinicId, assignedUserId])
+  @@map("crm_conversations")
+}
+
+model CrmMessage {
+  id              String              @id @default(uuid())
+  clinicId        String              @map("clinic_id")
+  conversationId  String              @map("conversation_id")
+  externalId      String?             @map("external_id")
+  direction       CrmMessageDirection
+  kind            CrmMessageKind      @default(TEXT)
+  text            String?             @db.Text
+  mediaStorageKey String?             @map("media_storage_key")
+  mediaMimeType   String?             @map("media_mime_type")
+  mediaFileName   String?             @map("media_file_name")
+  status          CrmMessageStatus    @default(QUEUED)
+  errorReason     String?             @map("error_reason")
+  sentByUserId    String?             @map("sent_by_user_id")
+  sentAt          DateTime            @default(now()) @map("sent_at")
+  createdAt       DateTime            @default(now()) @map("created_at")
+
+  clinic       Clinic          @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  conversation CrmConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sentByUser   User?           @relation("CrmMessageSender", fields: [sentByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([conversationId, externalId])
+  @@index([conversationId, sentAt])
+  @@index([clinicId, externalId])
+  @@map("crm_messages")
+}
+
+model CrmQuickReply {
+  id        String   @id @default(uuid())
+  clinicId  String   @map("clinic_id")
+  shortcut  String
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, shortcut])
+  @@map("crm_quick_replies")
 }

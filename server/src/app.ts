@@ -9,8 +9,10 @@ import { adminRoutes } from "./routes/admin.js"
 import { aiRoutes } from "./routes/ai.js"
 import { authRoutes } from "./routes/auth.js"
 import { catalogRoutes } from "./routes/catalog.js"
+import { crmRoutes } from "./routes/crm.js"
 import { clinicRoutes } from "./routes/clinic.js"
 import { dashboardRoutes } from "./routes/dashboard.js"
+import { evolutionWebhookRoutes } from "./routes/evolution-webhook.js"
 import { financeRoutes } from "./routes/finance.js"
 import { healthRoutes } from "./routes/health.js"
 import { incidentRoutes } from "./routes/incidents.js"
@@ -127,6 +129,8 @@ export function buildApp() {
   app.register(financeRoutes, { prefix: "/api" })
   app.register(dashboardRoutes, { prefix: "/api" })
   app.register(leadRoutes, { prefix: "/api" })
+  app.register(crmRoutes, { prefix: "/api" })
+  app.register(evolutionWebhookRoutes, { prefix: "/api" })
   app.register(planningRoutes, { prefix: "/api" })
   app.register(proposalRoutes, { prefix: "/api" })
   app.register(mapRoutes, { prefix: "/api" })
