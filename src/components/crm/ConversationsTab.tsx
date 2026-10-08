@@ -81,6 +81,7 @@ export function ConversationsTab({
   const [counts, setCounts] = useState<ConversationCounts | null>(null)
   const [loading, setLoading] = useState(true)
   const [whatsapp, setWhatsapp] = useState<WhatsAppStatus | null>(null)
+  const [connectMode, setConnectMode] = useState<boolean | null>(null)
   const [team, setTeam] = useState<TeamMember[]>([])
   const [quickReplies, setQuickReplies] = useState<QuickReply[]>([])
 
@@ -122,10 +123,29 @@ export function ConversationsTab({
     loadQuickReplies()
   }, [loadQuickReplies])
 
-  if (whatsapp === "DISCONNECTED" && !loading && conversations.length === 0 && filter === "open" && !search) {
+  // Decidido uma única vez (ou ao clicar em "Conectar"): o cartão do QR não pode
+  // sumir sozinho por causa das consultas periódicas enquanto a pessoa lê o código.
+  const showConnectCard =
+    connectMode ?? (whatsapp !== null && !loading && whatsapp !== "CONNECTED" && conversations.length === 0)
+  if (connectMode === null && whatsapp !== null && !loading) setConnectMode(showConnectCard)
+
+  if (showConnectCard) {
     return (
-      <div className="py-6">
-        <WhatsAppConnectionCard compact onConnected={() => setWhatsapp("CONNECTED")} />
+      <div className="space-y-3 py-6">
+        {conversations.length > 0 && (
+          <div className="mx-auto max-w-xl">
+            <Button variant="ghost" size="sm" onClick={() => setConnectMode(false)}>
+              <ArrowLeft /> Voltar para as conversas
+            </Button>
+          </div>
+        )}
+        <WhatsAppConnectionCard
+          compact
+          onConnected={() => {
+            setWhatsapp("CONNECTED")
+            setConnectMode(false)
+          }}
+        />
       </div>
     )
   }
@@ -133,10 +153,14 @@ export function ConversationsTab({
   return (
     <div className="space-y-3">
       {whatsapp && whatsapp !== "CONNECTED" && (
-        <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[13px] text-warning-foreground">
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[13px] text-warning-foreground">
           <AlertCircle className="size-4 shrink-0" />
-          O WhatsApp da clínica está desconectado. Você ainda pode consultar o histórico, mas não envia nem recebe mensagens.
-          Reconecte em Configurações → WhatsApp.
+          <span className="flex-1">
+            O WhatsApp da clínica está desconectado. Você ainda pode consultar o histórico, mas não envia nem recebe mensagens.
+          </span>
+          <Button size="sm" variant="outline" className="h-7" onClick={() => setConnectMode(true)}>
+            Conectar WhatsApp
+          </Button>
         </div>
       )}
 
