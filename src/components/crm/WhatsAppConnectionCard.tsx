@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react"
-import { CheckCircle2, Loader2, QrCode, RefreshCw, Smartphone, Unplug } from "lucide-react"
+import { CheckCircle2, Loader2, QrCode, RefreshCw, Smartphone, Unplug, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -37,40 +37,113 @@ export function WhatsAppConnectionCard({
   const [configured, setConfigured] = useState(true)
   const [instance, setInstance] = useState<WhatsAppInstance | null>(null)
   const [busy, setBusy] = useState(false)
-  const lastStatus = useRef<string | null>(null)
+  // Pareamento em andamento: o QR fica na tela até conectar ou a pessoa cancelar.
+  const [pairing, setPairing] = useState(false)
+  // Último QR exibido, mantido enquanto um código novo é gerado (evita a tela "piscar").
+  const [lastQr, setLastQr] = useState<string | null>(null)
+  const [pairingError, setPairingError] = useState<string | null>(null)
+  const pairingRef = useRef(false)
+  const regenerating = useRef(false)
+  const lastRegenerateAt = useRef(0)
+  const initialLoadDone = useRef(false)
 
   const status = instance?.status ?? "DISCONNECTED"
+
+  function finishPairing(connected: boolean) {
+    pairingRef.current = false
+    setPairing(false)
+    setLastQr(null)
+    setPairingError(null)
+    if (connected) {
+      toast.success("WhatsApp conectado!")
+      onConnected?.()
+    }
+  }
+
+  /** Pede um QR novo à Evolution sem tirar o cartão da tela (QR expirado ou tentativa encerrada). */
+  const regenerate = useCallback(async () => {
+    if (regenerating.current || Date.now() - lastRegenerateAt.current < 10_000) return
+    regenerating.current = true
+    lastRegenerateAt.current = Date.now()
+    try {
+      const { instance: next } = await crmApi.connectWhatsapp()
+      if (!pairingRef.current) return
+      setInstance(next)
+      if (next.qrCode) setLastQr(next.qrCode)
+      setPairingError(null)
+    } catch (err) {
+      setPairingError(err instanceof Error ? err.message : "Não foi possível gerar um novo código.")
+    } finally {
+      regenerating.current = false
+    }
+  }, [])
 
   const refresh = useCallback(async () => {
     try {
       const data = await crmApi.whatsappStatus()
       setConfigured(data.configured)
-      const next = data.instance?.status ?? "DISCONNECTED"
-      if (lastStatus.current === "CONNECTING" && next === "CONNECTED") {
-        toast.success("WhatsApp conectado!")
-        onConnected?.()
+      const next = data.instance
+      setInstance(next)
+
+      // Reabriu a tela no meio de um pareamento: continua mostrando o QR.
+      // Só na primeira carga, para uma consulta atrasada não desfazer um "Cancelar".
+      const firstLoad = !initialLoadDone.current
+      initialLoadDone.current = true
+      if (firstLoad && !pairingRef.current && next?.status === "CONNECTING" && canManage) {
+        pairingRef.current = true
+        setPairing(true)
       }
-      lastStatus.current = next
-      setInstance(data.instance)
+
+      if (pairingRef.current) {
+        if (next?.status === "CONNECTED") {
+          finishPairing(true)
+        } else if (next?.qrCode) {
+          setLastQr(next.qrCode)
+        } else {
+          // A Evolution encerrou a tentativa (QR expirou): gera outro automaticamente.
+          regenerate()
+        }
+      }
     } catch {
       // mantém o último estado conhecido
     } finally {
       setLoaded(true)
     }
-  }, [onConnected])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canManage, regenerate])
 
-  // Enquanto aguarda o QR, consulta com mais frequência.
-  usePolling(refresh, status === "CONNECTING" ? 3000 : 30000, [status])
+  // Durante o pareamento consulta a cada 3s; fora dele, só de vez em quando.
+  usePolling(refresh, pairing ? 3000 : 30000, [pairing])
 
   async function connect() {
     setBusy(true)
+    setPairingError(null)
     try {
       const { instance: next } = await crmApi.connectWhatsapp()
-      lastStatus.current = next.status
       setInstance(next)
-      if (next.status === "CONNECTED") onConnected?.()
+      if (next.status === "CONNECTED") {
+        finishPairing(true)
+      } else {
+        pairingRef.current = true
+        lastRegenerateAt.current = Date.now()
+        setPairing(true)
+        setLastQr(next.qrCode)
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível iniciar a conexão.")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function cancelPairing() {
+    finishPairing(false)
+    setBusy(true)
+    try {
+      const { instance: next } = await crmApi.disconnectWhatsapp()
+      setInstance(next)
+    } catch {
+      // a instância pode já estar fechada; nada a fazer
     } finally {
       setBusy(false)
     }
@@ -83,7 +156,6 @@ export function WhatsAppConnectionCard({
     setBusy(true)
     try {
       const { instance: next } = await crmApi.disconnectWhatsapp()
-      lastStatus.current = next?.status ?? "DISCONNECTED"
       setInstance(next)
       toast.success("WhatsApp desconectado.")
     } catch (err) {
@@ -92,6 +164,10 @@ export function WhatsAppConnectionCard({
       setBusy(false)
     }
   }
+
+  const qrToShow = pairing ? (instance?.qrCode ?? lastQr) : null
+  const qrIsFresh = Boolean(pairing && instance?.status === "CONNECTING" && instance.qrCode)
+  const badgeStatus = pairing && status !== "CONNECTED" ? "CONNECTING" : status
 
   return (
     <Card className={cn(compact && "mx-auto max-w-xl")}>
@@ -105,11 +181,11 @@ export function WhatsAppConnectionCard({
               variant="outline"
               className={cn(
                 "rounded-full",
-                status === "CONNECTED" && "border-success/30 bg-success/10 text-success",
-                status === "CONNECTING" && "border-warning/30 bg-warning/10 text-warning-foreground",
+                badgeStatus === "CONNECTED" && "border-success/30 bg-success/10 text-success",
+                badgeStatus === "CONNECTING" && "border-warning/30 bg-warning/10 text-warning-foreground",
               )}
             >
-              {statusLabel[status]}
+              {statusLabel[badgeStatus]}
             </Badge>
           )}
         </div>
@@ -144,13 +220,25 @@ export function WhatsAppConnectionCard({
               </Button>
             )}
           </div>
-        ) : status === "CONNECTING" && instance?.qrCode ? (
+        ) : pairing ? (
           <div className="grid items-center gap-6 sm:grid-cols-[220px_1fr]">
-            <img
-              src={instance.qrCode.startsWith("data:") ? instance.qrCode : `data:image/png;base64,${instance.qrCode}`}
-              alt="QR Code para conectar o WhatsApp"
-              className="size-[220px] rounded-xl border bg-white p-2"
-            />
+            <div className="relative size-[220px]">
+              {qrToShow ? (
+                <img
+                  src={qrToShow.startsWith("data:") ? qrToShow : `data:image/png;base64,${qrToShow}`}
+                  alt="QR Code para conectar o WhatsApp"
+                  className={cn("size-full rounded-xl border bg-white p-2 transition-opacity", !qrIsFresh && "opacity-30")}
+                />
+              ) : (
+                <div className="size-full rounded-xl border bg-muted/40" />
+              )}
+              {!qrIsFresh && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center text-xs font-medium text-muted-foreground">
+                  <Loader2 className="size-5 animate-spin" />
+                  Gerando novo código…
+                </div>
+              )}
+            </div>
             <div className="space-y-3 text-sm">
               <ol className="list-decimal space-y-1.5 pl-4 text-muted-foreground">
                 <li>Abra o WhatsApp no celular da clínica.</li>
@@ -162,12 +250,27 @@ export function WhatsAppConnectionCard({
                 </li>
               </ol>
               <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Loader2 className="size-3.5 animate-spin" /> O código se renova sozinho. Esta tela atualiza quando a leitura terminar.
+                <Loader2 className="size-3.5 animate-spin" /> Aguardando a leitura. O código é renovado automaticamente até
+                você conectar ou cancelar.
               </p>
+              {pairingError && <p className="text-xs text-destructive">{pairingError}</p>}
               {canManage && (
-                <Button variant="outline" size="sm" onClick={connect} disabled={busy}>
-                  <RefreshCw /> Gerar novo código
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      lastRegenerateAt.current = 0
+                      regenerate()
+                    }}
+                    disabled={busy}
+                  >
+                    <RefreshCw /> Gerar novo código
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={cancelPairing} disabled={busy}>
+                    <X /> Cancelar
+                  </Button>
+                </div>
               )}
             </div>
           </div>
