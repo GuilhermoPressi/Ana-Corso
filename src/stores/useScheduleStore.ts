@@ -20,6 +20,9 @@ export type ScheduleEvent = {
   value?: number
   note?: string
   auto?: boolean
+  /** Situação do envio ao Google Agenda. */
+  google?: "sincronizado" | "erro"
+  googleError?: string
 }
 
 export const eventKindLabel: Record<EventKind, string> = {
@@ -90,6 +93,8 @@ export function mapDbEventToFrontend(dbE: any): ScheduleEvent {
     value: dbE.value ? Number(dbE.value) : undefined,
     note: dbE.note || undefined,
     auto: dbE.auto || false,
+    google: dbE.googleSyncError ? "erro" : dbE.googleEventId ? "sincronizado" : undefined,
+    googleError: dbE.googleSyncError || undefined,
   }
 }
 

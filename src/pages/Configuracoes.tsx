@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Check, Mail, Plus, Save, Trash2, User, Users } from "lucide-react"
 import { toast } from "sonner"
 
@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { WhatsAppConnectionCard } from "@/components/crm/WhatsAppConnectionCard"
+import { GoogleCalendarCard } from "@/components/integrations/GoogleCalendarCard"
+import { useSearchParams } from "react-router-dom"
 import { formatDate } from "@/lib/utils"
 import { useClinicStore } from "@/stores/useClinicStore"
 
@@ -46,7 +48,24 @@ type Invitation = {
   inviteUrl: string
 }
 
+const TABS = ["perfil", "equipe", "whatsapp", "integracoes"] as const
+
 export default function Configuracoes() {
+  const [params, setParams] = useSearchParams()
+  const tabParam = params.get("aba")
+  const tab = (TABS as readonly string[]).includes(tabParam ?? "") ? (tabParam as string) : "perfil"
+
+  // Volta do Google (OAuth): mostra o resultado uma única vez e limpa a URL.
+  const googleNotified = useRef(false)
+  useEffect(() => {
+    const google = params.get("google")
+    if (!google || googleNotified.current) return
+    googleNotified.current = true
+    if (google === "conectado") toast.success("Google Agenda conectado! Os próximos agendamentos já vão para lá.")
+    else if (google === "erro") toast.error(params.get("mensagem") || "Não foi possível conectar o Google Agenda.")
+    else if (google === "cancelado") toast.info("Conexão com o Google Agenda cancelada.")
+    setParams({ aba: "integracoes" }, { replace: true })
+  }, [params, setParams])
   const { profile, fetchProfile, update, loading, error } = useClinicStore()
   const [form, setForm] = useState({ ...profile })
   const [saved, setSaved] = useState(false)
@@ -167,11 +186,12 @@ export default function Configuracoes() {
         </p>
       </div>
 
-      <Tabs defaultValue="perfil" className="w-full">
+      <Tabs value={tab} onValueChange={(value) => setParams({ aba: value }, { replace: true })} className="w-full">
         <TabsList className="mb-4">
           <TabsTrigger value="perfil">Perfil da Clínica</TabsTrigger>
           <TabsTrigger value="equipe">Equipe e Profissionais ({members.length})</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+          <TabsTrigger value="integracoes">Integrações</TabsTrigger>
         </TabsList>
 
         <TabsContent value="perfil">
@@ -408,6 +428,10 @@ export default function Configuracoes() {
 
         <TabsContent value="whatsapp">
           <WhatsAppConnectionCard />
+        </TabsContent>
+
+        <TabsContent value="integracoes">
+          <GoogleCalendarCard />
         </TabsContent>
       </Tabs>
     </div>

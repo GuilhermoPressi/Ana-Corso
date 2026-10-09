@@ -289,6 +289,28 @@ Tabelas: `whatsapp_instances`, `crm_contacts`, `crm_conversations`, `crm_message
 (migration `20261006180000_crm_whatsapp_inbox`). Rotas em `server/src/routes/crm.ts` (permissões `CRM_READ`,
 `CRM_WRITE` e `CLINIC_SETTINGS_MANAGE` para conectar/desconectar) e `server/src/routes/evolution-webhook.ts`.
 
+## Google Agenda
+
+Cada usuário conecta o próprio Google em **Configurações → Integrações**. Todo agendamento criado, remarcado
+ou cancelado (inclusive os retornos automáticos do pós-procedimento) é enviado para a agenda da profissional
+responsável — ou, se ela não conectou, para a da dona/administradora da clínica que conectou. O botão
+"Enviar agendamentos futuros" envia o que já existia. Na Agenda, o ícone verde ao lado do título indica que o
+evento está no Google; o vermelho indica falha (passe o mouse para ver o motivo).
+
+Configuração (uma vez, no [Google Cloud Console](https://console.cloud.google.com/)):
+
+1. Crie um projeto e ative a **Google Calendar API**.
+2. Em **Tela de consentimento OAuth**: tipo *Externo*, adicione o escopo `.../auth/calendar.events` e
+   **publique o app** (em modo "Teste" o Google expira a autorização a cada 7 dias). Sem a verificação do
+   Google, quem conectar verá o aviso "app não verificado" (dá para seguir em *Avançado*).
+3. Em **Credenciais → Criar ID do cliente OAuth → Aplicativo da Web**, adicione o URI de redirecionamento
+   `{PUBLIC_API_URL ou FRONTEND_URL}/api/integrations/google/callback` (ex.:
+   `https://app.anacorso.com.br/api/integrations/google/callback`).
+4. Defina `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` no serviço da API.
+
+Os tokens ficam criptografados (AES-256-GCM, chave derivada do `SESSION_SECRET`) na tabela
+`google_calendar_accounts`. Código em `server/src/services/google-calendar.ts` e `server/src/routes/integrations.ts`.
+
 ## Nota de configuração
 
 `vite.config.ts` fixa `resolve.dedupe` e `optimizeDeps.include` para React, React DOM, o

@@ -308,6 +308,7 @@ model User {
   notifications        Notification[]
   assignedCrmConversations CrmConversation[] @relation("CrmConversationAssignee")
   sentCrmMessages      CrmMessage[]         @relation("CrmMessageSender")
+  googleCalendar       GoogleCalendarAccount?
 
   @@map("users")
 }
@@ -621,6 +622,10 @@ model ScheduleEvent {
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
   cancelledAt        DateTime?           @map("cancelled_at")
+  googleEventId      String?             @map("google_event_id")
+  googleUserId       String?             @map("google_user_id")
+  googleSyncedAt     DateTime?           @map("google_synced_at")
+  googleSyncError    String?             @map("google_sync_error")
 
   clinic        Clinic          @relation(fields: [clinicId], references: [id], onDelete: Restrict)
   patient       Patient?        @relation(fields: [patientId], references: [id], onDelete: SetNull)
@@ -1558,4 +1563,22 @@ model CrmTag {
 
   @@unique([clinicId, name])
   @@map("crm_tags")
+}
+
+// Conta do Google Agenda conectada por usuário (agendamentos são enviados para ela).
+model GoogleCalendarAccount {
+  id                   String    @id @default(uuid())
+  userId               String    @unique @map("user_id")
+  email                String
+  refreshTokenEnc      String    @map("refresh_token_enc") @db.Text
+  accessTokenEnc       String?   @map("access_token_enc") @db.Text
+  accessTokenExpiresAt DateTime? @map("access_token_expires_at")
+  calendarId           String    @default("primary") @map("calendar_id")
+  lastError            String?   @map("last_error")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("google_calendar_accounts")
 }
