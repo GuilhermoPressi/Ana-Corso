@@ -10,7 +10,19 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import { ArrowDownRight, ArrowUpRight, Lightbulb, Wallet } from "lucide-react"
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
+  Lightbulb,
+  Lock,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Wallet,
+} from "lucide-react"
+import { toast } from "sonner"
 
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Badge } from "@/components/ui/badge"
@@ -25,13 +37,20 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { clinicTodayLabel, isCurrentMonth } from "@/lib/clinic"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { CLINIC_MONTH, clinicTodayLabel } from "@/lib/clinic"
 import { cn, formatCurrency, formatDate } from "@/lib/utils"
 import {
   expensesByCategory,
   profitabilityByCategory,
   summarizeMonth,
   useFinanceStore,
+  type LedgerEntry,
   type ProfitabilityRow,
 } from "@/stores/useFinanceStore"
 
@@ -48,23 +67,66 @@ const chartColors = [
 const percent = (value: number) =>
   `${value.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
 
+function shiftMonth(yearMonth: string, delta: number) {
+  const [year, month] = yearMonth.split("-").map(Number)
+  const date = new Date(year, month - 1 + delta, 1)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+}
+
+function monthLabel(yearMonth: string) {
+  const [year, month] = yearMonth.split("-").map(Number)
+  const label = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(
+    new Date(year, month - 1, 1),
+  )
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
 export default function Financeiro() {
   const ledger = useFinanceStore((state) => state.ledger)
   const baseline = useFinanceStore((state) => state.baseline)
   const fetchEntries = useFinanceStore((state) => state.fetchEntries)
   const [mode, setMode] = useState<"reais" | "percentual">("reais")
+  const [viewMonth, setViewMonth] = useState(CLINIC_MONTH)
+  const [detailTab, setDetailTab] = useState("procedimentos")
+  const [editing, setEditing] = useState<LedgerEntry | null>(null)
+  const deleteEntry = useFinanceStore((state) => state.deleteEntry)
+  const isCurrent = viewMonth === CLINIC_MONTH
+
+  function handleSaved(date: string) {
+    const month = date.slice(0, 7)
+    if (month !== viewMonth) {
+      setViewMonth(month)
+      toast.info(`Mostrando ${monthLabel(month).toLowerCase()}, o mês do lançamento.`)
+    }
+    setDetailTab("lancamentos")
+  }
+
+  async function handleDelete(entry: LedgerEntry) {
+    if (!window.confirm(`Excluir o lançamento "${entry.description}" de ${formatCurrency(entry.amount)}?`)) return
+    const res = await deleteEntry(entry.id)
+    if (res.success) toast.success("Lançamento excluído.")
+    else toast.error(res.error || "Não foi possível excluir o lançamento.")
+  }
 
   useEffect(() => {
     fetchEntries()
   }, [fetchEntries])
 
-  const summary = useMemo(() => summarizeMonth(ledger, baseline), [ledger, baseline])
-  const profitability = useMemo(() => profitabilityByCategory(ledger, baseline), [ledger, baseline])
-  const expenses = useMemo(() => expensesByCategory(ledger, baseline), [ledger, baseline])
+  // O "baseline" consolidado só vale para o mês corrente.
+  const monthBaseline = useMemo(
+    () => (isCurrent ? baseline : { ...baseline, expenses: 0, revenueByCategory: [] }),
+    [baseline, isCurrent],
+  )
+  const summary = useMemo(() => summarizeMonth(ledger, monthBaseline, viewMonth), [ledger, monthBaseline, viewMonth])
+  const profitability = useMemo(
+    () => profitabilityByCategory(ledger, monthBaseline, viewMonth),
+    [ledger, monthBaseline, viewMonth],
+  )
+  const expenses = useMemo(() => expensesByCategory(ledger, monthBaseline, viewMonth), [ledger, monthBaseline, viewMonth])
 
   const monthEntries = useMemo(
-    () => ledger.filter((entry) => isCurrentMonth(entry.date)),
-    [ledger],
+    () => ledger.filter((entry) => entry.date.startsWith(viewMonth)),
+    [ledger, viewMonth],
   )
 
   // Quem mais coloca dinheiro no bolso nem sempre é quem tem a maior margem percentual.
@@ -85,7 +147,46 @@ export default function Financeiro() {
       <PageHeader
         title="Financeiro"
         description={`Fechamento financeiro · atualizado em ${clinicTodayLabel().toLowerCase()}`}
-        actions={<NewEntryDialog />}
+        actions={<NewEntryDialog onSaved={handleSaved} />}
+      />
+
+      {/* Mês em análise */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1 rounded-full border border-border/70 bg-card p-1 shadow-[var(--shadow-soft)]">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 rounded-full"
+            onClick={() => setViewMonth((m) => shiftMonth(m, -1))}
+            aria-label="Mês anterior"
+          >
+            <ChevronLeft />
+          </Button>
+          <span className="min-w-[150px] text-center text-sm font-semibold">{monthLabel(viewMonth)}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 rounded-full"
+            onClick={() => setViewMonth((m) => shiftMonth(m, 1))}
+            aria-label="Próximo mês"
+          >
+            <ChevronRight />
+          </Button>
+        </div>
+        {!isCurrent && (
+          <Button variant="ghost" size="sm" className="rounded-full" onClick={() => setViewMonth(CLINIC_MONTH)}>
+            Voltar para o mês atual
+          </Button>
+        )}
+      </div>
+
+      <NewEntryDialog
+        entry={editing}
+        open={Boolean(editing)}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null)
+        }}
+        onSaved={handleSaved}
       />
 
       {/* Visão geral */}
@@ -226,7 +327,7 @@ export default function Financeiro() {
       </Card>
 
       {/* Detalhamento */}
-      <Tabs defaultValue="procedimentos">
+      <Tabs value={detailTab} onValueChange={setDetailTab}>
         <TabsList className="mb-4 h-auto w-fit gap-1 rounded-full bg-muted/60 p-1">
           <TabsTrigger value="procedimentos" className="rounded-full px-4 text-[13px] data-[state=active]:shadow-xs">
             Por procedimento
@@ -403,10 +504,18 @@ export default function Financeiro() {
                     <TableHead className="pl-5">Data</TableHead>
                     <TableHead className="min-w-[240px]">Descrição</TableHead>
                     <TableHead>Categoria</TableHead>
-                    <TableHead className="pr-5 text-right">Valor</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="w-12 pr-3" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {monthEntries.length === 0 && (
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
+                        Nenhum lançamento em {monthLabel(viewMonth).toLowerCase()}.
+                      </TableCell>
+                    </TableRow>
+                  )}
                   {monthEntries.map((entry) => (
                     <TableRow key={entry.id} className="border-border/60">
                       <TableCell className="pl-5 text-[13px] tabular-nums">{formatDate(entry.date)}</TableCell>
@@ -443,11 +552,37 @@ export default function Financeiro() {
                       </TableCell>
                       <TableCell
                         className={cn(
-                          "pr-5 text-right text-[13px] font-semibold tabular-nums",
+                          "text-right text-[13px] font-semibold tabular-nums",
                           entry.kind === "receita" ? "text-success" : "text-foreground",
                         )}
                       >
                         {entry.kind === "receita" ? "+" : "−"} {formatCurrency(entry.amount)}
+                      </TableCell>
+                      <TableCell className="pr-3 text-right">
+                        {entry.source === "manual" ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="size-8" aria-label="Ações do lançamento">
+                                <MoreHorizontal className="size-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setEditing(entry)}>
+                                <Pencil /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem variant="destructive" onClick={() => handleDelete(entry)}>
+                                <Trash2 /> Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <span
+                            className="inline-grid size-8 place-items-center text-muted-foreground/60"
+                            title="Gerado pelo registro de um procedimento"
+                          >
+                            <Lock className="size-3.5" />
+                          </span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -457,7 +592,7 @@ export default function Financeiro() {
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/70 bg-muted/25 px-5 py-3 text-[12px] text-muted-foreground">
               <span>
-                {monthEntries.length} lançamentos itemizados · o restante do mês entra pela base consolidada
+                {monthEntries.length} lançamento(s) em {monthLabel(viewMonth).toLowerCase()}
               </span>
               <span className="tabular-nums">Saldo do mês: {formatCurrency(summary.profit)}</span>
             </div>

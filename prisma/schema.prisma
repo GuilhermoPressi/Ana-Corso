@@ -96,6 +96,7 @@ enum ClinicActivityAction {
   INVENTORY_RESTOCKED
   INVENTORY_ADJUSTED
   FINANCE_ENTRY_CREATED
+  FINANCE_ENTRY_UPDATED
   FINANCE_ENTRY_VOIDED
   LEAD_CREATED
   LEAD_STAGE_CHANGED
@@ -256,6 +257,7 @@ model Clinic {
   crmConversations     CrmConversation[]
   crmMessages          CrmMessage[]
   crmQuickReplies      CrmQuickReply[]
+  crmTags              CrmTag[]
 
   @@map("clinics")
 }
@@ -1542,4 +1544,18 @@ model CrmQuickReply {
 
   @@unique([clinicId, shortcut])
   @@map("crm_quick_replies")
+}
+
+model CrmTag {
+  id        String   @id @default(uuid())
+  clinicId  String   @map("clinic_id")
+  name      String
+  color     String   @default("rosa")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, name])
+  @@map("crm_tags")
 }

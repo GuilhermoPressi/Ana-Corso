@@ -170,6 +170,27 @@ const quickReplySchema = z.object({
   content: z.string().trim().min(1).max(4096),
 })
 
+const TAG_COLORS = ["rosa", "roxo", "azul", "verde", "amarelo", "laranja", "vermelho", "cinza"] as const
+
+const tagSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Informe o nome da etiqueta.")
+    .max(40)
+    .transform((v) => v.toLowerCase()),
+  color: z.enum(TAG_COLORS).default("rosa"),
+})
+
+/** Garante que as etiquetas usadas num contato existam no cadastro de etiquetas. */
+async function ensureTags(clinicId: string, names: string[] | undefined) {
+  if (!names?.length) return
+  await prisma.crmTag.createMany({
+    data: names.map((name) => ({ clinicId, name })),
+    skipDuplicates: true,
+  })
+}
+
 function normalizeTags(tags: string[] | undefined) {
   if (!tags) return undefined
   return [...new Set(tags.map((t) => t.trim().toLowerCase()).filter(Boolean))]
@@ -768,17 +789,91 @@ export async function crmRoutes(fastify: FastifyInstance) {
     return { contacts: contacts.map(serializeContact) }
   })
 
-  fastify.get("/crm/contacts/tags", CRM_READ, async (request) => {
+  // ==========================================================================
+  // Etiquetas (tags) com cor
+  // ==========================================================================
+
+  fastify.get("/crm/tags", CRM_READ, async (request) => {
     const clinicId = request.clinic!.id
-    const rows = await prisma.$queryRaw<{ tag: string; total: bigint }[]>`
-      SELECT tag, COUNT(*) AS total
-      FROM crm_contacts, unnest(tags) AS tag
-      WHERE clinic_id = ${clinicId}
-      GROUP BY tag
-      ORDER BY total DESC, tag ASC
-      LIMIT 100
-    `
-    return { tags: rows.map((r) => ({ tag: r.tag, count: Number(r.total) })) }
+    const [tags, counts] = await Promise.all([
+      prisma.crmTag.findMany({ where: { clinicId }, orderBy: { name: "asc" } }),
+      prisma.$queryRaw<{ tag: string; total: bigint }[]>`
+        SELECT tag, COUNT(*) AS total
+        FROM crm_contacts, unnest(tags) AS tag
+        WHERE clinic_id = ${clinicId}
+        GROUP BY tag
+      `,
+    ])
+    const countByName = new Map(counts.map((row) => [row.tag, Number(row.total)]))
+    return {
+      tags: tags.map((tag) => ({ id: tag.id, name: tag.name, color: tag.color, count: countByName.get(tag.name) ?? 0 })),
+    }
+  })
+
+  fastify.post("/crm/tags", CRM_WRITE, async (request, reply) => {
+    const clinicId = request.clinic!.id
+    const parsed = tagSchema.safeParse(request.body)
+    if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
+    try {
+      const tag = await prisma.crmTag.create({ data: { clinicId, name: parsed.data.name, color: parsed.data.color } })
+      return reply.status(201).send({ tag: { id: tag.id, name: tag.name, color: tag.color, count: 0 } })
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+        return reply.status(409).send({ error: { code: "DUPLICATE", message: "Já existe uma etiqueta com esse nome." } })
+      }
+      throw err
+    }
+  })
+
+  fastify.patch("/crm/tags/:id", CRM_WRITE, async (request, reply) => {
+    const clinicId = request.clinic!.id
+    const { id } = request.params as { id: string }
+    const parsed = tagSchema.partial().safeParse(request.body)
+    if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
+
+    const existing = await prisma.crmTag.findFirst({ where: { id, clinicId } })
+    if (!existing) return reply.status(404).send(notFound("Etiqueta não encontrada."))
+    const { name, color } = parsed.data
+
+    if (name && name !== existing.name) {
+      const clash = await prisma.crmTag.findFirst({ where: { clinicId, name } })
+      if (clash) {
+        return reply.status(409).send({ error: { code: "DUPLICATE", message: "Já existe uma etiqueta com esse nome." } })
+      }
+    }
+
+    const tag = await prisma.$transaction(async (tx) => {
+      const updated = await tx.crmTag.update({
+        where: { id },
+        data: { ...(name ? { name } : {}), ...(color ? { color } : {}) },
+      })
+      // Renomeia a etiqueta em todos os contatos que a usam.
+      if (name && name !== existing.name) {
+        await tx.$executeRaw`
+          UPDATE crm_contacts
+          SET tags = array_replace(tags, ${existing.name}, ${name}), updated_at = NOW()
+          WHERE clinic_id = ${clinicId} AND ${existing.name} = ANY(tags)
+        `
+      }
+      return updated
+    })
+    return { tag: { id: tag.id, name: tag.name, color: tag.color } }
+  })
+
+  fastify.delete("/crm/tags/:id", CRM_WRITE, async (request, reply) => {
+    const clinicId = request.clinic!.id
+    const { id } = request.params as { id: string }
+    const existing = await prisma.crmTag.findFirst({ where: { id, clinicId } })
+    if (!existing) return reply.status(404).send(notFound("Etiqueta não encontrada."))
+    await prisma.$transaction([
+      prisma.$executeRaw`
+        UPDATE crm_contacts
+        SET tags = array_remove(tags, ${existing.name}), updated_at = NOW()
+        WHERE clinic_id = ${clinicId} AND ${existing.name} = ANY(tags)
+      `,
+      prisma.crmTag.delete({ where: { id } }),
+    ])
+    return { ok: true }
   })
 
   fastify.get("/crm/contacts/:id", CRM_READ, async (request, reply) => {
@@ -805,6 +900,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
       })
     }
 
+    await ensureTags(clinicId, normalizeTags(tags))
     const created = await findOrCreateContact(clinicId, digits, { name, source: "manual" })
     const contact = await prisma.crmContact.update({
       where: { id: created.id },
@@ -833,6 +929,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
       if (!lead) return reply.status(400).send(badRequest("Lead não encontrado."))
     }
 
+    await ensureTags(clinicId, normalizeTags(tags))
     const contact = await prisma.crmContact.update({
       where: { id },
       data: {

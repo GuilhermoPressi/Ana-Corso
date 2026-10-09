@@ -15,6 +15,8 @@ export type LedgerEntry = {
   patientId?: string
   countsAsAppointment?: boolean
   directCost?: number
+  /** "manual" pode ser editado/excluído; "procedimento" vem do registro de procedimento. */
+  source?: "manual" | "procedimento" | "ajuste"
 }
 
 export type CategoryTotal = {
@@ -68,6 +70,11 @@ type FinanceState = {
     amount: number
     occurredAt?: string
   }) => Promise<{ success: boolean; error?: string }>
+  updateEntry: (
+    id: string,
+    input: { description: string; category: string; amount: number; occurredAt: string },
+  ) => Promise<{ success: boolean; error?: string }>
+  deleteEntry: (id: string) => Promise<{ success: boolean; error?: string }>
   addProcedure: (procedure: Omit<PricedProcedure, "id" | "createdAt">) => PricedProcedure
   removeProcedure: (id: string) => void
 }
@@ -92,6 +99,7 @@ export function mapDbLedgerToFrontend(dbL: any): LedgerEntry {
     patientId: dbL.patientId || undefined,
     countsAsAppointment: dbL.countsAsAppointment ?? true,
     directCost: dbL.directCost ? Number(dbL.directCost) : 0,
+    source: dbL.source === "PROCEDURE" ? "procedimento" : dbL.source === "ADJUSTMENT" ? "ajuste" : "manual",
   }
 }
 
@@ -200,6 +208,46 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     }
   },
 
+  updateEntry: async (id, input) => {
+    try {
+      const res = await fetch(`/api/finance/entries/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        const errorMsg =
+          res.status === 403
+            ? "Você não possui permissão para editar lançamentos."
+            : data?.error?.message || "Falha ao atualizar o lançamento."
+        return { success: false, error: errorMsg }
+      }
+      await get().fetchEntries()
+      return { success: true }
+    } catch (err: any) {
+      return { success: false, error: err?.message || "Erro de conexão ao atualizar o lançamento." }
+    }
+  },
+
+  deleteEntry: async (id) => {
+    try {
+      const res = await fetch(`/api/finance/entries/${id}`, { method: "DELETE" })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        const errorMsg =
+          res.status === 403
+            ? "Você não possui permissão para excluir lançamentos."
+            : data?.error?.message || "Falha ao excluir o lançamento."
+        return { success: false, error: errorMsg }
+      }
+      set((state) => ({ ledger: state.ledger.filter((entry) => entry.id !== id) }))
+      return { success: true }
+    } catch (err: any) {
+      return { success: false, error: err?.message || "Erro de conexão ao excluir o lançamento." }
+    }
+  },
+
   addProcedure: (procedure) => {
     const created: PricedProcedure = { ...procedure, id: nextId("proc"), createdAt: CLINIC_TODAY }
     set((state) => ({ procedures: [created, ...state.procedures] }))
@@ -223,8 +271,13 @@ export type MonthSummary = {
   contribution: number
 }
 
-export function summarizeMonth(ledger: LedgerEntry[], baseline: Baseline): MonthSummary {
-  const monthEntries = ledger.filter((entry) => isCurrentMonth(entry.date))
+/** Mês "YYYY-MM" informado, ou o mês corrente da clínica quando omitido. */
+function inMonth(date: string, month?: string) {
+  return month ? date.startsWith(month) : isCurrentMonth(date)
+}
+
+export function summarizeMonth(ledger: LedgerEntry[], baseline: Baseline, month?: string): MonthSummary {
+  const monthEntries = ledger.filter((entry) => inMonth(entry.date, month))
 
   const baselineRevenue = baseline.revenueByCategory.reduce((sum, item) => sum + item.revenue, 0)
   const baselineAppointments = baseline.revenueByCategory.reduce((sum, item) => sum + item.sessions, 0)
@@ -269,7 +322,7 @@ export function summarizeMonth(ledger: LedgerEntry[], baseline: Baseline): Month
   }
 }
 
-export function revenueByCategory(ledger: LedgerEntry[], baseline: Baseline): CategoryTotal[] {
+export function revenueByCategory(ledger: LedgerEntry[], baseline: Baseline, month?: string): CategoryTotal[] {
   const totals = new Map<string, Omit<CategoryTotal, "name">>()
 
   for (const item of baseline.revenueByCategory) {
@@ -281,7 +334,7 @@ export function revenueByCategory(ledger: LedgerEntry[], baseline: Baseline): Ca
   }
 
   for (const entry of ledger) {
-    if (entry.kind !== "receita" || !isCurrentMonth(entry.date)) continue
+    if (entry.kind !== "receita" || !inMonth(entry.date, month)) continue
     const current = totals.get(entry.category) ?? { revenue: 0, sessions: 0, directCost: 0 }
     totals.set(entry.category, {
       revenue: current.revenue + entry.amount,
@@ -305,8 +358,9 @@ export type ProfitabilityRow = CategoryTotal & {
 export function profitabilityByCategory(
   ledger: LedgerEntry[],
   baseline: Baseline,
+  month?: string,
 ): ProfitabilityRow[] {
-  const categories = revenueByCategory(ledger, baseline)
+  const categories = revenueByCategory(ledger, baseline, month)
   const totalContribution = categories.reduce(
     (sum, item) => sum + (item.revenue - item.directCost),
     0,
@@ -326,11 +380,11 @@ export function profitabilityByCategory(
     .sort((a, b) => b.contribution - a.contribution)
 }
 
-export function expensesByCategory(ledger: LedgerEntry[], baseline: Baseline) {
+export function expensesByCategory(ledger: LedgerEntry[], baseline: Baseline, month?: string) {
   const totals = new Map<string, number>()
 
   for (const entry of ledger) {
-    if (entry.kind !== "despesa" || !isCurrentMonth(entry.date)) continue
+    if (entry.kind !== "despesa" || !inMonth(entry.date, month)) continue
     totals.set(entry.category, (totals.get(entry.category) ?? 0) + entry.amount)
   }
 
