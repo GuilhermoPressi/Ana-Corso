@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { ArrowDownRight, ArrowUpRight, Plus } from "lucide-react"
 import { toast } from "sonner"
 
@@ -22,7 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { CLINIC_TODAY } from "@/lib/clinic"
-import { useFinanceStore, type LedgerKind } from "@/stores/useFinanceStore"
+import { parseMoney } from "@/lib/money"
+import { useFinanceStore, type LedgerEntry, type LedgerKind } from "@/stores/useFinanceStore"
 
 const EXPENSE_CATEGORIES = [
   "Aluguel",
@@ -48,8 +49,34 @@ const REVENUE_CATEGORIES = [
   "Outras receitas",
 ]
 
-export function NewEntryDialog() {
-  const [open, setOpen] = useState(false)
+function formatMoneyInput(value: number) {
+  return value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+/**
+ * Cria um lançamento (sem `entry`) ou edita um existente (com `entry`).
+ * `onSaved` recebe a data salva para a tela poder ir ao mês do lançamento.
+ */
+export function NewEntryDialog({
+  entry,
+  open: controlledOpen,
+  onOpenChange,
+  onSaved,
+  trigger,
+}: {
+  entry?: LedgerEntry | null
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  onSaved?: (date: string) => void
+  trigger?: ReactNode
+} = {}) {
+  const editing = Boolean(entry)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen ?? internalOpen
+  const setOpen = (next: boolean) => {
+    if (controlledOpen === undefined) setInternalOpen(next)
+    onOpenChange?.(next)
+  }
   const [kind, setKind] = useState<LedgerKind>("despesa")
   const [category, setCategory] = useState(EXPENSE_CATEGORIES[0])
   const [description, setDescription] = useState("")
@@ -57,7 +84,17 @@ export function NewEntryDialog() {
   const [date, setDate] = useState(CLINIC_TODAY)
   const [loading, setLoading] = useState(false)
 
-  const { registerExpense, registerRevenue } = useFinanceStore()
+  const { registerExpense, registerRevenue, updateEntry } = useFinanceStore()
+
+  // Ao abrir para editar, carrega os dados do lançamento.
+  useEffect(() => {
+    if (!open || !entry) return
+    setKind(entry.kind)
+    setCategory(entry.category)
+    setDescription(entry.description)
+    setAmount(formatMoneyInput(entry.amount))
+    setDate(entry.date)
+  }, [open, entry])
 
   const handleKindChange = (newKind: LedgerKind) => {
     setKind(newKind)
@@ -68,48 +105,52 @@ export function NewEntryDialog() {
     }
   }
 
-  const currentCategories = kind === "despesa" ? EXPENSE_CATEGORIES : REVENUE_CATEGORIES
+  const baseCategories = kind === "despesa" ? EXPENSE_CATEGORIES : REVENUE_CATEGORIES
+  // Mantém a categoria original de um lançamento antigo, mesmo que não esteja na lista.
+  const currentCategories = baseCategories.includes(category) ? baseCategories : [category, ...baseCategories]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const numAmount = Number(amount)
+    const numAmount = parseMoney(amount)
     if (!description.trim()) {
       toast.error("Informe a descrição do lançamento.")
       return
     }
     if (isNaN(numAmount) || numAmount <= 0) {
-      toast.error("Informe um valor válido maior que zero.")
+      toast.error("Informe um valor válido maior que zero. Ex.: 1.500,00")
+      return
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      toast.error("Informe a data do lançamento.")
       return
     }
 
     setLoading(true)
 
     let res: { success: boolean; error?: string }
-    if (kind === "despesa") {
-      res = await registerExpense({
-        description: description.trim(),
-        category,
-        amount: numAmount,
-        occurredAt: date,
-      })
+    const input = { description: description.trim(), category, amount: numAmount, occurredAt: date }
+    if (entry) {
+      res = await updateEntry(entry.id, input)
+    } else if (kind === "despesa") {
+      res = await registerExpense(input)
     } else {
-      res = await registerRevenue({
-        description: description.trim(),
-        category,
-        amount: numAmount,
-        occurredAt: date,
-      })
+      res = await registerRevenue(input)
     }
 
     setLoading(false)
 
     if (res.success) {
-      toast.success(kind === "despesa" ? "Despesa registrada com sucesso!" : "Receita registrada com sucesso!")
+      toast.success(
+        editing ? "Lançamento atualizado." : kind === "despesa" ? "Despesa registrada com sucesso!" : "Receita registrada com sucesso!",
+      )
+      onSaved?.(date)
       setOpen(false)
-      setDescription("")
-      setAmount("")
-      setDate(CLINIC_TODAY)
+      if (!editing) {
+        setDescription("")
+        setAmount("")
+        setDate(CLINIC_TODAY)
+      }
     } else {
       toast.error(res.error || "Não foi possível salvar o lançamento financeiro.")
     }
@@ -117,17 +158,25 @@ export function NewEntryDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="gap-2 rounded-full shadow-[0_8px_20px_-10px_hsl(335_78%_55%/0.9)]">
-          <Plus className="size-4" /> Novo lançamento
-        </Button>
-      </DialogTrigger>
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button size="sm" className="gap-2 rounded-full shadow-[0_8px_20px_-10px_hsl(335_78%_55%/0.9)]">
+              <Plus className="size-4" /> Novo lançamento
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
 
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">Novo Lançamento Financeiro</DialogTitle>
+          <DialogTitle className="font-display text-lg">
+            {editing ? "Editar lançamento" : "Novo Lançamento Financeiro"}
+          </DialogTitle>
           <DialogDescription className="text-xs">
-            Registre uma despesa manual ou receita avulsa para manter o caixa atualizado.
+            {editing
+              ? "Corrija os dados do lançamento. Os totais do mês são recalculados na hora."
+              : "Registre uma despesa manual ou receita avulsa para manter o caixa atualizado."}
           </DialogDescription>
         </DialogHeader>
 
@@ -141,6 +190,7 @@ export function NewEntryDialog() {
                 variant={kind === "despesa" ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleKindChange("despesa")}
+                disabled={editing && kind !== "despesa"}
                 className="gap-2 text-xs"
               >
                 <ArrowDownRight className="size-4 text-destructive" /> Saída / Despesa
@@ -150,6 +200,7 @@ export function NewEntryDialog() {
                 variant={kind === "receita" ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleKindChange("receita")}
+                disabled={editing && kind !== "receita"}
                 className="gap-2 text-xs"
               >
                 <ArrowUpRight className="size-4 text-success" /> Entrada / Receita
@@ -196,9 +247,8 @@ export function NewEntryDialog() {
             <div className="space-y-1.5">
               <Label className="text-xs">Valor (R$) *</Label>
               <Input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
+                inputMode="decimal"
+                placeholder="0,00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="text-xs"
@@ -221,7 +271,7 @@ export function NewEntryDialog() {
               Cancelar
             </Button>
             <Button type="submit" size="sm" disabled={loading}>
-              {loading ? "Gravando..." : "Salvar Lançamento"}
+              {loading ? "Gravando..." : editing ? "Salvar alterações" : "Salvar Lançamento"}
             </Button>
           </DialogFooter>
         </form>

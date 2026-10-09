@@ -47,6 +47,7 @@ export const navigation: NavGroup[] = [
     items: [
       { title: "Minha Clínica", url: "/", icon: LayoutDashboard, ready: true },
       { title: "Conversas", url: "/conversas", icon: MessagesSquare, ready: true },
+      { title: "CRM de Pacientes e Leads", short: "CRM e Contatos", url: "/crm", icon: Contact, ready: true },
       { title: "Agenda Inteligente", url: "/agenda", icon: CalendarClock, ready: true },
       { title: "Financeiro", url: "/financeiro", icon: Wallet, ready: true },
     ],
@@ -68,7 +69,6 @@ export const navigation: NavGroup[] = [
   {
     label: "Relacionamento e crescimento",
     items: [
-      { title: "CRM de Pacientes e Leads", short: "CRM e Contatos", url: "/crm", icon: Contact, ready: true },
       { title: "Recuperador de Pacientes", short: "Recuperador", url: "/recuperador", icon: UserRoundPlus, ready: true },
       { title: "Antes e Depois", url: "/antes-e-depois", icon: Images },
       { title: "Marketing", url: "/marketing", icon: Megaphone, ready: true },

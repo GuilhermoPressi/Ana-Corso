@@ -7,13 +7,17 @@ import {
   Plus,
   Search,
   Trash2,
+  Settings2,
   TrendingUp,
   UserRoundCheck,
-  X,
 } from "lucide-react"
 import { toast } from "sonner"
 
+import { ContactTagsEditor } from "@/components/crm/ContactTagsEditor"
 import { ContactAvatar } from "@/components/crm/ConversationsTab"
+import { ManageTagsDialog } from "@/components/crm/ManageTagsDialog"
+import { TagChip } from "@/components/crm/TagChip"
+import { tagColorStyle } from "@/lib/tag-colors"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -39,7 +43,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { crmApi, formatPhone, relativeTime, type Contact } from "@/lib/crm-api"
 import { parseDecimal } from "@/lib/number"
+import { cn } from "@/lib/utils"
 import { usePatientStore } from "@/stores/usePatientStore"
+import { useTagStore } from "@/stores/useTagStore"
 
 const leadStageLabel: Record<string, string> = {
   NEW_CONTACT: "Novo contato",
@@ -62,7 +68,9 @@ export function ContactsTab({
 }) {
   const [search, setSearch] = useState("")
   const [tag, setTag] = useState(ALL_TAGS)
-  const [tags, setTags] = useState<{ tag: string; count: number }[]>([])
+  const tags = useTagStore((s) => s.tags)
+  const loadTagStore = useTagStore((s) => s.load)
+  const [manageTags, setManageTags] = useState(false)
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -80,11 +88,9 @@ export function ContactsTab({
   }, [search, tag])
 
   const loadTags = useCallback(() => {
-    crmApi
-      .listTags()
-      .then((data) => setTags(data.tags))
-      .catch(() => {})
-  }, [])
+    loadTagStore().catch(() => {})
+  }, [loadTagStore])
+  const colorOf = new Map(tags.map((t) => [t.name, t.color]))
 
   useEffect(() => {
     const timer = setTimeout(load, 250)
@@ -133,12 +139,16 @@ export function ContactsTab({
           <SelectContent>
             <SelectItem value={ALL_TAGS}>Todas as etiquetas</SelectItem>
             {tags.map((item) => (
-              <SelectItem key={item.tag} value={item.tag}>
-                {item.tag} ({item.count})
+              <SelectItem key={item.id} value={item.name}>
+                <span className={cn("size-2 rounded-full", tagColorStyle(item.color).dot)} />
+                {item.name} ({item.count ?? 0})
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        <Button variant="ghost" size="sm" className="h-9" onClick={() => setManageTags(true)}>
+          <Settings2 /> Etiquetas
+        </Button>
         <span className="text-[12px] text-muted-foreground">{contacts.length} contato(s)</span>
         <Button size="sm" className="ml-auto rounded-full" onClick={() => setCreating(true)}>
           <Plus /> Novo contato
@@ -199,9 +209,7 @@ export function ContactsTab({
                   <TableCell className="hidden md:table-cell">
                     <div className="flex flex-wrap gap-1">
                       {contact.tags.map((t) => (
-                        <span key={t} className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
-                          {t}
-                        </span>
+                        <TagChip key={t} name={t} color={colorOf.get(t)} size="xs" />
                       ))}
                     </div>
                   </TableCell>
@@ -228,6 +236,16 @@ export function ContactsTab({
           </Table>
         )}
       </Card>
+
+      <ManageTagsDialog
+        open={manageTags}
+        onOpenChange={setManageTags}
+        onRenamed={() => load()}
+        onDeleted={(name) => {
+          if (tag === name) setTag(ALL_TAGS)
+          load()
+        }}
+      />
 
       <NewContactDialog
         open={creating}
@@ -362,7 +380,6 @@ function ContactSheet({
   const fetchLeads = usePatientStore((s) => s.fetchLeads)
   const [contact, setContact] = useState<Contact | null>(null)
   const [form, setForm] = useState({ name: "", email: "", notes: "" })
-  const [tagDraft, setTagDraft] = useState("")
   const [saving, setSaving] = useState(false)
   const [patientSearch, setPatientSearch] = useState("")
   const [patientOptions, setPatientOptions] = useState<{ id: string; name: string; phone: string | null }[]>([])
@@ -454,13 +471,6 @@ function ContactSheet({
     }
   }
 
-  function addTag() {
-    if (!contact) return
-    const tag = tagDraft.trim().toLowerCase()
-    setTagDraft("")
-    if (tag && !contact.tags.includes(tag)) patch({ tags: [...contact.tags, tag] })
-  }
-
   const dirty =
     contact &&
     (form.name.trim() !== contact.name || (form.email || "") !== (contact.email ?? "") || (form.notes || "") !== (contact.notes ?? ""))
@@ -547,39 +557,16 @@ function ContactSheet({
               {/* Etiquetas */}
               <section>
                 <p className="mb-2 text-[13px] font-medium">Etiquetas</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {contact.tags.map((t) => (
-                    <span key={t} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-[11px]">
-                      {t}
-                      <button
-                        type="button"
-                        onClick={() => patch({ tags: contact.tags.filter((x) => x !== t) })}
-                        aria-label={`Remover ${t}`}
-                        className="opacity-50 hover:opacity-100"
-                      >
-                        <X className="size-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <form
-                  className="mt-2 flex gap-2"
-                  onSubmit={(event) => {
-                    event.preventDefault()
-                    addTag()
+                <ContactTagsEditor
+                  contactId={contact.id}
+                  tags={contact.tags}
+                  size="sm"
+                  onSaved={(tags) => {
+                    const next = { ...contact, tags }
+                    setContact(next)
+                    onChanged(next)
                   }}
-                >
-                  <Input
-                    value={tagDraft}
-                    onChange={(event) => setTagDraft(event.target.value)}
-                    placeholder="Adicionar etiqueta"
-                    className="h-8 text-[12px]"
-                    maxLength={40}
-                  />
-                  <Button type="submit" size="sm" variant="outline" className="h-8" disabled={!tagDraft.trim() || saving}>
-                    Adicionar
-                  </Button>
-                </form>
+                />
               </section>
 
               {/* Paciente */}

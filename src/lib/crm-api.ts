@@ -85,6 +85,10 @@ export type Contact = {
   conversation: { id: string; status: "OPEN" | "CLOSED"; lastMessageAt: string | null; unreadCount: number } | null
 }
 
+export type TagColor = "rosa" | "roxo" | "azul" | "verde" | "amarelo" | "laranja" | "vermelho" | "cinza"
+
+export type CrmTag = { id: string; name: string; color: TagColor; count?: number }
+
 export type QuickReply = { id: string; shortcut: string; content: string }
 
 export type TeamMember = { id: string; name: string; role: string; status: string }
@@ -164,7 +168,11 @@ export const crmApi = {
     return request<{ contacts: Contact[] }>("GET", `/api/crm/contacts?${params}`)
   },
   getContact: (id: string) => request<{ contact: Contact }>("GET", `/api/crm/contacts/${id}`),
-  listTags: () => request<{ tags: { tag: string; count: number }[] }>("GET", "/api/crm/contacts/tags"),
+  listTags: () => request<{ tags: CrmTag[] }>("GET", "/api/crm/tags"),
+  createTag: (input: { name: string; color: TagColor }) => request<{ tag: CrmTag }>("POST", "/api/crm/tags", input),
+  updateTag: (id: string, patch: { name?: string; color?: TagColor }) =>
+    request<{ tag: CrmTag }>("PATCH", `/api/crm/tags/${id}`, patch),
+  deleteTag: (id: string) => request<{ ok: true }>("DELETE", `/api/crm/tags/${id}`),
   createContact: (input: { name: string; phone: string; email?: string; tags?: string[]; notes?: string }) =>
     request<{ contact: Contact }>("POST", "/api/crm/contacts", input),
   updateContact: (

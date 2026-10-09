@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import {
+  CalendarCheck2,
   CalendarClock,
+  CalendarX2,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -200,20 +202,32 @@ export default function Agenda() {
                       "flex min-h-[74px] flex-col rounded-xl border p-1.5 text-left transition-colors",
                       isSelected
                         ? "border-primary/40 bg-primary/[0.06]"
-                        : "border-border/60 hover:border-primary/25 hover:bg-muted/40",
+                        : dayItems.length > 0
+                          ? "border-primary/20 bg-accent/50 hover:border-primary/35"
+                          : "border-border/60 hover:border-primary/25 hover:bg-muted/40",
                     )}
                   >
-                    <span
-                      className={cn(
-                        "grid size-6 shrink-0 place-items-center rounded-full text-[12px] font-semibold tabular-nums",
-                        isToday
-                          ? "bg-primary text-primary-foreground"
-                          : isSelected
-                            ? "text-primary"
-                            : "text-foreground/70",
+                    <span className="flex items-center justify-between gap-1">
+                      <span
+                        className={cn(
+                          "grid size-6 shrink-0 place-items-center rounded-full text-[12px] font-semibold tabular-nums",
+                          isToday
+                            ? "bg-primary text-primary-foreground"
+                            : isSelected
+                              ? "text-primary"
+                              : "text-foreground/70",
+                        )}
+                      >
+                        {day}
+                      </span>
+                      {dayItems.length > 0 && (
+                        <span
+                          className="rounded-full bg-primary/12 px-1.5 text-[10px] font-semibold tabular-nums text-primary"
+                          title={`${dayItems.length} agendamento(s)`}
+                        >
+                          {dayItems.length}
+                        </span>
                       )}
-                    >
-                      {day}
                     </span>
 
                     <div className="mt-1 flex flex-col gap-1">
@@ -318,7 +332,19 @@ function EventRow({ event }: { event: ScheduleEvent }) {
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <p className="text-[13px] font-semibold leading-snug">{event.title}</p>
+          <p className="flex items-center gap-1.5 text-[13px] font-semibold leading-snug">
+            {event.title}
+            {event.google === "sincronizado" && (
+              <CalendarCheck2 className="size-3.5 shrink-0 text-success" aria-label="No Google Agenda">
+                <title>Enviado ao Google Agenda</title>
+              </CalendarCheck2>
+            )}
+            {event.google === "erro" && (
+              <CalendarX2 className="size-3.5 shrink-0 text-destructive" aria-label="Falha ao enviar ao Google Agenda">
+                <title>{`Não foi enviado ao Google Agenda: ${event.googleError ?? ""}`}</title>
+              </CalendarX2>
+            )}
+          </p>
           <Badge variant="outline" className={cn("shrink-0 text-[10px]", style.chip)}>
             {eventKindLabel[event.kind]}
           </Badge>

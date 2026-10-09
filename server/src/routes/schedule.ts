@@ -3,6 +3,7 @@ import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, ScheduleE
 import { z } from "zod"
 import { prisma } from "../db.js"
 import { requireAuth } from "../middlewares/auth.js"
+import { queueGoogleSync } from "../services/google-calendar.js"
 
 const createScheduleSchema = z.object({
   title: z.string().min(1, "Título é obrigatório"),
@@ -112,6 +113,7 @@ export async function scheduleRoutes(fastify: FastifyInstance) {
       return created
     })
 
+    queueGoogleSync(event.id)
     return reply.status(201).send({ event })
   })
 
@@ -169,6 +171,7 @@ export async function scheduleRoutes(fastify: FastifyInstance) {
       return res
     })
 
+    queueGoogleSync(updated.id)
     return { event: updated }
   })
 
@@ -210,6 +213,7 @@ export async function scheduleRoutes(fastify: FastifyInstance) {
       return res
     })
 
+    queueGoogleSync(cancelled.id)
     return { event: cancelled, message: "Agendamento cancelado com sucesso." }
   })
 }

@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner"
 
 import { ContactTagsEditor } from "@/components/crm/ContactTagsEditor"
+import { TagChip } from "@/components/crm/TagChip"
 import { QuickRepliesDialog } from "@/components/crm/QuickRepliesDialog"
 import { WhatsAppConnectionCard } from "@/components/crm/WhatsAppConnectionCard"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -53,6 +54,7 @@ import {
 import { cn, initials } from "@/lib/utils"
 import { useAuthStore } from "@/stores/useAuthStore"
 import { useInboxStore } from "@/stores/useInboxStore"
+import { useTagStore } from "@/stores/useTagStore"
 
 const filters: { id: ConversationFilter; label: string; count?: keyof ConversationCounts }[] = [
   { id: "open", label: "Abertas", count: "open" },
@@ -121,6 +123,7 @@ export function ConversationsTab({
       .then((data) => setTeam(data.members.filter((m) => m.status === "ACTIVE")))
       .catch(() => {})
     loadQuickReplies()
+    useTagStore.getState().load().catch(() => {})
   }, [loadQuickReplies])
 
   // Decidido uma única vez (ou ao clicar em "Conectar"): o cartão do QR não pode
@@ -267,6 +270,8 @@ function ConversationRow({
   onClick: () => void
 }) {
   const waiting = waitingLabel(conversation)
+  const tags = useTagStore((s) => s.tags)
+  const colorOf = useMemo(() => new Map(tags.map((t) => [t.name, t.color])), [tags])
   return (
     <button
       type="button"
@@ -313,9 +318,7 @@ function ConversationRow({
             </span>
           )}
           {conversation.contact.tags.slice(0, 2).map((tag) => (
-            <span key={tag} className="rounded-full bg-muted px-1.5 py-px">
-              {tag}
-            </span>
+            <TagChip key={tag} name={tag} color={colorOf.get(tag)} size="xs" />
           ))}
         </div>
       </div>

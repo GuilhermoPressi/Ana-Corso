@@ -16,6 +16,7 @@ import { evolutionWebhookRoutes } from "./routes/evolution-webhook.js"
 import { financeRoutes } from "./routes/finance.js"
 import { healthRoutes } from "./routes/health.js"
 import { incidentRoutes } from "./routes/incidents.js"
+import { integrationRoutes } from "./routes/integrations.js"
 import { inventoryRoutes } from "./routes/inventory.js"
 import { leadRoutes } from "./routes/leads.js"
 import { mapRoutes } from "./routes/maps.js"
@@ -142,6 +143,7 @@ export function buildApp() {
   app.register(academyRoutes, { prefix: "/api" })
   app.register(aiRoutes, { prefix: "/api" })
   app.register(notificationRoutes, { prefix: "/api" })
+  app.register(integrationRoutes, { prefix: "/api" })
 
   return app
 }

@@ -13,6 +13,24 @@ const createEntrySchema = z.object({
   occurredAt: z.string().optional(),
 })
 
+const updateEntrySchema = z.object({
+  category: z.string().trim().min(1, "Categoria é obrigatória").optional(),
+  description: z.string().trim().min(1, "Descrição é obrigatória").optional(),
+  amount: z.number().positive("Valor deve ser maior que zero").optional(),
+  occurredAt: z.string().optional(),
+})
+
+/** Data "YYYY-MM-DD" vira meio-dia no fuso da clínica (evita cair no dia anterior em UTC). */
+function parseOccurredAt(raw: string, tz: string) {
+  const value = raw.trim()
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, d] = value.split("-").map(Number)
+    return createUtcFromClinicLocal(y, m, d, 12, 0, 0, 0, tz)
+  }
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
 export async function financeRoutes(fastify: FastifyInstance) {
   fastify.addHook("preHandler", requireAuth)
 
@@ -81,13 +99,11 @@ export async function financeRoutes(fastify: FastifyInstance) {
 
       let occurredAt = new Date()
       if (body.occurredAt) {
-        const raw = body.occurredAt.trim()
-        if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-          const [y, m, d] = raw.split("-").map(Number)
-          occurredAt = createUtcFromClinicLocal(y, m, d, 12, 0, 0, 0, tz)
-        } else {
-          occurredAt = new Date(raw)
+        const parsed = parseOccurredAt(body.occurredAt, tz)
+        if (!parsed) {
+          return reply.status(400).send({ error: { code: "INVALID_INPUT", message: "Data inválida." } })
         }
+        occurredAt = parsed
       }
 
       const entry = await prisma.$transaction(async (tx) => {
@@ -120,6 +136,112 @@ export async function financeRoutes(fastify: FastifyInstance) {
       })
 
       return reply.status(201).send({ entry })
+    },
+  )
+
+  // PATCH /api/finance/entries/:id (editar lançamento manual - requer FINANCE_WRITE)
+  fastify.patch(
+    "/finance/entries/:id",
+    { preHandler: [requirePermission("FINANCE_WRITE")] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const clinicId = request.clinic!.id
+      const userId = request.user!.id
+      const tz = request.clinic?.timezone || "America/Sao_Paulo"
+
+      const parseResult = updateEntrySchema.safeParse(request.body)
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          error: { code: "INVALID_INPUT", message: parseResult.error.errors[0]?.message || "Dados inválidos." },
+        })
+      }
+
+      const existing = await prisma.ledgerEntry.findFirst({ where: { id, clinicId, voidedAt: null } })
+      if (!existing) {
+        return reply.status(404).send({ error: { code: "NOT_FOUND", message: "Lançamento não encontrado." } })
+      }
+      if (existing.source !== LedgerSource.MANUAL) {
+        return reply.status(409).send({
+          error: {
+            code: "AUTOMATIC_ENTRY",
+            message: "Este lançamento foi gerado por um procedimento registrado. Ajuste pelo registro do procedimento.",
+          },
+        })
+      }
+
+      const body = parseResult.data
+      let occurredAt: Date | undefined
+      if (body.occurredAt) {
+        const parsed = parseOccurredAt(body.occurredAt, tz)
+        if (!parsed) {
+          return reply.status(400).send({ error: { code: "INVALID_INPUT", message: "Data inválida." } })
+        }
+        occurredAt = parsed
+      }
+
+      const entry = await prisma.$transaction(async (tx) => {
+        const updated = await tx.ledgerEntry.update({
+          where: { id },
+          data: {
+            ...(body.category !== undefined ? { category: body.category } : {}),
+            ...(body.description !== undefined ? { description: body.description } : {}),
+            ...(body.amount !== undefined ? { amount: body.amount } : {}),
+            ...(occurredAt ? { occurredAt } : {}),
+          },
+        })
+        await tx.clinicActivityLog.create({
+          data: {
+            clinicId,
+            userId,
+            entityType: ClinicActivityEntityType.FINANCE,
+            entityId: id,
+            action: ClinicActivityAction.FINANCE_ENTRY_UPDATED,
+          },
+        })
+        return updated
+      })
+
+      return { entry }
+    },
+  )
+
+  // DELETE /api/finance/entries/:id (anula o lançamento manual - requer FINANCE_WRITE)
+  // O registro é mantido com voidedAt para auditoria; some do extrato e dos totais.
+  fastify.delete(
+    "/finance/entries/:id",
+    { preHandler: [requirePermission("FINANCE_WRITE")] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const clinicId = request.clinic!.id
+      const userId = request.user!.id
+
+      const existing = await prisma.ledgerEntry.findFirst({ where: { id, clinicId, voidedAt: null } })
+      if (!existing) {
+        return reply.status(404).send({ error: { code: "NOT_FOUND", message: "Lançamento não encontrado." } })
+      }
+      if (existing.source !== LedgerSource.MANUAL) {
+        return reply.status(409).send({
+          error: {
+            code: "AUTOMATIC_ENTRY",
+            message: "Este lançamento foi gerado por um procedimento registrado e não pode ser excluído por aqui.",
+          },
+        })
+      }
+
+      await prisma.$transaction([
+        prisma.ledgerEntry.update({ where: { id }, data: { voidedAt: new Date() } }),
+        prisma.clinicActivityLog.create({
+          data: {
+            clinicId,
+            userId,
+            entityType: ClinicActivityEntityType.FINANCE,
+            entityId: id,
+            action: ClinicActivityAction.FINANCE_ENTRY_VOIDED,
+          },
+        }),
+      ])
+
+      return { ok: true }
     },
   )
 

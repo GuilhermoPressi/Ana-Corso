@@ -14,6 +14,7 @@ import {
 } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "../db.js"
+import { queueGoogleSync } from "../services/google-calendar.js"
 import { requireAuth } from "../middlewares/auth.js"
 
 const createProcedureSchema = z.object({
@@ -350,8 +351,11 @@ export async function procedureRoutes(fastify: FastifyInstance) {
           procedureRecord,
           directCost,
           returnDate: returnDueAt.toISOString().split("T")[0],
+          syncEventIds: [returnScheduleEvent.id, body.scheduleEventId ?? null],
         }
       })
+
+      queueGoogleSync(...result.syncEventIds)
 
       const responsePayload = {
         procedure: result.procedureRecord,
