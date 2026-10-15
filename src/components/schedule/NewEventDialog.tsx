@@ -29,16 +29,20 @@ import {
   eventKindLabel,
   useScheduleStore,
   type EventKind,
+  type ScheduleEvent,
 } from "@/stores/useScheduleStore"
 
 interface Props {
+  /** Quando informado, a janela edita/remarca este agendamento. */
+  event?: ScheduleEvent | null
   defaultDate?: string
   open?: boolean
   onOpenChange?: (open: boolean) => void
   trigger?: React.ReactNode
 }
 
-export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange, trigger }: Props) {
+export function NewEventDialog({ event, defaultDate, open: controlledOpen, onOpenChange, trigger }: Props) {
+  const editing = Boolean(event)
   const [internalOpen, setInternalOpen] = useState(false)
   const isControlled = controlledOpen !== undefined
   const isOpen = isControlled ? controlledOpen : internalOpen
@@ -48,7 +52,7 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
     if (!isControlled) setInternalOpen(val)
   }
 
-  const { addEvent, loading } = useScheduleStore()
+  const { addEvent, updateEvent, loading } = useScheduleStore()
 
   const [date, setDate] = useState(defaultDate || CLINIC_TODAY)
   const [time, setTime] = useState("09:00")
@@ -61,10 +65,31 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
   const [value, setValue] = useState("")
   const [note, setNote] = useState("")
 
-  // Ao abrir, começa no dia selecionado na agenda (antes ficava preso no primeiro dia aberto).
+  // Ao abrir: na edição carrega o agendamento; na criação começa no dia
+  // selecionado na agenda (antes ficava preso no primeiro dia aberto).
   useEffect(() => {
-    if (isOpen) setDate(defaultDate || CLINIC_TODAY)
-  }, [isOpen, defaultDate])
+    if (!isOpen) return
+    if (event) {
+      setDate(event.date)
+      setTime(event.time)
+      setDurationMin(String(event.durationMin))
+      setKind(event.kind)
+      setPatient(event.patientName ? { id: event.patientId ?? null, name: event.patientName } : null)
+      setCustomTitle(event.title === event.patientName ? "" : event.title)
+      setProfessional(event.professional ?? "")
+      setValue(
+        event.value !== undefined
+          ? event.value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : "",
+      )
+      setNote(event.auto ? "" : (event.note ?? ""))
+    } else {
+      setDate(defaultDate || CLINIC_TODAY)
+    }
+  }, [isOpen, defaultDate, event])
+
+  const durationOptions = ["15", "30", "45", "60", "90", "120"]
+  if (!durationOptions.includes(durationMin)) durationOptions.unshift(durationMin)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,23 +105,30 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
     }
     const title = customTitle.trim() || patient?.name || "Agendamento"
 
-    const result = await addEvent({
+    const payload = {
       date: date || defaultDate || CLINIC_TODAY,
       time,
       durationMin: Number(durationMin) || 30,
       title,
       kind,
-      status: "confirmado",
       patientId: patient?.id ?? undefined,
       patientName: patient?.name,
       professional,
-      room,
       value: parsedValue,
       note: note.trim() || undefined,
-    })
+    }
+
+    const result = event
+      ? await updateEvent(event.id, {
+          ...payload,
+          patientId: patient?.id ?? null,
+          patientName: patient?.name ?? null,
+          note: note.trim() || (event.auto ? event.note : undefined) || null,
+        } as unknown as Partial<ScheduleEvent>)
+      : await addEvent({ ...payload, status: "confirmado", room })
 
     if (result) {
-      toast.success("Agendamento criado com sucesso!")
+      toast.success(editing ? "Agendamento atualizado!" : "Agendamento criado com sucesso!")
       setOpen(false)
       // Reset defaults
       setCustomTitle("")
@@ -104,13 +136,13 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
       setValue("")
       setPatient(null)
     } else {
-      toast.error("Não foi possível criar o agendamento.")
+      toast.error(editing ? "Não foi possível salvar as alterações." : "Não foi possível criar o agendamento.")
     }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
-      {trigger ? (
+      {editing ? null : trigger ? (
         <DialogTrigger asChild>{trigger}</DialogTrigger>
       ) : !isControlled ? (
         <DialogTrigger asChild>
@@ -122,9 +154,13 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
 
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">Novo Agendamento</DialogTitle>
+          <DialogTitle className="font-display text-lg">
+            {editing ? "Editar / remarcar agendamento" : "Novo Agendamento"}
+          </DialogTitle>
           <DialogDescription className="text-xs">
-            Preencha as informações para agendar na agenda da clínica.
+            {editing
+              ? "Altere data, horário ou dados do atendimento. O Google Agenda é atualizado junto."
+              : "Preencha as informações para agendar na agenda da clínica."}
           </DialogDescription>
         </DialogHeader>
 
@@ -171,12 +207,15 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="15">15 min</SelectItem>
-                  <SelectItem value="30">30 min</SelectItem>
-                  <SelectItem value="45">45 min</SelectItem>
-                  <SelectItem value="60">1 hora</SelectItem>
-                  <SelectItem value="90">1h 30min</SelectItem>
-                  <SelectItem value="120">2 horas</SelectItem>
+                  {durationOptions.map((minutes) => {
+                    const m = Number(minutes)
+                    const label = m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} hora${m > 60 ? "s" : ""}` : `${Math.floor(m / 60)}h ${m % 60}min`
+                    return (
+                      <SelectItem key={minutes} value={minutes}>
+                        {label}
+                      </SelectItem>
+                    )
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -244,7 +283,7 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
               Cancelar
             </Button>
             <Button type="submit" size="sm" disabled={loading}>
-              {loading ? "Salvando..." : "Salvar Agendamento"}
+              {loading ? "Salvando..." : editing ? "Salvar alterações" : "Salvar Agendamento"}
             </Button>
           </DialogFooter>
         </form>

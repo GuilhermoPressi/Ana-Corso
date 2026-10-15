@@ -49,6 +49,13 @@ const kindMapToFrontend: Record<string, EventKind> = {
   BLOCK: "bloqueio",
 }
 
+const statusMapToDb: Record<EventStatus, string> = {
+  confirmado: "CONFIRMED",
+  aguardando: "WAITING",
+  concluido: "COMPLETED",
+  cancelado: "CANCELLED",
+}
+
 const statusMapToFrontend: Record<string, EventStatus> = {
   CONFIRMED: "confirmado",
   WAITING: "aguardando",
@@ -168,7 +175,7 @@ export const useScheduleStore = create<ScheduleState>((set) => ({
       const payload: any = {}
       if (patch.title !== undefined) payload.title = patch.title
       if (patch.kind !== undefined) payload.kind = kindMapToDb[patch.kind]
-      if (patch.status !== undefined) payload.status = patch.status.toUpperCase()
+      if (patch.status !== undefined) payload.status = statusMapToDb[patch.status]
       if (patch.date && patch.time) {
         payload.startsAt = new Date(`${patch.date}T${patch.time}:00`).toISOString()
       }
@@ -177,7 +184,7 @@ export const useScheduleStore = create<ScheduleState>((set) => ({
       if (patch.patientName !== undefined) payload.patientName = patch.patientName
       if (patch.professional !== undefined) payload.professionalName = patch.professional
       if (patch.room !== undefined) payload.room = patch.room
-      if (patch.value !== undefined) payload.value = patch.value
+      if (patch.value !== undefined) payload.value = patch.value ?? null
       if (patch.note !== undefined) payload.note = patch.note
 
       const res = await fetch(`/api/schedule/${id}`, {

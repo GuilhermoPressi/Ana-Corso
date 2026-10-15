@@ -3,6 +3,10 @@ import {
   CalendarCheck2,
   CalendarClock,
   CalendarX2,
+  CheckCircle2,
+  MoreHorizontal,
+  Pencil,
+  XCircle,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -11,11 +15,19 @@ import {
   Users,
 } from "lucide-react"
 import { Link } from "react-router-dom"
+import { toast } from "sonner"
 
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { CLINIC_MONTH, CLINIC_TODAY, monthMatrix } from "@/lib/clinic"
 import { cn, formatCurrency, formatDateLong } from "@/lib/utils"
 import { NewEventDialog } from "@/components/schedule/NewEventDialog"
@@ -74,7 +86,9 @@ function monthLabel(yearMonth: string) {
 }
 
 export default function Agenda() {
-  const events = useScheduleStore((state) => state.events)
+  const allEvents = useScheduleStore((state) => state.events)
+  // Cancelados saem do calendário e da lista do dia.
+  const events = useMemo(() => allEvents.filter((event) => event.status !== "cancelado"), [allEvents])
   const fetchEvents = useScheduleStore((state) => state.fetchEvents)
   const [viewMonth, setViewMonth] = useState(CLINIC_MONTH)
   const [selectedDay, setSelectedDay] = useState(CLINIC_TODAY)
@@ -315,6 +329,23 @@ export default function Agenda() {
 
 function EventRow({ event }: { event: ScheduleEvent }) {
   const style = kindStyles[event.kind]
+  const updateEvent = useScheduleStore((state) => state.updateEvent)
+  const cancelEvent = useScheduleStore((state) => state.cancelEvent)
+  const [editing, setEditing] = useState(false)
+
+  async function complete() {
+    const ok = await updateEvent(event.id, { status: event.status === "concluido" ? "confirmado" : "concluido" })
+    if (ok) toast.success(event.status === "concluido" ? "Agendamento reaberto." : "Agendamento marcado como concluído.")
+    else toast.error("Não foi possível atualizar o agendamento.")
+  }
+
+  async function cancel() {
+    const who = event.patientName ? ` de ${event.patientName}` : ""
+    if (!window.confirm(`Cancelar o agendamento${who} (${formatDateLong(event.date)} às ${event.time})?`)) return
+    const ok = await cancelEvent(event.id)
+    if (ok) toast.success("Agendamento cancelado.")
+    else toast.error("Não foi possível cancelar o agendamento.")
+  }
 
   return (
     <div
@@ -345,10 +376,32 @@ function EventRow({ event }: { event: ScheduleEvent }) {
               </CalendarX2>
             )}
           </p>
-          <Badge variant="outline" className={cn("shrink-0 text-[10px]", style.chip)}>
-            {eventKindLabel[event.kind]}
-          </Badge>
+          <div className="flex shrink-0 items-center gap-1">
+            <Badge variant="outline" className={cn("text-[10px]", style.chip)}>
+              {event.status === "concluido" ? "Concluído" : eventKindLabel[event.kind]}
+            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="-my-1 size-7" aria-label="Ações do agendamento">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setEditing(true)}>
+                  <Pencil /> Editar / remarcar
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={complete}>
+                  <CheckCircle2 /> {event.status === "concluido" ? "Reabrir" : "Marcar como concluído"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={cancel}>
+                  <XCircle /> Cancelar agendamento
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
+        <NewEventDialog event={event} open={editing} onOpenChange={setEditing} />
 
         {event.patientName && (
           <p className="mt-0.5 text-[12px] text-muted-foreground">
