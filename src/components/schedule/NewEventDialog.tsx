@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { CLINIC_TODAY } from "@/lib/clinic"
-import { usePatientStore } from "@/stores/usePatientStore"
+import { parseMoney } from "@/lib/money"
+import { PatientPicker, type PickedPatient } from "@/components/schedule/PatientPicker"
 import {
   eventKindLabel,
   useScheduleStore,
@@ -47,25 +48,37 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
     if (!isControlled) setInternalOpen(val)
   }
 
-  const { patients } = usePatientStore()
   const { addEvent, loading } = useScheduleStore()
 
   const [date, setDate] = useState(defaultDate || CLINIC_TODAY)
   const [time, setTime] = useState("09:00")
   const [durationMin, setDurationMin] = useState("45")
   const [kind, setKind] = useState<EventKind>("atendimento")
-  const [selectedPatientId, setSelectedPatientId] = useState<string>("")
+  const [patient, setPatient] = useState<PickedPatient | null>(null)
   const [customTitle, setCustomTitle] = useState("")
   const [professional, setProfessional] = useState("Dra. Ana Corso")
   const room = "Gabinete 01"
   const [value, setValue] = useState("")
   const [note, setNote] = useState("")
 
+  // Ao abrir, começa no dia selecionado na agenda (antes ficava preso no primeiro dia aberto).
+  useEffect(() => {
+    if (isOpen) setDate(defaultDate || CLINIC_TODAY)
+  }, [isOpen, defaultDate])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const selectedPatient = patients.find((p) => p.id === selectedPatientId)
-    const title = customTitle.trim() || selectedPatient?.name || "Agendamento"
+    if (!patient && !customTitle.trim()) {
+      toast.error("Selecione a paciente ou informe o título do compromisso.")
+      return
+    }
+    const parsedValue = value.trim() ? parseMoney(value) : undefined
+    if (parsedValue !== undefined && Number.isNaN(parsedValue)) {
+      toast.error("Valor inválido. Ex.: 1.200,00")
+      return
+    }
+    const title = customTitle.trim() || patient?.name || "Agendamento"
 
     const result = await addEvent({
       date: date || defaultDate || CLINIC_TODAY,
@@ -74,11 +87,11 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
       title,
       kind,
       status: "confirmado",
-      patientId: selectedPatient?.id,
-      patientName: selectedPatient?.name,
+      patientId: patient?.id ?? undefined,
+      patientName: patient?.name,
       professional,
       room,
-      value: value ? Number(value) : undefined,
+      value: parsedValue,
       note: note.trim() || undefined,
     })
 
@@ -89,6 +102,7 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
       setCustomTitle("")
       setNote("")
       setValue("")
+      setPatient(null)
     } else {
       toast.error("Não foi possível criar o agendamento.")
     }
@@ -118,18 +132,7 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
           {/* Paciente */}
           <div className="space-y-1.5">
             <Label className="text-xs">Paciente *</Label>
-            <Select value={selectedPatientId} onValueChange={setSelectedPatientId}>
-              <SelectTrigger className="text-xs">
-                <SelectValue placeholder="Selecione a paciente..." />
-              </SelectTrigger>
-              <SelectContent>
-                {patients.map((p) => (
-                  <SelectItem key={p.id} value={p.id} className="text-xs">
-                    {p.name} ({p.phone || "Sem fone"})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <PatientPicker value={patient} onChange={setPatient} />
           </div>
 
           {/* Título Personalizado */}
@@ -216,8 +219,8 @@ export function NewEventDialog({ defaultDate, open: controlledOpen, onOpenChange
             <div className="space-y-1.5">
               <Label className="text-xs">Valor R$ (Opcional)</Label>
               <Input
-                type="number"
-                placeholder="0.00"
+                inputMode="decimal"
+                placeholder="0,00"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 className="text-xs"
