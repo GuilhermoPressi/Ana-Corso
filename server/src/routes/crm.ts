@@ -171,6 +171,7 @@ const createLeadSchema = z
     interest: z.string().trim().max(200).optional(),
     value: z.number().nonnegative().optional(),
     productId: z.string().uuid().optional(),
+    stageId: z.string().uuid().optional(),
   })
   .refine((v) => v.productId || v.interest, { message: "Informe o interesse ou o produto." })
 
@@ -1096,7 +1097,11 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const contact = await prisma.crmContact.findFirst({ where: { id, clinicId, ...contactScope(request) } })
     if (!contact) return reply.status(404).send(notFound("Contato não encontrado."))
     if (contact.leadId) {
-      return reply.status(409).send({ error: { code: "ALREADY_LINKED", message: "Este contato já tem um lead vinculado." } })
+      // Lead arquivado não conta: o contato pode voltar para o funil.
+      const linked = await prisma.lead.findFirst({ where: { id: contact.leadId, archivedAt: null } })
+      if (linked) {
+        return reply.status(409).send({ error: { code: "ALREADY_LINKED", message: "Este contato já tem um lead vinculado." } })
+      }
     }
 
     // Com produto (ou para o perfil Comercial), o lead vai para o pipeline de produtos digitais.
@@ -1106,7 +1111,12 @@ export async function crmRoutes(fastify: FastifyInstance) {
       : null
     if (parsed.data.productId && !product) return reply.status(400).send(badRequest("Produto inválido."))
     let stage: CrmPipelineStage | null = null
-    if (product || sales) {
+    if (parsed.data.stageId) {
+      stage = await prisma.crmPipelineStage.findFirst({
+        where: { id: parsed.data.stageId, pipeline: { clinicId, ...(sales ? { kind: CrmPipelineKind.DIGITAL } : {}) } },
+      })
+      if (!stage) return reply.status(400).send(badRequest("Etapa inválida."))
+    } else if (product || sales) {
       if (product?.pipelineId) {
         const pipeline = await prisma.crmPipeline.findFirst({
           where: { id: product.pipelineId, clinicId, ...(sales ? { kind: CrmPipelineKind.DIGITAL } : {}) },
@@ -1117,6 +1127,10 @@ export async function crmRoutes(fastify: FastifyInstance) {
       stage ??= await firstDigitalStage(clinicId)
       if (!stage && sales) return reply.status(400).send(badRequest("Crie um pipeline de infoprodutos primeiro."))
     }
+
+    const digital =
+      Boolean(product) ||
+      (stage ? (await prisma.crmPipeline.findUnique({ where: { id: stage.pipelineId } }))?.kind === CrmPipelineKind.DIGITAL : false)
 
     const updated = await prisma.$transaction(async (tx) => {
       const lead = await tx.lead.create({
@@ -1131,7 +1145,8 @@ export async function crmRoutes(fastify: FastifyInstance) {
           value: parsed.data.value ?? (product ? Number(product.price) : 0),
           stage: stage ? legacyFor(stage) : LeadStage.NEW_CONTACT,
           ...(stage ? { pipelineId: stage.pipelineId, stageId: stage.id } : {}),
-          ...(product ? { productId: product.id, purchaseStatus: LeadPurchaseStatus.INTERESTED } : {}),
+          ...(product ? { productId: product.id } : {}),
+          ...(digital ? { purchaseStatus: LeadPurchaseStatus.INTERESTED } : {}),
           note: contact.notes,
           createdByUserId: userId,
           assignedUserId: userId,
