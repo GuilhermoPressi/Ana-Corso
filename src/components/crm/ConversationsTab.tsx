@@ -23,6 +23,7 @@ import { toast } from "sonner"
 
 import { AudioRecorder } from "@/components/crm/AudioRecorder"
 import { ContactTagsEditor } from "@/components/crm/ContactTagsEditor"
+import { LeadStageControl } from "@/components/crm/LeadStageControl"
 import { TagChip } from "@/components/crm/TagChip"
 import { tagColorStyle } from "@/lib/tag-colors"
 import { QuickRepliesDialog } from "@/components/crm/QuickRepliesDialog"
@@ -490,7 +491,12 @@ function ConversationThread({
           onSaved={(tags) => setConversation((c) => (c ? { ...c, contact: { ...c.contact, tags } } : c))}
         />
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <LeadStageControl
+            contactId={contact.id}
+            leadId={contact.leadId}
+            onLinked={(leadId) => setConversation((c) => (c ? { ...c, contact: { ...c.contact, leadId } } : c))}
+          />
           <Select
             value={conversation.assignedUserId ?? "none"}
             onValueChange={(value) => update({ assignedUserId: value === "none" ? null : value })}

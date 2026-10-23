@@ -197,7 +197,7 @@ export const crmApi = {
   deleteContact: (id: string) => request<{ ok: true }>("DELETE", `/api/crm/contacts/${id}`),
   openConversation: (contactId: string) =>
     request<{ conversation: Conversation }>("POST", `/api/crm/contacts/${contactId}/conversation`, {}),
-  createLeadFromContact: (contactId: string, input: { interest?: string; value?: number; productId?: string }) =>
+  createLeadFromContact: (contactId: string, input: { interest?: string; value?: number; productId?: string; stageId?: string }) =>
     request<{ contact: Contact }>("POST", `/api/crm/contacts/${contactId}/lead`, input),
 
   listQuickReplies: () => request<{ quickReplies: QuickReply[] }>("GET", "/api/crm/quick-replies"),
