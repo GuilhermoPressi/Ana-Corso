@@ -12,6 +12,7 @@ import { prisma } from "../db.js"
 import { config } from "../config.js"
 import { evolution } from "./evolution.js"
 import { StorageService } from "./storage.js"
+import { applyTagRules, sendWelcomeMessage } from "./crm-automations.js"
 
 const MAX_MEDIA_BYTES = 20 * 1024 * 1024
 
@@ -344,6 +345,11 @@ async function ingestMessage(instance: WhatsAppInstance, data: any) {
 
   const ts = Number(data.messageTimestamp)
   const sentAt = Number.isFinite(ts) && ts > 0 ? new Date(ts * 1000) : new Date()
+  // Primeira mensagem da conversa (e recente, para não disparar em sincronização de histórico).
+  const isFirstMessage =
+    !fromMe &&
+    Date.now() - sentAt.getTime() < 10 * 60_000 &&
+    (await prisma.crmMessage.count({ where: { conversationId: conversation.id } })) === 0
 
   let message
   try {
@@ -382,6 +388,15 @@ async function ingestMessage(instance: WhatsAppInstance, data: any) {
           }),
     },
   })
+
+  if (!fromMe) {
+    try {
+      const tagged = await applyTagRules(contact, content.text)
+      if (isFirstMessage) await sendWelcomeMessage(instance, tagged, { id: conversation.id, remoteJid })
+    } catch (err) {
+      console.error("[crm] automação falhou:", err)
+    }
+  }
 
   if (!fromMe && !contact.avatarUrl && !remoteJid.endsWith("@lid")) {
     evolution

@@ -32,6 +32,8 @@ import {
   webhookUrlFor,
 } from "../services/crm-inbox.js"
 import { StorageService } from "../services/storage.js"
+import crypto from "node:crypto"
+import { getAutomationSettings, parseTagRules, salesWebhookUrl } from "../services/crm-automations.js"
 
 // As telas de atendimento fazem polling; o limite global (100/min por IP)
 // estoura fácil numa recepção com várias atendentes atrás do mesmo IP.
@@ -100,6 +102,7 @@ function serializeMessage(message: {
   status: CrmMessageStatus
   errorReason: string | null
   sentAt: Date
+  automated?: boolean
   sentByUser?: { id: string; name: string } | null
 }) {
   return {
@@ -113,6 +116,7 @@ function serializeMessage(message: {
     status: message.status,
     errorReason: message.errorReason,
     sentAt: message.sentAt,
+    automated: message.automated ?? false,
     sentBy: message.sentByUser ?? null,
   }
 }
@@ -1142,5 +1146,74 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const result = await prisma.crmQuickReply.deleteMany({ where: { id, clinicId } })
     if (result.count === 0) return reply.status(404).send(notFound("Resposta rápida não encontrada."))
     return { ok: true }
+  })
+
+  // ---------------------------------------------------------------------------
+  // Automações
+  // ---------------------------------------------------------------------------
+
+  const serializeAutomation = (settings: Awaited<ReturnType<typeof getAutomationSettings>>) => ({
+    salesWebhookUrl: salesWebhookUrl(settings.salesWebhookToken),
+    welcomeEnabled: settings.welcomeEnabled,
+    welcomeMessage: settings.welcomeMessage ?? "",
+    welcomeSkipPatients: settings.welcomeSkipPatients,
+    tagRules: parseTagRules(settings.tagRules),
+  })
+
+  fastify.get("/crm/automations", SETTINGS, async (request) => {
+    return { automations: serializeAutomation(await getAutomationSettings(request.clinic!.id)) }
+  })
+
+  const automationSchema = z.object({
+    welcomeEnabled: z.boolean().optional(),
+    welcomeMessage: z.string().max(2000).optional(),
+    welcomeSkipPatients: z.boolean().optional(),
+    tagRules: z
+      .array(
+        z.object({
+          keywords: z.array(z.string().trim().min(1).max(60)).min(1).max(30),
+          tag: z.string().trim().min(1).max(40),
+        }),
+      )
+      .max(50)
+      .optional(),
+  })
+
+  fastify.patch("/crm/automations", SETTINGS, async (request, reply) => {
+    const parsed = automationSchema.safeParse(request.body ?? {})
+    if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.issues[0]?.message ?? "Dados inválidos."))
+    const clinicId = request.clinic!.id
+    await getAutomationSettings(clinicId)
+    const { tagRules, welcomeMessage, ...rest } = parsed.data
+    if (rest.welcomeEnabled && welcomeMessage !== undefined && !welcomeMessage.trim()) {
+      return reply.status(400).send(badRequest("Escreva a mensagem de apresentação."))
+    }
+    const settings = await prisma.crmAutomationSettings.update({
+      where: { clinicId },
+      data: {
+        ...rest,
+        ...(welcomeMessage !== undefined ? { welcomeMessage: welcomeMessage.trim() || null } : {}),
+        ...(tagRules
+          ? { tagRules: tagRules.map((r) => ({ keywords: r.keywords, tag: r.tag.toLowerCase() })) }
+          : {}),
+      },
+    })
+    if (tagRules?.length) {
+      await prisma.crmTag.createMany({
+        data: [...new Set(tagRules.map((r) => r.tag.toLowerCase()))].map((name) => ({ clinicId, name })),
+        skipDuplicates: true,
+      })
+    }
+    return { automations: serializeAutomation(settings) }
+  })
+
+  fastify.post("/crm/automations/regenerate-token", SETTINGS, async (request) => {
+    const clinicId = request.clinic!.id
+    await getAutomationSettings(clinicId)
+    const settings = await prisma.crmAutomationSettings.update({
+      where: { clinicId },
+      data: { salesWebhookToken: crypto.randomBytes(24).toString("base64url") },
+    })
+    return { automations: serializeAutomation(settings) }
   })
 }

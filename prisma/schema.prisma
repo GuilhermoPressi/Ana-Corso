@@ -260,6 +260,8 @@ model Clinic {
   crmQuickReplies      CrmQuickReply[]
   crmTags              CrmTag[]
   crmPipelines         CrmPipeline[]
+  crmProducts          CrmProduct[]
+  crmAutomation        CrmAutomationSettings?
 
   @@map("clinics")
 }
@@ -720,10 +722,15 @@ model Lead {
   archivedAt     DateTime? @map("archived_at")
   pipelineId     String?   @map("pipeline_id")
   stageId        String?   @map("stage_id")
+  productId      String?   @map("product_id")
+  purchaseStatus LeadPurchaseStatus? @map("purchase_status")
+  /** Pedido/transação da plataforma de vendas (evita duplicar no webhook). */
+  externalOrderId String?  @map("external_order_id")
 
   clinic        Clinic     @relation(fields: [clinicId], references: [id], onDelete: Restrict)
   pipeline      CrmPipeline?      @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
   pipelineStage CrmPipelineStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
+  product       CrmProduct?       @relation(fields: [productId], references: [id], onDelete: SetNull)
   patient       Patient?   @relation(fields: [patientId], references: [id], onDelete: SetNull)
   createdByUser User?      @relation("LeadCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   assignedUser  User?      @relation("LeadAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
@@ -1530,6 +1537,8 @@ model CrmMessage {
   status          CrmMessageStatus    @default(QUEUED)
   errorReason     String?             @map("error_reason")
   sentByUserId    String?             @map("sent_by_user_id")
+  /** Enviada por automação (ex.: mensagem de apresentação). */
+  automated       Boolean             @default(false)
   sentAt          DateTime            @default(now()) @map("sent_at")
   createdAt       DateTime            @default(now()) @map("created_at")
 
@@ -1600,18 +1609,33 @@ enum CrmStageType {
   LOST
 }
 
+enum CrmPipelineKind {
+  CLINIC
+  DIGITAL
+}
+
+enum LeadPurchaseStatus {
+  INTERESTED
+  CHECKOUT_ABANDONED
+  PURCHASED
+  REFUNDED
+}
+
 model CrmPipeline {
   id        String   @id @default(uuid())
   clinicId  String   @map("clinic_id")
   name      String
+  /** CLINIC: procedimentos da clínica; DIGITAL: produtos digitais (cursos, mentorias…). */
+  kind      CrmPipelineKind @default(CLINIC)
   position  Int      @default(0)
   isDefault Boolean  @default(false) @map("is_default")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  clinic Clinic             @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  stages CrmPipelineStage[]
-  leads  Lead[]
+  clinic   Clinic             @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  stages   CrmPipelineStage[]
+  leads    Lead[]
+  products CrmProduct[]
 
   @@index([clinicId, position])
   @@map("crm_pipelines")
@@ -1629,9 +1653,55 @@ model CrmPipelineStage {
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
 
-  pipeline CrmPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
-  leads    Lead[]
+  pipeline       CrmPipeline  @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  leads          Lead[]
+  buyerProducts  CrmProduct[] @relation("ProductBuyerStage")
 
   @@index([pipelineId, position])
   @@map("crm_pipeline_stages")
+}
+
+// Produtos digitais da clínica/especialista (cursos, mentorias, imersões…).
+model CrmProduct {
+  id          String   @id @default(uuid())
+  clinicId    String   @map("clinic_id")
+  name        String
+  price       Decimal  @default(0) @db.Decimal(12, 2)
+  active      Boolean  @default(true)
+  /** Códigos do produto nas plataformas de venda (Hotmart, Kiwify…) para o webhook. */
+  externalIds String[] @default([]) @map("external_ids")
+  /** Para onde vai quem compra (pipeline/etapa) e a etiqueta aplicada. */
+  pipelineId  String?  @map("pipeline_id")
+  buyerStageId String? @map("buyer_stage_id")
+  buyerTag    String?  @default("compradora") @map("buyer_tag")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  clinic     Clinic            @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  pipeline   CrmPipeline?      @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
+  buyerStage CrmPipelineStage? @relation("ProductBuyerStage", fields: [buyerStageId], references: [id], onDelete: SetNull)
+  leads      Lead[]
+
+  @@index([clinicId, active])
+  @@map("crm_products")
+}
+
+// Configuração das automações do CRM (uma por clínica).
+model CrmAutomationSettings {
+  id                 String   @id @default(uuid())
+  clinicId           String   @unique @map("clinic_id")
+  /** Token da URL do webhook de vendas (Hotmart, Kiwify ou genérico). */
+  salesWebhookToken  String   @unique @map("sales_webhook_token")
+  welcomeEnabled     Boolean  @default(false) @map("welcome_enabled")
+  welcomeMessage     String?  @map("welcome_message") @db.Text
+  /** Não mandar a apresentação para quem já é paciente da clínica. */
+  welcomeSkipPatients Boolean @default(true) @map("welcome_skip_patients")
+  /** Regras [{ keywords: string[], tag: string }] aplicadas às mensagens recebidas. */
+  tagRules           Json     @default("[]") @map("tag_rules")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@map("crm_automation_settings")
 }

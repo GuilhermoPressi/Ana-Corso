@@ -616,6 +616,7 @@ function MessageBubble({ message, onRetry }: { message: Message; onRetry: () => 
           </p>
         )}
         <div className="mt-1 flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground">
+          {outbound && message.automated && <span>Automática ·</span>}
           {outbound && message.sentBy && <span>{message.sentBy.name.split(" ")[0]} ·</span>}
           <span className="tabular-nums">{time}</span>
           {outbound && !note && <StatusIcon status={message.status} />}

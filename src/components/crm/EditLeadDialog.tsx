@@ -30,10 +30,11 @@ import { tagColorStyle } from "@/lib/tag-colors"
 import { cn } from "@/lib/utils"
 import { buildWhatsAppLink } from "@/lib/whatsapp"
 import { usePatientStore } from "@/stores/usePatientStore"
-import { usePipelineStore } from "@/stores/usePipelineStore"
+import { DIGITAL_SOURCES, PURCHASE_STATUS_LABEL, usePipelineStore, type PurchaseStatus } from "@/stores/usePipelineStore"
 
 const SOURCES = ["Instagram", "Indicação", "Google", "WhatsApp", "Presencial", "Facebook", "Site", "Outro"]
 const NO_ASSIGNEE = "__none__"
+const NONE = "__none__"
 
 type Form = {
   name: string
@@ -48,6 +49,8 @@ type Form = {
   scheduledFor: string
   pipelineId: string
   stageId: string
+  productId: string
+  purchaseStatus: string
 }
 
 function formFrom(lead: Lead, defaultPipelineId: string): Form {
@@ -64,6 +67,8 @@ function formFrom(lead: Lead, defaultPipelineId: string): Form {
     scheduledFor: lead.scheduledFor ?? "",
     pipelineId: lead.pipelineId ?? defaultPipelineId,
     stageId: lead.stageId ?? "",
+    productId: lead.product?.id ?? NONE,
+    purchaseStatus: lead.purchaseStatus ?? NONE,
   }
 }
 
@@ -81,6 +86,7 @@ export function EditLeadDialog({
   const saveLead = usePatientStore((s) => s.saveLead)
   const updateLeadLocal = usePatientStore((s) => s.updateLead)
   const pipelines = usePipelineStore((s) => s.pipelines)
+  const products = usePipelineStore((s) => s.products)
   const defaultPipelineId = pipelines.find((p) => p.isDefault)?.id ?? pipelines[0]?.id ?? ""
   const [form, setForm] = useState<Form | null>(null)
   const [team, setTeam] = useState<TeamMember[]>([])
@@ -101,6 +107,7 @@ export function EditLeadDialog({
   }, [open, team.length])
 
   const pipeline = pipelines.find((p) => p.id === form?.pipelineId)
+  const digital = pipeline?.kind === "DIGITAL"
   const stages = useMemo(() => [...(pipeline?.stages ?? [])].sort((a, b) => a.position - b.position), [pipeline])
 
   if (!lead || !form) return null
@@ -114,8 +121,13 @@ export function EditLeadDialog({
       toast.error("Informe o nome do lead.")
       return
     }
-    if (!form.interest.trim()) {
+    const product = products.find((p) => p.id === form.productId)
+    if (!digital && !form.interest.trim()) {
       toast.error("Informe o interesse / procedimento.")
+      return
+    }
+    if (digital && !product && !form.interest.trim()) {
+      toast.error("Escolha o produto.")
       return
     }
     const value = form.value.trim() ? parseMoney(form.value) : 0
@@ -133,7 +145,9 @@ export function EditLeadDialog({
       name: form.name.trim(),
       phone: form.phone.trim() || null,
       email: form.email.trim() || null,
-      interest: form.interest.trim(),
+      interest: (digital && product ? product.name : form.interest).trim(),
+      productId: form.productId === NONE ? null : form.productId,
+      purchaseStatus: form.purchaseStatus === NONE ? null : form.purchaseStatus,
       source: form.source,
       value,
       temperature: form.temperature,
@@ -260,17 +274,59 @@ export function EditLeadDialog({
                   className="mt-1.5"
                 />
               </div>
-              <div>
-                <Label htmlFor="el-interest" className="text-[13px]">
-                  Interesse / procedimento
-                </Label>
-                <Input
-                  id="el-interest"
-                  value={form.interest}
-                  onChange={(e) => set("interest", e.target.value)}
-                  className="mt-1.5"
-                />
-              </div>
+              {digital ? (
+                <div>
+                  <Label className="text-[13px]">Produto</Label>
+                  <Select
+                    value={form.productId}
+                    onValueChange={(value) => {
+                      if (!value) return
+                      const chosen = products.find((p) => p.id === value)
+                      const previous = products.find((p) => p.id === form.productId)
+                      setForm((f) => {
+                        if (!f) return f
+                        // Troca o valor pelo preço do produto se o valor era o do produto anterior (ou vazio).
+                        const current = f.value.trim() ? parseMoney(f.value) : 0
+                        const followPrice = !current || (previous && current === previous.price)
+                        return {
+                          ...f,
+                          productId: value,
+                          value:
+                            chosen && followPrice && chosen.price
+                              ? chosen.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })
+                              : f.value,
+                        }
+                      })
+                    }}
+                  >
+                    <SelectTrigger className="mt-1.5 w-full">
+                      <SelectValue placeholder="Escolha o produto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>Sem produto</SelectItem>
+                      {products
+                        .filter((p) => p.active || p.id === form.productId)
+                        .map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div>
+                  <Label htmlFor="el-interest" className="text-[13px]">
+                    Interesse / procedimento
+                  </Label>
+                  <Input
+                    id="el-interest"
+                    value={form.interest}
+                    onChange={(e) => set("interest", e.target.value)}
+                    className="mt-1.5"
+                  />
+                </div>
+              )}
               <div>
                 <Label className="text-[13px]">Origem</Label>
                 <Select value={form.source} onValueChange={(value) => value && set("source", value)}>
@@ -278,7 +334,7 @@ export function EditLeadDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[...new Set([form.source, ...SOURCES])].filter(Boolean).map((source) => (
+                    {[...new Set([form.source, ...(digital ? DIGITAL_SOURCES : SOURCES)])].filter(Boolean).map((source) => (
                       <SelectItem key={source} value={source}>
                         {source}
                       </SelectItem>
@@ -322,6 +378,25 @@ export function EditLeadDialog({
                 </div>
               </div>
             </div>
+
+            {digital && (
+              <div>
+                <Label className="text-[13px]">Situação da compra</Label>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {(Object.keys(PURCHASE_STATUS_LABEL) as PurchaseStatus[]).map((status) => (
+                    <Button
+                      key={status}
+                      type="button"
+                      size="sm"
+                      variant={form.purchaseStatus === status ? "default" : "outline"}
+                      onClick={() => set("purchaseStatus", form.purchaseStatus === status ? NONE : status)}
+                    >
+                      {PURCHASE_STATUS_LABEL[status]}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Responsável e recontato */}
             <div className="grid gap-3 sm:grid-cols-2">

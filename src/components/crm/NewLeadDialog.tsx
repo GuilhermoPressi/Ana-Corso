@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
 
@@ -25,6 +25,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import type { LeadSource } from "@/data/leads"
 import { usePatientStore } from "@/stores/usePatientStore"
+import { DIGITAL_SOURCES, PURCHASE_STATUS_LABEL, type Product, type PurchaseStatus } from "@/stores/usePipelineStore"
 
 const sources: LeadSource[] = ["Instagram", "Indicação", "Google", "WhatsApp", "Presencial"]
 
@@ -48,28 +49,42 @@ const empty = {
   note: "",
 }
 
-export function NewLeadDialog({ stageId }: { stageId?: string } = {}) {
+export function NewLeadDialog({
+  stageId,
+  digital = false,
+  products = [],
+}: { stageId?: string; digital?: boolean; products?: Product[] } = {}) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(empty)
+  const [productId, setProductId] = useState<string>("")
+  const [purchaseStatus, setPurchaseStatus] = useState<PurchaseStatus>("INTERESTED")
   const [touched, setTouched] = useState(false)
 
   const addLead = usePatientStore((state) => state.addLead)
 
+  // Ao abrir num pipeline digital, começa com origem digital.
+  useEffect(() => {
+    if (open && digital) setForm((c) => (DIGITAL_SOURCES.includes(c.source) ? c : { ...c, source: "Instagram" as LeadSource }))
+  }, [open, digital])
+
+  const product = products.find((p) => p.id === productId)
   const nameError = form.name.trim().length < 3
-  const valueError = !(parseDecimal(form.value) > 0)
+  const valueError = digital ? Number.isNaN(parseDecimal(form.value || "0")) : !(parseDecimal(form.value) > 0)
+  const productError = digital && !product
 
   async function submit() {
     setTouched(true)
-    if (nameError || valueError) return
+    if (nameError || valueError || productError) return
 
     const created = await addLead({
       name: form.name,
       phone: form.phone.trim(),
-      interest: form.interest,
+      interest: digital ? product!.name : form.interest,
       source: form.source,
-      value: parseDecimal(form.value),
+      value: parseDecimal(form.value || "0") || 0,
       note: form.note.trim() || undefined,
       stageId,
+      ...(digital ? { productId: product!.id, purchaseStatus } : {}),
     })
 
     if (created) {
@@ -78,6 +93,8 @@ export function NewLeadDialog({ stageId }: { stageId?: string } = {}) {
       })
 
       setForm(empty)
+      setProductId("")
+      setPurchaseStatus("INTERESTED")
       setTouched(false)
       setOpen(false)
     }
@@ -162,36 +179,71 @@ export function NewLeadDialog({ stageId }: { stageId?: string } = {}) {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label className="text-[13px]">Interesse</Label>
-              <Select
-                value={form.interest}
-                onValueChange={(value) => setForm((c) => ({ ...c, interest: value }))}
-              >
-                <SelectTrigger className="mt-1.5 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {interests.map((item) => (
-                    <SelectItem key={item} value={item}>
-                      {item}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {digital ? (
+              <div>
+                <Label className="text-[13px]">Produto</Label>
+                <Select
+                  value={productId}
+                  onValueChange={(value) => {
+                    if (!value) return
+                    setProductId(value)
+                    const chosen = products.find((p) => p.id === value)
+                    // Valor do card vem do preço do produto (se ainda não foi digitado).
+                    if (chosen && !form.value.trim()) {
+                      setForm((c) => ({
+                        ...c,
+                        value: chosen.price ? chosen.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "",
+                      }))
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1.5 w-full" aria-invalid={touched && productError}>
+                    <SelectValue placeholder={products.length ? "Escolha o produto" : "Cadastre em Produtos"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {touched && productError && (
+                  <p className="mt-1.5 text-[11px] text-destructive">Escolha o produto.</p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <Label className="text-[13px]">Interesse</Label>
+                <Select
+                  value={form.interest}
+                  onValueChange={(value) => value && setForm((c) => ({ ...c, interest: value }))}
+                >
+                  <SelectTrigger className="mt-1.5 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {interests.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {item}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div>
               <Label className="text-[13px]">Origem</Label>
               <Select
                 value={form.source}
-                onValueChange={(value) => setForm((c) => ({ ...c, source: value as LeadSource }))}
+                onValueChange={(value) => value && setForm((c) => ({ ...c, source: value as LeadSource }))}
               >
                 <SelectTrigger className="mt-1.5 w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {sources.map((item) => (
+                  {(digital ? DIGITAL_SOURCES : sources).map((item) => (
                     <SelectItem key={item} value={item}>
                       {item}
                     </SelectItem>
@@ -200,6 +252,24 @@ export function NewLeadDialog({ stageId }: { stageId?: string } = {}) {
               </Select>
             </div>
           </div>
+
+          {digital && (
+            <div>
+              <Label className="text-[13px]">Situação</Label>
+              <Select value={purchaseStatus} onValueChange={(value) => value && setPurchaseStatus(value as PurchaseStatus)}>
+                <SelectTrigger className="mt-1.5 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(PURCHASE_STATUS_LABEL) as PurchaseStatus[]).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {PURCHASE_STATUS_LABEL[status]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div>
             <Label htmlFor="nl-note" className="text-[13px]">

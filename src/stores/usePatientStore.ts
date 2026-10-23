@@ -31,6 +31,8 @@ export type NewLeadInput = {
   value: number
   note?: string
   stageId?: string
+  productId?: string
+  purchaseStatus?: string
 }
 
 export type PaginationMeta = {
@@ -180,6 +182,8 @@ export function mapDbLeadToFrontend(dbL: any): Lead {
     stageId: dbL.stageId || undefined,
     email: dbL.email || undefined,
     assignedUser: dbL.assignedUser ?? null,
+    product: dbL.product ? { id: dbL.product.id, name: dbL.product.name } : null,
+    purchaseStatus: dbL.purchaseStatus ?? null,
     contact: dbL.crmContacts?.[0]
       ? {
           id: dbL.crmContacts[0].id,
@@ -419,6 +423,8 @@ export const usePatientStore = create<PatientState>((set, get) => ({
           value: input.value,
           note: input.note || null,
           stageId: input.stageId,
+          productId: input.productId,
+          purchaseStatus: input.purchaseStatus,
         }),
       })
 
