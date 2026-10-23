@@ -1,12 +1,14 @@
 import { create } from "zustand"
 
-import { crmApi } from "@/lib/crm-api"
+import { crmApi, type WhatsAppStatus } from "@/lib/crm-api"
 
 type InboxState = {
   unread: number
   /** Id da última mensagem recebida já conhecida (null antes da primeira consulta). */
   latestInboundId: string | null
   initialized: boolean
+  /** Status do WhatsApp da clínica (null = nenhum número conectado ainda). */
+  whatsappStatus: WhatsAppStatus | null
   /** Consulta o servidor. Retorna a nova mensagem recebida desde a última consulta, se houver. */
   refresh: () => Promise<{ conversationId: string; contactName: string } | null>
   /** Ajuste local imediato ao ler uma conversa, sem esperar a próxima consulta. */
@@ -17,13 +19,19 @@ export const useInboxStore = create<InboxState>((set, get) => ({
   unread: 0,
   latestInboundId: null,
   initialized: false,
+  whatsappStatus: null,
 
   refresh: async () => {
     const data = await crmApi.unreadTotal()
     const { initialized, latestInboundId } = get()
     const latest = data.latestInbound
     const isNew = initialized && latest !== null && latest.id !== latestInboundId
-    set({ unread: data.unread, latestInboundId: latest?.id ?? latestInboundId, initialized: true })
+    set({
+      unread: data.unread,
+      latestInboundId: latest?.id ?? latestInboundId,
+      initialized: true,
+      whatsappStatus: data.whatsapp?.status ?? null,
+    })
     return isNew && latest ? { conversationId: latest.conversationId, contactName: latest.contactName } : null
   },
 

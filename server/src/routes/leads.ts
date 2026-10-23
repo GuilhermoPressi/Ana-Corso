@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify"
-import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, CrmStageType, LeadStage, PatientStatus } from "@prisma/client"
+import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, CrmStageType, LeadPurchaseStatus, LeadStage, PatientStatus } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "../db.js"
 import { requireAuth } from "../middlewares/auth.js"
@@ -19,10 +19,13 @@ const createLeadSchema = z.object({
   pipelineId: z.string().uuid().optional().nullable(),
   stageId: z.string().uuid().optional().nullable(),
   assignedUserId: z.string().uuid().optional().nullable(),
+  productId: z.string().uuid().optional().nullable(),
+  purchaseStatus: z.nativeEnum(LeadPurchaseStatus).optional().nullable(),
 })
 
 const leadInclude = {
   assignedUser: { select: { id: true, name: true } },
+  product: { select: { id: true, name: true, price: true } },
   crmContacts: {
     select: { id: true, tags: true, conversations: { select: { id: true }, take: 1 } },
     take: 1,
@@ -123,6 +126,9 @@ export async function leadRoutes(fastify: FastifyInstance) {
     if (body.assignedUserId && !(await validAssignee(clinicId, body.assignedUserId))) {
       return reply.status(400).send({ error: { code: "INVALID_INPUT", message: "Responsável inválido." } })
     }
+    if (body.productId && !(await prisma.crmProduct.findFirst({ where: { id: body.productId, clinicId } }))) {
+      return reply.status(400).send({ error: { code: "INVALID_INPUT", message: "Produto inválido." } })
+    }
 
     const lead = await prisma.$transaction(async (tx) => {
       const created = await tx.lead.create({
@@ -142,6 +148,8 @@ export async function leadRoutes(fastify: FastifyInstance) {
           scheduledFor: body.scheduledFor ? new Date(body.scheduledFor) : null,
           createdByUserId: userId,
           assignedUserId: body.assignedUserId ?? null,
+          productId: body.productId ?? null,
+          purchaseStatus: body.purchaseStatus ?? null,
           owner: request.user!.name,
         },
         include: leadInclude,
@@ -230,6 +238,9 @@ export async function leadRoutes(fastify: FastifyInstance) {
     if (body.assignedUserId && !(await validAssignee(clinicId, body.assignedUserId))) {
       return reply.status(400).send({ error: { code: "INVALID_INPUT", message: "Responsável inválido." } })
     }
+    if (body.productId && !(await prisma.crmProduct.findFirst({ where: { id: body.productId, clinicId } }))) {
+      return reply.status(400).send({ error: { code: "INVALID_INPUT", message: "Produto inválido." } })
+    }
 
     const updated = await prisma.$transaction(async (tx) => {
       const res = await tx.lead.update({
@@ -248,6 +259,8 @@ export async function leadRoutes(fastify: FastifyInstance) {
             scheduledFor: body.scheduledFor ? new Date(body.scheduledFor) : null,
           }),
           ...(body.assignedUserId !== undefined && { assignedUserId: body.assignedUserId }),
+          ...(body.productId !== undefined && { productId: body.productId }),
+          ...(body.purchaseStatus !== undefined && { purchaseStatus: body.purchaseStatus }),
           ...stageData,
         },
         include: leadInclude,

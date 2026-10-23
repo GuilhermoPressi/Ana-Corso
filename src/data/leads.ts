@@ -5,7 +5,7 @@ export type LeadStage =
   | "fechado"
   | "perdido"
 
-export type LeadSource = "Instagram" | "Indicação" | "Google" | "WhatsApp" | "Presencial"
+export type LeadSource = "Instagram" | "Indicação" | "Google" | "WhatsApp" | "Presencial" | (string & {})
 
 export type Lead = {
   id: string
@@ -28,6 +28,9 @@ export type Lead = {
   stageId?: string
   email?: string
   assignedUser?: { id: string; name: string } | null
+  /** Produto digital e situação da compra (pipelines de produtos digitais). */
+  product?: { id: string; name: string } | null
+  purchaseStatus?: "INTERESTED" | "CHECKOUT_ABANDONED" | "PURCHASED" | "REFUNDED" | null
   /** Contato do WhatsApp vinculado (etiquetas e conversa). */
   contact?: { id: string; tags: string[]; conversationId: string | null } | null
 }

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react"
-import { CheckCircle2, Loader2, QrCode, RefreshCw, Smartphone, Unplug, X } from "lucide-react"
+import { CheckCircle2, Loader2, QrCode, RefreshCw, Smartphone, Stethoscope, Unplug, X, XCircle } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -149,6 +149,22 @@ export function WhatsAppConnectionCard({
     }
   }
 
+  const [testing, setTesting] = useState(false)
+  const [checks, setChecks] = useState<{ ok: boolean; label: string; detail: string }[] | null>(null)
+
+  async function runTest() {
+    setTesting(true)
+    try {
+      const result = await crmApi.testWhatsapp()
+      setChecks(result.checks)
+      await refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível testar a conexão.")
+    } finally {
+      setTesting(false)
+    }
+  }
+
   async function disconnect() {
     if (!window.confirm("Desconectar o WhatsApp da clínica? As conversas ficam salvas, mas novas mensagens deixam de chegar.")) {
       return
@@ -214,10 +230,31 @@ export function WhatsAppConnectionCard({
                 )}
               </div>
             </div>
-            {canManage && (
-              <Button variant="outline" size="sm" onClick={disconnect} disabled={busy}>
-                <Unplug /> Desconectar
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={runTest} disabled={testing}>
+                {testing ? <Loader2 className="animate-spin" /> : <Stethoscope />} Testar conexão
               </Button>
+              {canManage && (
+                <Button variant="outline" size="sm" onClick={disconnect} disabled={busy}>
+                  <Unplug /> Desconectar
+                </Button>
+              )}
+            </div>
+            {checks && (
+              <ul className="w-full space-y-1.5 rounded-lg border bg-muted/30 p-3 text-[12px]">
+                {checks.map((check) => (
+                  <li key={check.label} className="flex items-start gap-2">
+                    {check.ok ? (
+                      <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" />
+                    ) : (
+                      <XCircle className="mt-0.5 size-3.5 shrink-0 text-destructive" />
+                    )}
+                    <span>
+                      <strong className="font-medium">{check.label}:</strong> {check.detail}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         ) : pairing ? (

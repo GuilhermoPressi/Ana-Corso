@@ -289,6 +289,32 @@ Tabelas: `whatsapp_instances`, `crm_contacts`, `crm_conversations`, `crm_message
 (migration `20261006180000_crm_whatsapp_inbox`). Rotas em `server/src/routes/crm.ts` (permissões `CRM_READ`,
 `CRM_WRITE` e `CLINIC_SETTINGS_MANAGE` para conectar/desconectar) e `server/src/routes/evolution-webhook.ts`.
 
+Saúde da conexão: a API confere o estado real na Evolution (no máximo a cada 60 s) e o front mostra um alerta
+laranja em todas as telas quando o WhatsApp cai. **Configurações → WhatsApp → Testar conexão** verifica o estado
+e o webhook (corrigindo a URL se estiver errada). Antes do primeiro envio para um número, a API consulta
+`chat/whatsappNumbers` para usar o JID certo (nono dígito).
+
+### Perfil Comercial
+
+O papel `SALES` ("Comercial") só acessa Conversas e CRM e Contatos (rotas da API fora da lista em
+`server/src/utils/permissions.ts` respondem 403). Vê só as conversas atribuídas a ela e as sem responsável.
+Convide em **Configurações → Equipe** com o perfil Comercial.
+
+### Produtos digitais e automações
+
+- Pipelines podem ser marcados como **produtos digitais**: os cards ganham produto (lista em **Funil →
+  Produtos**), origens digitais e situação da compra (interessada, checkout abandonado, comprou, reembolsou).
+- **CRM → Automações** (OWNER/ADMIN):
+  - **Webhook de vendas** `POST /api/webhooks/sales/<token>`: aceita Hotmart (2.0), Kiwify ou JSON genérico
+    (`name`, `phone`, `email`, `product`, `status`, `value`, `order_id`). Compra aprovada leva o card para a etapa
+    de ganho (ou a etapa escolhida no produto) e etiqueta o contato; reembolso vai para "Perdido"; checkout
+    abandonado entra na primeira etapa sem rebaixar quem já comprou. Produtos desconhecidos são criados.
+  - **Mensagem de apresentação** na primeira mensagem de um contato (`{nome}` = primeiro nome), marcada como
+    "Automática" na conversa.
+  - **Etiquetas automáticas** por palavra-chave (sem diferenciar acentos/maiúsculas).
+
+Tabelas `crm_products` e `crm_automation_settings` (migration `20261023180000_crm_digital_products`).
+
 ## Google Agenda
 
 Cada usuário conecta o próprio Google em **Configurações → Integrações**. Todo agendamento criado, remarcado

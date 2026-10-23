@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify"
+import type { FastifyInstance, FastifyRequest } from "fastify"
 import {
   ClinicActivityAction,
   ClinicActivityEntityType,
@@ -17,7 +17,6 @@ import { requireAuth, requirePermission } from "../middlewares/auth.js"
 import { evolution, evolutionConfig } from "../services/evolution.js"
 import {
   attachExternalId,
-  destinationFor,
   digitsOnly,
   ensureConversation,
   findOrCreateContact,
@@ -26,11 +25,15 @@ import {
   phoneVariants,
   previewFor,
   refreshInstanceProfile,
+  resolveWhatsAppNumber,
   storeMessageMedia,
+  verifyInstanceConnection,
   toWhatsAppNumber,
   webhookUrlFor,
 } from "../services/crm-inbox.js"
 import { StorageService } from "../services/storage.js"
+import crypto from "node:crypto"
+import { getAutomationSettings, parseTagRules, salesWebhookUrl } from "../services/crm-automations.js"
 
 // As telas de atendimento fazem polling; o limite global (100/min por IP)
 // estoura fácil numa recepção com várias atendentes atrás do mesmo IP.
@@ -99,6 +102,7 @@ function serializeMessage(message: {
   status: CrmMessageStatus
   errorReason: string | null
   sentAt: Date
+  automated?: boolean
   sentByUser?: { id: string; name: string } | null
 }) {
   return {
@@ -112,6 +116,7 @@ function serializeMessage(message: {
     status: message.status,
     errorReason: message.errorReason,
     sentAt: message.sentAt,
+    automated: message.automated ?? false,
     sentBy: message.sentByUser ?? null,
   }
 }
@@ -119,6 +124,7 @@ function serializeMessage(message: {
 const listQuerySchema = z.object({
   filter: z.enum(["open", "unread", "mine", "unassigned", "closed", "all"]).default("open"),
   search: z.string().optional(),
+  tag: z.string().optional(),
 })
 
 const sendMessageSchema = z.object({
@@ -225,14 +231,50 @@ export async function crmRoutes(fastify: FastifyInstance) {
   })
 
   async function connectedInstance(clinicId: string) {
-    const instance = await prisma.whatsAppInstance.findUnique({ where: { clinicId } })
+    const instance = await verifyInstanceConnection(await prisma.whatsAppInstance.findUnique({ where: { clinicId } }))
     if (!instance || instance.status !== WhatsAppConnectionStatus.CONNECTED) return null
     return instance
   }
 
-  async function loadConversation(clinicId: string, id: string) {
+  /**
+   * Destino do envio. Conversas iniciadas pela clínica (sem mensagem recebida)
+   * têm o número conferido no WhatsApp antes, para acertar o nono dígito —
+   * mandar para um número inexistente "dava certo" mas nunca chegava.
+   */
+  async function sendDestination(
+    instanceName: string,
+    conversation: { id: string; remoteJid: string; lastInboundAt: Date | null; contact: { phone: string } },
+  ): Promise<{ ok: true; number: string } | { ok: false; error: string }> {
+    if (conversation.remoteJid.endsWith("@lid")) return { ok: true, number: conversation.remoteJid }
+    if (conversation.lastInboundAt) return { ok: true, number: conversation.remoteJid.split("@")[0] }
+    const resolved = await resolveWhatsAppNumber(instanceName, conversation.contact.phone)
+    if (resolved.verified && !resolved.number) {
+      return { ok: false, error: "Este número não tem WhatsApp. Confira o telefone do contato." }
+    }
+    if (resolved.jid && resolved.jid !== conversation.remoteJid) {
+      await prisma.crmConversation.update({ where: { id: conversation.id }, data: { remoteJid: resolved.jid } })
+    }
+    return { ok: true, number: resolved.number ?? toWhatsAppNumber(conversation.contact.phone) }
+  }
+
+  /**
+   * Conversas que o usuário pode ver. O perfil Comercial (SALES) só vê as
+   * atribuídas a ele e as ainda sem responsável.
+   */
+  function conversationScope(request: FastifyRequest): Prisma.CrmConversationWhereInput {
+    if (request.clinicRole !== "SALES") return {}
+    return { OR: [{ assignedUserId: request.user!.id }, { assignedUserId: null }] }
+  }
+
+  /** Contatos visíveis: para o perfil Comercial, sem conversa ou com conversa visível a ele. */
+  function contactScope(request: FastifyRequest): Prisma.CrmContactWhereInput {
+    if (request.clinicRole !== "SALES") return {}
+    return { OR: [{ conversations: { none: {} } }, { conversations: { some: conversationScope(request) } }] }
+  }
+
+  async function loadConversation(request: FastifyRequest, id: string) {
     return prisma.crmConversation.findFirst({
-      where: { id, clinicId },
+      where: { id, clinicId: request.clinic!.id, ...conversationScope(request) },
       include: conversationInclude,
     })
   }
@@ -243,7 +285,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
 
   fastify.get("/crm/whatsapp", CRM_READ, async (request) => {
     const clinicId = request.clinic!.id
-    let instance = await prisma.whatsAppInstance.findUnique({ where: { clinicId } })
+    let instance = await verifyInstanceConnection(await prisma.whatsAppInstance.findUnique({ where: { clinicId } }))
 
     // Enquanto aguarda a leitura do QR, confirma o estado direto na Evolution
     // caso o webhook não tenha chegado (ex.: URL pública mal configurada).
@@ -346,6 +388,48 @@ export async function crmRoutes(fastify: FastifyInstance) {
     return { instance: serializeInstance(updated) }
   })
 
+  /** Diagnóstico da conexão: estado real na Evolution e webhook (corrige o webhook se estiver errado). */
+  fastify.post("/crm/whatsapp/test", CRM_READ, async (request) => {
+    const clinicId = request.clinic!.id
+    const instance = await prisma.whatsAppInstance.findUnique({ where: { clinicId } })
+    if (!instance) return { checks: [{ ok: false, label: "WhatsApp", detail: "Nenhum número conectado ainda." }] }
+
+    const checks: { ok: boolean; label: string; detail: string }[] = []
+    const state = await evolution.connectionState(instance.instanceName)
+    if (!state.ok) {
+      checks.push({ ok: false, label: "Servidor do WhatsApp (Evolution)", detail: state.error })
+      return { checks }
+    }
+    checks.push({ ok: true, label: "Servidor do WhatsApp (Evolution)", detail: "Respondendo." })
+
+    const open = state.data.state === "open"
+    checks.push({
+      ok: open,
+      label: "Número conectado",
+      detail: open ? "Conectado de verdade no WhatsApp." : `A instância está "${state.data.state}". Reconecte lendo o QR Code.`,
+    })
+    if (!open && instance.status === WhatsAppConnectionStatus.CONNECTED) {
+      await prisma.whatsAppInstance.update({ where: { id: instance.id }, data: { status: WhatsAppConnectionStatus.DISCONNECTED } })
+    }
+
+    const expected = webhookUrlFor(instance)
+    const hook = await evolution.findWebhook(instance.instanceName)
+    const hookOk = hook.ok && hook.data.url === expected && hook.data.enabled
+    if (hookOk) {
+      checks.push({ ok: true, label: "Recebimento de mensagens (webhook)", detail: "Configurado corretamente." })
+    } else {
+      const fixed = await evolution.setWebhook(instance.instanceName, expected)
+      checks.push({
+        ok: fixed.ok,
+        label: "Recebimento de mensagens (webhook)",
+        detail: fixed.ok
+          ? `Estava ${hook.ok ? `apontando para ${hook.data.url ?? "nenhum endereço"}` : "indisponível"}; corrigido para ${expected}.`
+          : `Não foi possível corrigir: ${fixed.error}`,
+      })
+    }
+    return { checks }
+  })
+
   fastify.post("/crm/whatsapp/disconnect", SETTINGS, async (request) => {
     const clinicId = request.clinic!.id
     const instance = await prisma.whatsAppInstance.findUnique({ where: { clinicId } })
@@ -365,9 +449,10 @@ export async function crmRoutes(fastify: FastifyInstance) {
   fastify.get("/crm/conversations", CRM_READ, async (request) => {
     const clinicId = request.clinic!.id
     const userId = request.user!.id
-    const { filter, search } = listQuerySchema.parse(request.query)
+    const { filter, search, tag } = listQuerySchema.parse(request.query)
 
-    const where: Prisma.CrmConversationWhereInput = { clinicId }
+    const scope = conversationScope(request)
+    const where: Prisma.CrmConversationWhereInput = { clinicId, AND: [scope] }
     if (filter === "open") where.status = CrmConversationStatus.OPEN
     if (filter === "closed") where.status = CrmConversationStatus.CLOSED
     if (filter === "unread") Object.assign(where, { status: CrmConversationStatus.OPEN, unreadCount: { gt: 0 } })
@@ -375,15 +460,16 @@ export async function crmRoutes(fastify: FastifyInstance) {
     if (filter === "unassigned") Object.assign(where, { status: CrmConversationStatus.OPEN, assignedUserId: null })
 
     const term = search?.trim()
+    const contactWhere: Prisma.CrmContactWhereInput = {}
     if (term) {
       const digits = digitsOnly(term)
-      where.contact = {
-        OR: [
-          { name: { contains: term, mode: "insensitive" } },
-          ...(digits.length >= 3 ? [{ phone: { contains: digits } }] : []),
-        ],
-      }
+      contactWhere.OR = [
+        { name: { contains: term, mode: "insensitive" } },
+        ...(digits.length >= 3 ? [{ phone: { contains: digits } }] : []),
+      ]
     }
+    if (tag?.trim()) contactWhere.tags = { has: tag.trim().toLowerCase() }
+    if (Object.keys(contactWhere).length) where.contact = contactWhere
 
     const [conversations, grouped, unread, mine, unassigned] = await Promise.all([
       prisma.crmConversation.findMany({
@@ -392,8 +478,10 @@ export async function crmRoutes(fastify: FastifyInstance) {
         orderBy: [{ lastMessageAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
         take: 150,
       }),
-      prisma.crmConversation.groupBy({ by: ["status"], where: { clinicId }, _count: { _all: true } }),
-      prisma.crmConversation.count({ where: { clinicId, status: CrmConversationStatus.OPEN, unreadCount: { gt: 0 } } }),
+      prisma.crmConversation.groupBy({ by: ["status"], where: { clinicId, ...scope }, _count: { _all: true } }),
+      prisma.crmConversation.count({
+        where: { clinicId, ...scope, status: CrmConversationStatus.OPEN, unreadCount: { gt: 0 } },
+      }),
       prisma.crmConversation.count({ where: { clinicId, status: CrmConversationStatus.OPEN, assignedUserId: userId } }),
       prisma.crmConversation.count({ where: { clinicId, status: CrmConversationStatus.OPEN, assignedUserId: null } }),
     ])
@@ -413,14 +501,14 @@ export async function crmRoutes(fastify: FastifyInstance) {
 
   fastify.get("/crm/unread", CRM_READ, async (request) => {
     const clinicId = request.clinic!.id
-    const [result, latest] = await Promise.all([
+    const [result, latest, instance] = await Promise.all([
       prisma.crmConversation.aggregate({
-        where: { clinicId, status: CrmConversationStatus.OPEN },
+        where: { clinicId, status: CrmConversationStatus.OPEN, ...conversationScope(request) },
         _sum: { unreadCount: true },
       }),
       // Última mensagem recebida: o front compara o id para saber quando tocar o som.
       prisma.crmMessage.findFirst({
-        where: { clinicId, direction: CrmMessageDirection.INBOUND },
+        where: { clinicId, direction: CrmMessageDirection.INBOUND, conversation: conversationScope(request) },
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -429,9 +517,12 @@ export async function crmRoutes(fastify: FastifyInstance) {
           conversation: { select: { contact: { select: { name: true } } } },
         },
       }),
+      prisma.whatsAppInstance.findUnique({ where: { clinicId } }).then(verifyInstanceConnection),
     ])
     return {
       unread: result._sum.unreadCount ?? 0,
+      // Usado pelo aviso global de WhatsApp desconectado.
+      whatsapp: instance ? { status: instance.status } : null,
       latestInbound: latest
         ? {
             id: latest.id,
@@ -446,7 +537,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
   fastify.get("/crm/conversations/:id", CRM_READ, async (request, reply) => {
     const clinicId = request.clinic!.id
     const { id } = request.params as { id: string }
-    const conversation = await loadConversation(clinicId, id)
+    const conversation = await loadConversation(request, id)
     if (!conversation) return reply.status(404).send(notFound("Conversa não encontrada."))
 
     const messages = await prisma.crmMessage.findMany({
@@ -462,7 +553,9 @@ export async function crmRoutes(fastify: FastifyInstance) {
   fastify.post("/crm/conversations/:id/read", CRM_READ, async (request, reply) => {
     const clinicId = request.clinic!.id
     const { id } = request.params as { id: string }
-    const conversation = await prisma.crmConversation.findFirst({ where: { id, clinicId } })
+    const conversation = await prisma.crmConversation.findFirst({
+      where: { id, clinicId, ...conversationScope(request) },
+    })
     if (!conversation) return reply.status(404).send(notFound("Conversa não encontrada."))
     if (conversation.unreadCount === 0) return { ok: true }
 
@@ -492,7 +585,9 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const parsed = updateConversationSchema.safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
 
-    const conversation = await prisma.crmConversation.findFirst({ where: { id, clinicId } })
+    const conversation = await prisma.crmConversation.findFirst({
+      where: { id, clinicId, ...conversationScope(request) },
+    })
     if (!conversation) return reply.status(404).send(notFound("Conversa não encontrada."))
 
     const { status, assignedUserId } = parsed.data
@@ -514,7 +609,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
         ...(assignedUserId !== undefined ? { assignedUserId } : {}),
       },
     })
-    return { conversation: await loadConversation(clinicId, id) }
+    return { conversation: await loadConversation(request, id) }
   })
 
   fastify.post("/crm/conversations/:id/messages", CRM_WRITE, async (request, reply) => {
@@ -524,7 +619,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const parsed = sendMessageSchema.safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
 
-    const conversation = await loadConversation(clinicId, id)
+    const conversation = await loadConversation(request, id)
     if (!conversation) return reply.status(404).send(notFound("Conversa não encontrada."))
     const { text, note } = parsed.data
 
@@ -576,7 +671,10 @@ export async function crmRoutes(fastify: FastifyInstance) {
       },
     })
 
-    const sent = await evolution.sendText(instance.instanceName, destinationFor(conversation, conversation.contact), text)
+    const destination = await sendDestination(instance.instanceName, conversation)
+    const sent = destination.ok
+      ? await evolution.sendText(instance.instanceName, destination.number, text)
+      : { ok: false as const, status: 0, error: destination.error }
     if (sent.ok) {
       await attachExternalId(message.id, id, sent.data.externalId)
     } else {
@@ -603,7 +701,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const parsed = sendMediaSchema.safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
 
-    const conversation = await loadConversation(clinicId, id)
+    const conversation = await loadConversation(request, id)
     if (!conversation) return reply.status(404).send(notFound("Conversa não encontrada."))
 
     const instance = await connectedInstance(clinicId)
@@ -651,9 +749,11 @@ export async function crmRoutes(fastify: FastifyInstance) {
       },
     })
 
-    const number = destinationFor(conversation, conversation.contact)
-    const sent =
-      mediaType === "audio"
+    const destination = await sendDestination(instance.instanceName, conversation)
+    const number = destination.ok ? destination.number : ""
+    const sent = !destination.ok
+      ? { ok: false as const, status: 0, error: destination.error }
+      : mediaType === "audio"
         ? await evolution.sendAudio(instance.instanceName, number, base64)
         : await evolution.sendMedia(instance.instanceName, {
             number,
@@ -687,7 +787,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const clinicId = request.clinic!.id
     const { id } = request.params as { id: string }
     const message = await prisma.crmMessage.findFirst({
-      where: { id, clinicId, status: CrmMessageStatus.FAILED },
+      where: { id, clinicId, status: CrmMessageStatus.FAILED, conversation: conversationScope(request) },
       include: { conversation: { include: { contact: true } } },
     })
     if (!message) return reply.status(404).send(notFound("Mensagem não encontrada."))
@@ -699,7 +799,9 @@ export async function crmRoutes(fastify: FastifyInstance) {
       })
     }
 
-    const number = destinationFor(message.conversation, message.conversation.contact)
+    const destination = await sendDestination(instance.instanceName, message.conversation)
+    if (!destination.ok) return reply.status(422).send({ error: { code: "INVALID_NUMBER", message: destination.error } })
+    const number = destination.number
     let sent
     if (message.kind === CrmMessageKind.TEXT) {
       sent = await evolution.sendText(instance.instanceName, number, message.text ?? "")
@@ -742,7 +844,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const clinicId = request.clinic!.id
     const { id } = request.params as { id: string }
     const message = await prisma.crmMessage.findFirst({
-      where: { id, clinicId },
+      where: { id, clinicId, conversation: conversationScope(request) },
       select: { mediaStorageKey: true, mediaMimeType: true, mediaFileName: true },
     })
     if (!message?.mediaStorageKey) return reply.status(404).send(notFound("Mídia não encontrada."))
@@ -768,7 +870,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
       .object({ search: z.string().optional(), tag: z.string().optional() })
       .parse(request.query)
 
-    const where: Prisma.CrmContactWhereInput = { clinicId }
+    const where: Prisma.CrmContactWhereInput = { clinicId, AND: [contactScope(request)] }
     const term = query.search?.trim()
     if (term) {
       const digits = digitsOnly(term)
@@ -879,7 +981,10 @@ export async function crmRoutes(fastify: FastifyInstance) {
   fastify.get("/crm/contacts/:id", CRM_READ, async (request, reply) => {
     const clinicId = request.clinic!.id
     const { id } = request.params as { id: string }
-    const contact = await prisma.crmContact.findFirst({ where: { id, clinicId }, include: contactInclude })
+    const contact = await prisma.crmContact.findFirst({
+      where: { id, clinicId, ...contactScope(request) },
+      include: contactInclude,
+    })
     if (!contact) return reply.status(404).send(notFound("Contato não encontrado."))
     return { contact: serializeContact(contact) }
   })
@@ -916,7 +1021,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const parsed = updateContactSchema.safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
 
-    const existing = await prisma.crmContact.findFirst({ where: { id, clinicId } })
+    const existing = await prisma.crmContact.findFirst({ where: { id, clinicId, ...contactScope(request) } })
     if (!existing) return reply.status(404).send(notFound("Contato não encontrado."))
 
     const { name, email, tags, notes, patientId, leadId } = parsed.data
@@ -948,7 +1053,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
   fastify.delete("/crm/contacts/:id", CRM_WRITE, async (request, reply) => {
     const clinicId = request.clinic!.id
     const { id } = request.params as { id: string }
-    const existing = await prisma.crmContact.findFirst({ where: { id, clinicId } })
+    const existing = await prisma.crmContact.findFirst({ where: { id, clinicId, ...contactScope(request) } })
     if (!existing) return reply.status(404).send(notFound("Contato não encontrado."))
     await prisma.crmContact.delete({ where: { id } })
     return { ok: true }
@@ -958,10 +1063,10 @@ export async function crmRoutes(fastify: FastifyInstance) {
   fastify.post("/crm/contacts/:id/conversation", CRM_WRITE, async (request, reply) => {
     const clinicId = request.clinic!.id
     const { id } = request.params as { id: string }
-    const contact = await prisma.crmContact.findFirst({ where: { id, clinicId } })
+    const contact = await prisma.crmContact.findFirst({ where: { id, clinicId, ...contactScope(request) } })
     if (!contact) return reply.status(404).send(notFound("Contato não encontrado."))
     const conversation = await ensureConversation(clinicId, contact.id, `${toWhatsAppNumber(contact.phone)}@s.whatsapp.net`)
-    return { conversation: await loadConversation(clinicId, conversation.id) }
+    return { conversation: await loadConversation(request, conversation.id) }
   })
 
   /** Cria um lead no funil a partir do contato e já deixa os dois vinculados. */
@@ -972,7 +1077,7 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const parsed = createLeadSchema.safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
 
-    const contact = await prisma.crmContact.findFirst({ where: { id, clinicId } })
+    const contact = await prisma.crmContact.findFirst({ where: { id, clinicId, ...contactScope(request) } })
     if (!contact) return reply.status(404).send(notFound("Contato não encontrado."))
     if (contact.leadId) {
       return reply.status(409).send({ error: { code: "ALREADY_LINKED", message: "Este contato já tem um lead vinculado." } })
@@ -1041,5 +1146,74 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const result = await prisma.crmQuickReply.deleteMany({ where: { id, clinicId } })
     if (result.count === 0) return reply.status(404).send(notFound("Resposta rápida não encontrada."))
     return { ok: true }
+  })
+
+  // ---------------------------------------------------------------------------
+  // Automações
+  // ---------------------------------------------------------------------------
+
+  const serializeAutomation = (settings: Awaited<ReturnType<typeof getAutomationSettings>>) => ({
+    salesWebhookUrl: salesWebhookUrl(settings.salesWebhookToken),
+    welcomeEnabled: settings.welcomeEnabled,
+    welcomeMessage: settings.welcomeMessage ?? "",
+    welcomeSkipPatients: settings.welcomeSkipPatients,
+    tagRules: parseTagRules(settings.tagRules),
+  })
+
+  fastify.get("/crm/automations", SETTINGS, async (request) => {
+    return { automations: serializeAutomation(await getAutomationSettings(request.clinic!.id)) }
+  })
+
+  const automationSchema = z.object({
+    welcomeEnabled: z.boolean().optional(),
+    welcomeMessage: z.string().max(2000).optional(),
+    welcomeSkipPatients: z.boolean().optional(),
+    tagRules: z
+      .array(
+        z.object({
+          keywords: z.array(z.string().trim().min(1).max(60)).min(1).max(30),
+          tag: z.string().trim().min(1).max(40),
+        }),
+      )
+      .max(50)
+      .optional(),
+  })
+
+  fastify.patch("/crm/automations", SETTINGS, async (request, reply) => {
+    const parsed = automationSchema.safeParse(request.body ?? {})
+    if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.issues[0]?.message ?? "Dados inválidos."))
+    const clinicId = request.clinic!.id
+    await getAutomationSettings(clinicId)
+    const { tagRules, welcomeMessage, ...rest } = parsed.data
+    if (rest.welcomeEnabled && welcomeMessage !== undefined && !welcomeMessage.trim()) {
+      return reply.status(400).send(badRequest("Escreva a mensagem de apresentação."))
+    }
+    const settings = await prisma.crmAutomationSettings.update({
+      where: { clinicId },
+      data: {
+        ...rest,
+        ...(welcomeMessage !== undefined ? { welcomeMessage: welcomeMessage.trim() || null } : {}),
+        ...(tagRules
+          ? { tagRules: tagRules.map((r) => ({ keywords: r.keywords, tag: r.tag.toLowerCase() })) }
+          : {}),
+      },
+    })
+    if (tagRules?.length) {
+      await prisma.crmTag.createMany({
+        data: [...new Set(tagRules.map((r) => r.tag.toLowerCase()))].map((name) => ({ clinicId, name })),
+        skipDuplicates: true,
+      })
+    }
+    return { automations: serializeAutomation(settings) }
+  })
+
+  fastify.post("/crm/automations/regenerate-token", SETTINGS, async (request) => {
+    const clinicId = request.clinic!.id
+    await getAutomationSettings(clinicId)
+    const settings = await prisma.crmAutomationSettings.update({
+      where: { clinicId },
+      data: { salesWebhookToken: crypto.randomBytes(24).toString("base64url") },
+    })
+    return { automations: serializeAutomation(settings) }
   })
 }

@@ -20,6 +20,8 @@ import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { findNavItem } from "@/lib/navigation"
 import { useAuthStore } from "@/stores/useAuthStore"
+import { isRestrictedRole } from "@/lib/roles"
+import { cn } from "@/lib/utils"
 import { useClinicStore } from "@/stores/useClinicStore"
 
 function getInitials(name: string): string {
@@ -41,6 +43,7 @@ export function Header({
   const current = findNavItem(pathname)
   const profile = useClinicStore((state) => state.profile)
   const { user, clinic, clinics, switchClinic, logout } = useAuthStore()
+  const restricted = isRestrictedRole(clinic?.role)
 
   const displayName = user?.name || profile.professional || "Usuário"
   const displayClinic = clinic?.name || profile.name
@@ -81,7 +84,7 @@ export function Header({
         </p>
       </div>
 
-      <div className="relative ml-auto hidden w-full max-w-[240px] shrink md:block xl:max-w-xs">
+      <div className={cn("relative ml-auto hidden w-full max-w-[240px] shrink md:block xl:max-w-xs", restricted && "md:hidden")}>
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Buscar paciente, procedimento..."
@@ -90,13 +93,16 @@ export function Header({
       </div>
 
       <div className="ml-auto flex shrink-0 items-center gap-2 md:ml-0">
-        <QuickReferenceSheet />
-
-        <Button size="sm" asChild className="hidden rounded-full shadow-[0_8px_20px_-10px_hsl(335_78%_55%/0.9)] lg:inline-flex">
-          <Link to="/agenda">
-            <Plus /> Novo atendimento
-          </Link>
-        </Button>
+        {!restricted && (
+          <>
+            <QuickReferenceSheet />
+            <Button size="sm" asChild className="hidden rounded-full shadow-[0_8px_20px_-10px_hsl(335_78%_55%/0.9)] lg:inline-flex">
+              <Link to="/agenda">
+                <Plus /> Novo atendimento
+              </Link>
+            </Button>
+          </>
+        )}
 
         <NotificationCenter />
 

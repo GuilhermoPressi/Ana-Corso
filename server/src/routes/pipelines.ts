@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify"
-import { ClinicStatus, CrmStageType } from "@prisma/client"
+import { ClinicStatus, CrmPipelineKind, CrmStageType, Prisma } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "../db.js"
 import { requireAuth, requirePermission } from "../middlewares/auth.js"
@@ -9,7 +9,31 @@ const COLORS = ["rosa", "roxo", "azul", "verde", "amarelo", "laranja", "vermelho
 
 const pipelineSchema = z.object({
   name: z.string().trim().min(1, "Informe o nome do pipeline.").max(60),
+  kind: z.nativeEnum(CrmPipelineKind).optional(),
 })
+
+const productSchema = z.object({
+  name: z.string().trim().min(1, "Informe o nome do produto.").max(120),
+  price: z.number().nonnegative().default(0),
+  active: z.boolean().default(true),
+  externalIds: z.array(z.string().trim().min(1).max(80)).max(20).default([]),
+  pipelineId: z.string().uuid().nullable().optional(),
+  buyerStageId: z.string().uuid().nullable().optional(),
+  buyerTag: z.string().trim().max(40).nullable().optional(),
+})
+
+function serializeProduct(p: Prisma.CrmProductGetPayload<object>) {
+  return {
+    id: p.id,
+    name: p.name,
+    price: Number(p.price),
+    active: p.active,
+    externalIds: p.externalIds,
+    pipelineId: p.pipelineId,
+    buyerStageId: p.buyerStageId,
+    buyerTag: p.buyerTag,
+  }
+}
 
 const stageSchema = z.object({
   name: z.string().trim().min(1, "Informe o nome da etapa.").max(60),
@@ -45,6 +69,7 @@ async function listPipelines(clinicId: string) {
   return pipelines.map((p) => ({
     id: p.id,
     name: p.name,
+    kind: p.kind,
     isDefault: p.isDefault,
     stages: p.stages.map((s) => ({
       id: s.id,
@@ -79,6 +104,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
       data: {
         clinicId,
         name: parsed.data.name,
+        kind: parsed.data.kind ?? CrmPipelineKind.CLINIC,
         position: (last?.position ?? 0) + 1,
         stages: { create: NEW_PIPELINE_STAGES.map((stage, position) => ({ ...stage, position })) },
       },
@@ -89,9 +115,15 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
   fastify.patch("/crm/pipelines/:id", CRM_WRITE, async (request, reply) => {
     const clinicId = request.clinic!.id
     const { id } = request.params as { id: string }
-    const parsed = pipelineSchema.safeParse(request.body)
+    const parsed = pipelineSchema.partial().safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
-    const result = await prisma.crmPipeline.updateMany({ where: { id, clinicId }, data: { name: parsed.data.name } })
+    const result = await prisma.crmPipeline.updateMany({
+      where: { id, clinicId },
+      data: {
+        ...(parsed.data.name ? { name: parsed.data.name } : {}),
+        ...(parsed.data.kind ? { kind: parsed.data.kind } : {}),
+      },
+    })
     if (result.count === 0) return reply.status(404).send(notFound("Pipeline não encontrado."))
     return { pipelines: await listPipelines(clinicId) }
   })
@@ -214,5 +246,92 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
       parsed.data.stageIds.map((stageId, position) => prisma.crmPipelineStage.update({ where: { id: stageId }, data: { position } })),
     )
     return { pipelines: await listPipelines(clinicId) }
+  })
+
+  // ==========================================================================
+  // Produtos digitais
+  // ==========================================================================
+
+  async function validateProductTarget(clinicId: string, pipelineId?: string | null, stageId?: string | null) {
+    if (stageId) {
+      const stage = await prisma.crmPipelineStage.findFirst({ where: { id: stageId, pipeline: { clinicId } } })
+      if (!stage) return { error: "Etapa inválida." }
+      if (pipelineId && stage.pipelineId !== pipelineId) return { error: "A etapa não pertence ao pipeline escolhido." }
+      return { pipelineId: stage.pipelineId, stageId }
+    }
+    if (pipelineId) {
+      const pipeline = await prisma.crmPipeline.findFirst({ where: { id: pipelineId, clinicId } })
+      if (!pipeline) return { error: "Pipeline inválido." }
+    }
+    return { pipelineId: pipelineId ?? null, stageId: null }
+  }
+
+  fastify.get("/crm/products", async (request) => {
+    const products = await prisma.crmProduct.findMany({
+      where: { clinicId: request.clinic!.id },
+      orderBy: [{ active: "desc" }, { name: "asc" }],
+    })
+    return { products: products.map(serializeProduct) }
+  })
+
+  fastify.post("/crm/products", CRM_WRITE, async (request, reply) => {
+    const clinicId = request.clinic!.id
+    const parsed = productSchema.safeParse(request.body)
+    if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
+    const target = await validateProductTarget(clinicId, parsed.data.pipelineId, parsed.data.buyerStageId)
+    if ("error" in target) return reply.status(400).send(badRequest(target.error!))
+    const product = await prisma.crmProduct.create({
+      data: {
+        clinicId,
+        name: parsed.data.name,
+        price: parsed.data.price,
+        active: parsed.data.active,
+        externalIds: [...new Set(parsed.data.externalIds)],
+        pipelineId: target.pipelineId,
+        buyerStageId: target.stageId,
+        buyerTag: parsed.data.buyerTag === undefined ? "compradora" : parsed.data.buyerTag?.toLowerCase() || null,
+      },
+    })
+    return reply.status(201).send({ product: serializeProduct(product) })
+  })
+
+  fastify.patch("/crm/products/:id", CRM_WRITE, async (request, reply) => {
+    const clinicId = request.clinic!.id
+    const { id } = request.params as { id: string }
+    const parsed = productSchema.partial().safeParse(request.body)
+    if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
+    const existing = await prisma.crmProduct.findFirst({ where: { id, clinicId } })
+    if (!existing) return reply.status(404).send(notFound("Produto não encontrado."))
+    const d = parsed.data
+    let targetData = {}
+    if (d.pipelineId !== undefined || d.buyerStageId !== undefined) {
+      const target = await validateProductTarget(
+        clinicId,
+        d.pipelineId !== undefined ? d.pipelineId : existing.pipelineId,
+        d.buyerStageId !== undefined ? d.buyerStageId : existing.buyerStageId,
+      )
+      if ("error" in target) return reply.status(400).send(badRequest(target.error!))
+      targetData = { pipelineId: target.pipelineId, buyerStageId: target.stageId }
+    }
+    const product = await prisma.crmProduct.update({
+      where: { id },
+      data: {
+        ...(d.name !== undefined ? { name: d.name } : {}),
+        ...(d.price !== undefined ? { price: d.price } : {}),
+        ...(d.active !== undefined ? { active: d.active } : {}),
+        ...(d.externalIds !== undefined ? { externalIds: [...new Set(d.externalIds)] } : {}),
+        ...(d.buyerTag !== undefined ? { buyerTag: d.buyerTag?.toLowerCase() || null } : {}),
+        ...targetData,
+      },
+    })
+    return { product: serializeProduct(product) }
+  })
+
+  fastify.delete("/crm/products/:id", CRM_WRITE, async (request, reply) => {
+    const clinicId = request.clinic!.id
+    const { id } = request.params as { id: string }
+    const result = await prisma.crmProduct.deleteMany({ where: { id, clinicId } })
+    if (result.count === 0) return reply.status(404).send(notFound("Produto não encontrado."))
+    return { ok: true }
   })
 }

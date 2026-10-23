@@ -197,6 +197,36 @@ export const evolution = {
     })
   },
 
+  /** Quais números têm WhatsApp e qual o JID correto de cada um. */
+  async checkNumbers(instanceName: string, numbers: string[]) {
+    const res = await evoFetch<any>("POST", `/chat/whatsappNumbers/${enc(instanceName)}`, { numbers }, 15_000)
+    if (!res.ok) return res
+    const list = Array.isArray(res.data) ? res.data : []
+    return {
+      ok: true as const,
+      data: list.map((item: any) => ({
+        number: String(item?.number ?? ""),
+        exists: Boolean(item?.exists),
+        jid: (item?.jid as string | undefined) ?? null,
+      })),
+    }
+  },
+
+  /** Configuração atual do webhook da instância. */
+  async findWebhook(instanceName: string) {
+    const res = await evoFetch<any>("GET", `/webhook/find/${enc(instanceName)}`)
+    if (!res.ok) return res
+    const data = res.data?.webhook ?? res.data ?? {}
+    return {
+      ok: true as const,
+      data: {
+        url: (data.url as string | undefined) ?? null,
+        enabled: data.enabled !== false,
+        events: (data.events as string[] | undefined) ?? [],
+      },
+    }
+  },
+
   async profilePicture(instanceName: string, number: string) {
     const res = await evoFetch<any>("POST", `/chat/fetchProfilePictureUrl/${enc(instanceName)}`, { number }, 10_000)
     if (!res.ok) return null

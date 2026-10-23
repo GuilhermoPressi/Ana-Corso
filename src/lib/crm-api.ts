@@ -63,7 +63,18 @@ export type Message = {
   status: MessageStatus
   errorReason: string | null
   sentAt: string
+  automated?: boolean
   sentBy: { id: string; name: string } | null
+}
+
+export type TagRule = { keywords: string[]; tag: string }
+
+export type CrmAutomations = {
+  salesWebhookUrl: string
+  welcomeEnabled: boolean
+  welcomeMessage: string
+  welcomeSkipPatients: boolean
+  tagRules: TagRule[]
 }
 
 export type Contact = {
@@ -139,16 +150,20 @@ export const crmApi = {
   connectWhatsapp: () => request<{ instance: WhatsAppInstance }>("POST", "/api/crm/whatsapp/connect", {}),
   disconnectWhatsapp: () => request<{ instance: WhatsAppInstance | null }>("POST", "/api/crm/whatsapp/disconnect", {}),
 
-  listConversations: (filter: ConversationFilter, search: string) => {
+  listConversations: (filter: ConversationFilter, search: string, tag?: string) => {
     const params = new URLSearchParams({ filter })
     if (search.trim()) params.set("search", search.trim())
+    if (tag) params.set("tag", tag)
     return request<{ conversations: Conversation[]; counts: ConversationCounts }>("GET", `/api/crm/conversations?${params}`)
   },
   unreadTotal: () =>
     request<{
       unread: number
       latestInbound: { id: string; conversationId: string; contactName: string; receivedAt: string } | null
+      whatsapp: { status: WhatsAppStatus } | null
     }>("GET", "/api/crm/unread"),
+  testWhatsapp: () =>
+    request<{ checks: { ok: boolean; label: string; detail: string }[] }>("POST", "/api/crm/whatsapp/test", {}),
   getConversation: (id: string) =>
     request<{ conversation: Conversation; messages: Message[] }>("GET", `/api/crm/conversations/${id}`),
   markRead: (id: string) => request<{ ok: true }>("POST", `/api/crm/conversations/${id}/read`, {}),
@@ -190,6 +205,11 @@ export const crmApi = {
     request<{ quickReply: QuickReply }>("POST", "/api/crm/quick-replies", input),
   deleteQuickReply: (id: string) => request<{ ok: true }>("DELETE", `/api/crm/quick-replies/${id}`),
 
+  getAutomations: () => request<{ automations: CrmAutomations }>("GET", "/api/crm/automations"),
+  saveAutomations: (patch: Partial<Omit<CrmAutomations, "salesWebhookUrl">>) =>
+    request<{ automations: CrmAutomations }>("PATCH", "/api/crm/automations", patch),
+  regenerateSalesToken: () =>
+    request<{ automations: CrmAutomations }>("POST", "/api/crm/automations/regenerate-token", {}),
   listTeam: () => request<{ members: TeamMember[] }>("GET", "/api/team"),
   searchPatients: (search: string) =>
     request<{ options: { id: string; name: string; phone: string | null }[] }>(

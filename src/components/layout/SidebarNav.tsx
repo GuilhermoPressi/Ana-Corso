@@ -8,6 +8,7 @@ import { navigation, secondaryNavigation, type NavItem } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/stores/useAuthStore"
 import { useInboxStore } from "@/stores/useInboxStore"
+import { canAccessPath, isRestrictedRole } from "@/lib/roles"
 
 const adminNavItems: NavItem[] = [
   { title: "Painel SaaS", url: "/admin", icon: ShieldAlert, ready: true },
@@ -97,7 +98,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           {navigation.map((group) => {
             const filteredItems = group.items.filter((item) => {
               if (isReceptionist && item.url === "/financeiro") return false
-              return true
+              return canAccessPath(clinic?.role, item.url)
             })
 
             if (filteredItems.length === 0) return null
@@ -117,9 +118,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </ScrollArea>
 
       <div className="shrink-0 border-t border-sidebar-border p-3">
-        {secondaryNavigation.map((item) => (
-          <NavRow key={item.url} item={item} onNavigate={onNavigate} />
-        ))}
+        {secondaryNavigation
+          .filter((item) => !isRestrictedRole(clinic?.role) || canAccessPath(clinic?.role, item.url))
+          .map((item) => (
+            <NavRow key={item.url} item={item} onNavigate={onNavigate} />
+          ))}
         <div className="mt-3 rounded-xl bg-gradient-to-br from-accent to-secondary p-3.5">
           <p className="font-display text-[13px] font-semibold text-accent-foreground">Plano Premium</p>
           <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">

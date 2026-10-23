@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
@@ -215,6 +216,7 @@ export function ManagePipelineDialog({
   onDeleted: () => void
 }) {
   const renamePipeline = usePipelineStore((s) => s.renamePipeline)
+  const setPipelineKind = usePipelineStore((s) => s.setPipelineKind)
   const deletePipeline = usePipelineStore((s) => s.deletePipeline)
   const createStage = usePipelineStore((s) => s.createStage)
   const reorderStages = usePipelineStore((s) => s.reorderStages)
@@ -307,6 +309,25 @@ export function ManagePipelineDialog({
             maxLength={60}
           />
         </div>
+
+        <label className="flex items-start gap-3 rounded-xl border p-3 text-[13px]">
+          <Switch
+            checked={pipeline.kind === "DIGITAL"}
+            onCheckedChange={async (checked) => {
+              try {
+                await setPipelineKind(pipeline.id, checked ? "DIGITAL" : "CLINIC")
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Não foi possível alterar o tipo.")
+              }
+            }}
+          />
+          <span>
+            <span className="font-medium">Pipeline de produtos digitais</span>
+            <span className="block text-[12px] text-muted-foreground">
+              Os cards passam a ter Produto, origens digitais e Situação da compra no lugar de procedimento.
+            </span>
+          </span>
+        </label>
 
         <div className="max-h-[45vh] space-y-2 overflow-y-auto pr-1">
           <p className="text-[13px] font-medium">Etapas (da esquerda para a direita)</p>

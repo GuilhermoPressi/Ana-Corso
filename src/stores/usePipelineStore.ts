@@ -19,9 +19,46 @@ export type PipelineStage = {
   leadCount: number
 }
 
+export type PipelineKind = "CLINIC" | "DIGITAL"
+
+export type Product = {
+  id: string
+  name: string
+  price: number
+  active: boolean
+  externalIds: string[]
+  pipelineId: string | null
+  buyerStageId: string | null
+  buyerTag: string | null
+}
+
+export type ProductInput = Partial<Omit<Product, "id">> & { name?: string }
+
+export const PURCHASE_STATUS_LABEL = {
+  INTERESTED: "Interessada",
+  CHECKOUT_ABANDONED: "Checkout abandonado",
+  PURCHASED: "Comprou",
+  REFUNDED: "Reembolso",
+} as const
+
+export type PurchaseStatus = keyof typeof PURCHASE_STATUS_LABEL
+
+export const DIGITAL_SOURCES = [
+  "Instagram",
+  "Anúncio",
+  "Lançamento",
+  "Live",
+  "Indicação",
+  "Hotmart",
+  "Kiwify",
+  "WhatsApp",
+  "Orgânico",
+]
+
 export type Pipeline = {
   id: string
   name: string
+  kind: PipelineKind
   isDefault: boolean
   stages: PipelineStage[]
 }
@@ -30,8 +67,13 @@ type PipelineState = {
   pipelines: Pipeline[]
   loaded: boolean
   load: () => Promise<void>
-  createPipeline: (name: string) => Promise<string>
+  createPipeline: (name: string, kind?: PipelineKind) => Promise<string>
   renamePipeline: (id: string, name: string) => Promise<void>
+  setPipelineKind: (id: string, kind: PipelineKind) => Promise<void>
+  products: Product[]
+  loadProducts: () => Promise<void>
+  saveProduct: (id: string | null, input: ProductInput) => Promise<Product>
+  deleteProduct: (id: string) => Promise<void>
   deletePipeline: (id: string) => Promise<void>
   createStage: (pipelineId: string, input: { name: string; color: TagColor; type: StageType }) => Promise<void>
   updateStage: (id: string, patch: Partial<{ name: string; color: TagColor; type: StageType }>) => Promise<void>
@@ -65,8 +107,8 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
     set({ pipelines, loaded: true })
   },
 
-  createPipeline: async (name) => {
-    const data = await call<{ pipelineId: string; pipelines: Pipeline[] }>("POST", "/api/crm/pipelines", { name })
+  createPipeline: async (name, kind = "CLINIC") => {
+    const data = await call<{ pipelineId: string; pipelines: Pipeline[] }>("POST", "/api/crm/pipelines", { name, kind })
     set({ pipelines: data.pipelines })
     return data.pipelineId
   },
@@ -74,6 +116,33 @@ export const usePipelineStore = create<PipelineState>((set, get) => ({
   renamePipeline: async (id, name) => {
     const data = await call<{ pipelines: Pipeline[] }>("PATCH", `/api/crm/pipelines/${id}`, { name })
     set({ pipelines: data.pipelines })
+  },
+
+  setPipelineKind: async (id, kind) => {
+    const data = await call<{ pipelines: Pipeline[] }>("PATCH", `/api/crm/pipelines/${id}`, { kind })
+    set({ pipelines: data.pipelines })
+  },
+
+  products: [],
+
+  loadProducts: async () => {
+    const { products } = await call<{ products: Product[] }>("GET", "/api/crm/products")
+    set({ products })
+  },
+
+  saveProduct: async (id, input) => {
+    const { product } = id
+      ? await call<{ product: Product }>("PATCH", `/api/crm/products/${id}`, input)
+      : await call<{ product: Product }>("POST", "/api/crm/products", input)
+    set((state) => ({
+      products: id ? state.products.map((p) => (p.id === id ? product : p)) : [...state.products, product],
+    }))
+    return product
+  },
+
+  deleteProduct: async (id) => {
+    await call("DELETE", `/api/crm/products/${id}`)
+    set((state) => ({ products: state.products.filter((p) => p.id !== id) }))
   },
 
   deletePipeline: async (id) => {

@@ -28,6 +28,7 @@ import { WhatsAppConnectionCard } from "@/components/crm/WhatsAppConnectionCard"
 import { GoogleCalendarCard } from "@/components/integrations/GoogleCalendarCard"
 import { useSearchParams } from "react-router-dom"
 import { formatDate } from "@/lib/utils"
+import { ROLE_LABEL } from "@/lib/roles"
 import { useClinicStore } from "@/stores/useClinicStore"
 
 type Member = {
@@ -35,7 +36,7 @@ type Member = {
   name: string
   email: string
   phone?: string | null
-  role: "OWNER" | "ADMIN" | "PROFESSIONAL" | "RECEPTIONIST"
+  role: "OWNER" | "ADMIN" | "PROFESSIONAL" | "RECEPTIONIST" | "SALES"
   status: string
   joinedAt: string
 }
@@ -73,7 +74,7 @@ export default function Configuracoes() {
   const [members, setMembers] = useState<Member[]>([])
   const [invitations, setInvitations] = useState<Invitation[]>([])
   const [inviteEmail, setInviteEmail] = useState("")
-  const [inviteRole, setInviteRole] = useState<"PROFESSIONAL" | "RECEPTIONIST" | "ADMIN">("PROFESSIONAL")
+  const [inviteRole, setInviteRole] = useState<"PROFESSIONAL" | "RECEPTIONIST" | "SALES" | "ADMIN">("PROFESSIONAL")
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
 
   useEffect(() => {
@@ -349,6 +350,7 @@ export default function Configuracoes() {
                         <SelectContent>
                           <SelectItem value="PROFESSIONAL">Profissional da Saúde (Atendimento)</SelectItem>
                           <SelectItem value="RECEPTIONIST">Recepcionista (Agenda & CRM)</SelectItem>
+                          <SelectItem value="SALES">Comercial (somente Conversas e CRM)</SelectItem>
                           <SelectItem value="ADMIN">Administrador da Clínica</SelectItem>
                         </SelectContent>
                       </Select>
@@ -374,7 +376,7 @@ export default function Configuracoes() {
                       <div className="flex items-center gap-2">
                         <p className="text-[13px] font-semibold">{member.name}</p>
                         <Badge variant="outline" className="text-[10px]">
-                          {member.role}
+                          {ROLE_LABEL[member.role] ?? member.role}
                         </Badge>
                       </div>
                       <p className="text-[11px] text-muted-foreground">{member.email}</p>
@@ -387,9 +389,10 @@ export default function Configuracoes() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="ADMIN">ADMIN</SelectItem>
-                            <SelectItem value="PROFESSIONAL">PROFESSIONAL</SelectItem>
-                            <SelectItem value="RECEPTIONIST">RECEPTIONIST</SelectItem>
+                            <SelectItem value="ADMIN">Administrador</SelectItem>
+                            <SelectItem value="PROFESSIONAL">Profissional</SelectItem>
+                            <SelectItem value="RECEPTIONIST">Recepção</SelectItem>
+                            <SelectItem value="SALES">Comercial</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
@@ -414,7 +417,7 @@ export default function Configuracoes() {
                         <div className="flex items-center gap-2">
                           <Mail className="size-4 text-muted-foreground" />
                           <span>{inv.email}</span>
-                          <Badge variant="secondary" className="text-[9px]">{inv.role}</Badge>
+                          <Badge variant="secondary" className="text-[9px]">{ROLE_LABEL[inv.role] ?? inv.role}</Badge>
                         </div>
                         <span className="text-[10px] text-muted-foreground">Expira em {formatDate(inv.expiresAt)}</span>
                       </div>

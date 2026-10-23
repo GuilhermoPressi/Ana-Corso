@@ -12,6 +12,7 @@ import { prisma } from "../db.js"
 import { config } from "../config.js"
 import { evolution } from "./evolution.js"
 import { StorageService } from "./storage.js"
+import { applyTagRules, sendWelcomeMessage } from "./crm-automations.js"
 
 const MAX_MEDIA_BYTES = 20 * 1024 * 1024
 
@@ -196,6 +197,8 @@ const EXTENSIONS: Record<string, string> = {
   "audio/mpeg": "mp3",
   "audio/mp4": "m4a",
   "audio/aac": "aac",
+  "audio/webm": "webm",
+  "audio/wav": "wav",
   "video/mp4": "mp4",
   "video/3gpp": "3gp",
   "application/pdf": "pdf",
@@ -342,6 +345,11 @@ async function ingestMessage(instance: WhatsAppInstance, data: any) {
 
   const ts = Number(data.messageTimestamp)
   const sentAt = Number.isFinite(ts) && ts > 0 ? new Date(ts * 1000) : new Date()
+  // Primeira mensagem da conversa (e recente, para não disparar em sincronização de histórico).
+  const isFirstMessage =
+    !fromMe &&
+    Date.now() - sentAt.getTime() < 10 * 60_000 &&
+    (await prisma.crmMessage.count({ where: { conversationId: conversation.id } })) === 0
 
   let message
   try {
@@ -380,6 +388,15 @@ async function ingestMessage(instance: WhatsAppInstance, data: any) {
           }),
     },
   })
+
+  if (!fromMe) {
+    try {
+      const tagged = await applyTagRules(contact, content.text)
+      if (isFirstMessage) await sendWelcomeMessage(instance, tagged, { id: conversation.id, remoteJid })
+    } catch (err) {
+      console.error("[crm] automação falhou:", err)
+    }
+  }
 
   if (!fromMe && !contact.avatarUrl && !remoteJid.endsWith("@lid")) {
     evolution
@@ -512,4 +529,49 @@ export async function processEvolutionEvent(instance: WhatsAppInstance, payload:
         break
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Verificação real da conexão
+// ---------------------------------------------------------------------------
+
+const stateCheckedAt = new Map<string, number>()
+const STATE_CHECK_INTERVAL_MS = 60_000
+
+/**
+ * Confere na Evolution se a instância marcada como conectada continua
+ * conectada (no máximo uma vez por minuto por clínica). O status do banco
+ * dependia só do webhook `connection.update`, que pode não chegar.
+ */
+export async function verifyInstanceConnection(instance: WhatsAppInstance | null) {
+  if (!instance || instance.status !== WhatsAppConnectionStatus.CONNECTED) return instance
+  const last = stateCheckedAt.get(instance.id) ?? 0
+  if (Date.now() - last < STATE_CHECK_INTERVAL_MS) return instance
+  stateCheckedAt.set(instance.id, Date.now())
+
+  const state = await evolution.connectionState(instance.instanceName)
+  // Falha de rede/servidor: não muda nada (evita falso alarme).
+  if (!state.ok && state.status !== 404) return instance
+  const current = state.ok ? state.data.state : "close"
+  if (current === "open") return instance
+  return prisma.whatsAppInstance.update({
+    where: { id: instance.id },
+    data: {
+      status: current === "connecting" ? WhatsAppConnectionStatus.CONNECTING : WhatsAppConnectionStatus.DISCONNECTED,
+    },
+  })
+}
+
+/**
+ * Número que o WhatsApp reconhece para um telefone (resolve o nono dígito).
+ * Retorna null se o número não tem WhatsApp, ou o próprio número se a
+ * verificação não estiver disponível.
+ */
+export async function resolveWhatsAppNumber(instanceName: string, phone: string) {
+  const variants = phoneVariants(phone).filter((v) => v.startsWith("55") || v.length > 11)
+  const check = await evolution.checkNumbers(instanceName, variants.length ? variants : [toWhatsAppNumber(phone)])
+  if (!check.ok) return { jid: null as string | null, number: toWhatsAppNumber(phone), verified: false }
+  const found = check.data.find((r) => r.exists && r.jid)
+  if (!found) return { jid: null, number: null as string | null, verified: true }
+  return { jid: found.jid!, number: found.jid!.split("@")[0], verified: true }
 }

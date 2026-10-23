@@ -14,6 +14,7 @@ import {
   MoreHorizontal,
   CalendarClock,
   Loader2,
+  Package,
   Pencil,
   Plus,
   Settings2,
@@ -21,13 +22,16 @@ import {
   TrendingUp,
   UserRoundCheck,
   Wallet,
+  Zap,
 } from "lucide-react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 
+import { AutomationsTab } from "@/components/crm/AutomationsTab"
 import { ContactsTab } from "@/components/crm/ContactsTab"
 import { EditLeadDialog } from "@/components/crm/EditLeadDialog"
 import { ManagePipelineDialog } from "@/components/crm/ManagePipelineDialog"
+import { ManageProductsDialog } from "@/components/crm/ManageProductsDialog"
 import { NewLeadDialog } from "@/components/crm/NewLeadDialog"
 import { TagChip } from "@/components/crm/TagChip"
 
@@ -57,8 +61,16 @@ import { tagColorStyle } from "@/lib/tag-colors"
 import { cn, formatCurrency, formatDate } from "@/lib/utils"
 import { buildWhatsAppLink, contextualMessage, firstNameOf } from "@/lib/whatsapp"
 import { usePatientStore } from "@/stores/usePatientStore"
-import { STAGE_TYPE_LABEL, usePipelineStore, type StageType } from "@/stores/usePipelineStore"
+import { PURCHASE_STATUS_LABEL, STAGE_TYPE_LABEL, usePipelineStore, type StageType } from "@/stores/usePipelineStore"
 import { useTagStore } from "@/stores/useTagStore"
+import { useAuthStore } from "@/stores/useAuthStore"
+
+const purchaseStyles: Record<string, string> = {
+  INTERESTED: "border-sky-300 bg-sky-50 text-sky-800 dark:bg-sky-500/15 dark:text-sky-200",
+  CHECKOUT_ABANDONED: "border-orange-300 bg-orange-50 text-orange-800 dark:bg-orange-500/15 dark:text-orange-200",
+  PURCHASED: "border-success/30 bg-success/10 text-success",
+  REFUNDED: "border-border bg-muted text-muted-foreground",
+}
 
 const temperatureStyles = {
   quente: "border-destructive/20 bg-destructive/10 text-destructive",
@@ -66,12 +78,15 @@ const temperatureStyles = {
   frio: "border-border bg-muted text-muted-foreground",
 } as const
 
-type CrmTab = "pipeline" | "contatos"
+type CrmTab = "pipeline" | "contatos" | "automacoes"
 
 export default function Crm() {
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
-  const tab: CrmTab = params.get("aba") === "contatos" ? "contatos" : "pipeline"
+  const role = useAuthStore((s) => s.clinicRole)
+  const canAutomate = role === "OWNER" || role === "ADMIN"
+  const aba = params.get("aba")
+  const tab: CrmTab = aba === "contatos" ? "contatos" : aba === "automacoes" && canAutomate ? "automacoes" : "pipeline"
   const focusContactId = params.get("contato")
 
   // Links antigos (/crm?aba=conversas) agora levam para a página Conversas.
@@ -118,6 +133,11 @@ undefined
           <TabsTrigger value="contatos" className="px-3">
             <ContactRound /> Contatos
           </TabsTrigger>
+          {canAutomate && (
+            <TabsTrigger value="automacoes" className="px-3">
+              <Zap /> Automações
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="pipeline">
@@ -130,6 +150,11 @@ undefined
             onOpenConversation={(id) => navigate(`/conversas?conversa=${id}`)}
           />
         </TabsContent>
+        {canAutomate && (
+          <TabsContent value="automacoes">
+            <AutomationsTab />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )
@@ -159,11 +184,16 @@ function CrmPipeline() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [creatingPipeline, setCreatingPipeline] = useState(false)
   const [newPipelineName, setNewPipelineName] = useState("")
+  const [newPipelineKind, setNewPipelineKind] = useState<"CLINIC" | "DIGITAL">("DIGITAL")
+  const [managingProducts, setManagingProducts] = useState(false)
+  const products = usePipelineStore((state) => state.products)
+  const loadProducts = usePipelineStore((state) => state.loadProducts)
 
   useEffect(() => {
     // Leads primeiro: o servidor encaixa os leads antigos nas etapas do pipeline.
     fetchLeads().then(() => loadPipelines().catch(() => toast.error("Não foi possível carregar os pipelines.")))
-  }, [fetchLeads, loadPipelines])
+    loadProducts().catch(() => {})
+  }, [fetchLeads, loadPipelines, loadProducts])
 
   const defaultPipeline = pipelines.find((p) => p.isDefault) ?? pipelines[0]
   const pipeline = pipelines.find((p) => p.id === pipelineId) ?? defaultPipeline
@@ -241,7 +271,7 @@ function CrmPipeline() {
     const name = newPipelineName.trim()
     if (!name) return
     try {
-      const id = await createPipeline(name)
+      const id = await createPipeline(name, newPipelineKind)
       selectPipeline(id)
       setNewPipelineName("")
       setCreatingPipeline(false)
@@ -291,6 +321,15 @@ function CrmPipeline() {
               className="h-9 w-[200px]"
               maxLength={60}
             />
+            <Select value={newPipelineKind} onValueChange={(value) => value && setNewPipelineKind(value as "CLINIC" | "DIGITAL")}>
+              <SelectTrigger className="h-9 w-[170px] text-[12px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="DIGITAL">Produtos digitais</SelectItem>
+                <SelectItem value="CLINIC">Clínica</SelectItem>
+              </SelectContent>
+            </Select>
             <Button type="submit" size="sm" disabled={!newPipelineName.trim()}>
               Criar
             </Button>
@@ -303,8 +342,17 @@ function CrmPipeline() {
             <Plus /> Novo pipeline
           </Button>
         )}
+        {pipeline.kind === "DIGITAL" && (
+          <Button variant="outline" size="sm" onClick={() => setManagingProducts(true)}>
+            <Package /> Produtos
+          </Button>
+        )}
         <div className="ml-auto">
-          <NewLeadDialog stageId={firstOpenStage?.id} />
+          <NewLeadDialog
+            stageId={firstOpenStage?.id}
+            digital={pipeline.kind === "DIGITAL"}
+            products={products.filter((p) => p.active)}
+          />
         </div>
       </div>
 
@@ -464,6 +512,7 @@ function CrmPipeline() {
           fetchLeads()
         }}
       />
+      <ManageProductsDialog open={managingProducts} onOpenChange={setManagingProducts} />
       <EditLeadDialog lead={editingLead} open={Boolean(editingId)} onOpenChange={(open) => !open && setEditingId(null)} />
     </div>
   )
@@ -532,7 +581,7 @@ function LeadCard({
 
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-semibold">{lead.name}</p>
-            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{lead.interest}</p>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{lead.product?.name ?? lead.interest}</p>
           </div>
 
           <div onClick={(event) => event.stopPropagation()}>
@@ -613,6 +662,11 @@ function LeadCard({
             {lead.temperature === "quente" && <Flame className="size-2.5" />}
             {lead.temperature}
           </Badge>
+          {lead.purchaseStatus && (
+            <Badge variant="outline" className={cn("rounded-full text-[10px]", purchaseStyles[lead.purchaseStatus])}>
+              {PURCHASE_STATUS_LABEL[lead.purchaseStatus]}
+            </Badge>
+          )}
           {scheduled && (
             <Badge variant="outline" className="rounded-full border-primary/25 bg-primary/10 text-[10px] text-primary">
               <CalendarClock className="size-2.5" /> {formatDate(lead.scheduledFor!)}
