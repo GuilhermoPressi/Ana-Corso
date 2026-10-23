@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify"
+import type { FastifyInstance, FastifyRequest } from "fastify"
 import { ClinicStatus, CrmPipelineKind, CrmStageType, Prisma } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "../db.js"
@@ -51,11 +51,16 @@ function notFound(message: string) {
   return { error: { code: "NOT_FOUND", message } }
 }
 
-async function listPipelines(clinicId: string) {
+/** O perfil Comercial só enxerga e mexe nos pipelines de produtos digitais. */
+export function pipelineScope(request: FastifyRequest): Prisma.CrmPipelineWhereInput {
+  return request.clinicRole === "SALES" ? { kind: CrmPipelineKind.DIGITAL } : {}
+}
+
+async function listPipelines(clinicId: string, scope: Prisma.CrmPipelineWhereInput = {}) {
   await ensureDefaultPipeline(clinicId)
   const [pipelines, counts] = await Promise.all([
     prisma.crmPipeline.findMany({
-      where: { clinicId },
+      where: { clinicId, ...scope },
       include: { stages: { orderBy: { position: "asc" } } },
       orderBy: [{ isDefault: "desc" }, { position: "asc" }, { createdAt: "asc" }],
     }),
@@ -92,7 +97,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
   })
 
   fastify.get("/crm/pipelines", async (request) => {
-    return { pipelines: await listPipelines(request.clinic!.id) }
+    return { pipelines: await listPipelines(request.clinic!.id, pipelineScope(request)) }
   })
 
   fastify.post("/crm/pipelines", CRM_WRITE, async (request, reply) => {
@@ -104,12 +109,12 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
       data: {
         clinicId,
         name: parsed.data.name,
-        kind: parsed.data.kind ?? CrmPipelineKind.CLINIC,
+        kind: request.clinicRole === "SALES" ? CrmPipelineKind.DIGITAL : (parsed.data.kind ?? CrmPipelineKind.CLINIC),
         position: (last?.position ?? 0) + 1,
         stages: { create: NEW_PIPELINE_STAGES.map((stage, position) => ({ ...stage, position })) },
       },
     })
-    return reply.status(201).send({ pipelineId: pipeline.id, pipelines: await listPipelines(clinicId) })
+    return reply.status(201).send({ pipelineId: pipeline.id, pipelines: await listPipelines(clinicId, pipelineScope(request)) })
   })
 
   fastify.patch("/crm/pipelines/:id", CRM_WRITE, async (request, reply) => {
@@ -118,36 +123,54 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
     const parsed = pipelineSchema.partial().safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
     const result = await prisma.crmPipeline.updateMany({
-      where: { id, clinicId },
+      where: { id, clinicId, ...pipelineScope(request) },
       data: {
         ...(parsed.data.name ? { name: parsed.data.name } : {}),
-        ...(parsed.data.kind ? { kind: parsed.data.kind } : {}),
+        ...(parsed.data.kind && request.clinicRole !== "SALES" ? { kind: parsed.data.kind } : {}),
       },
     })
     if (result.count === 0) return reply.status(404).send(notFound("Pipeline não encontrado."))
-    return { pipelines: await listPipelines(clinicId) }
+    return { pipelines: await listPipelines(clinicId, pipelineScope(request)) }
   })
 
   /** Exclui um pipeline; os leads dele vão para a primeira etapa do pipeline Comercial. */
   fastify.delete("/crm/pipelines/:id", CRM_WRITE, async (request, reply) => {
     const clinicId = request.clinic!.id
     const { id } = request.params as { id: string }
-    const pipeline = await prisma.crmPipeline.findFirst({ where: { id, clinicId } })
+    const pipeline = await prisma.crmPipeline.findFirst({ where: { id, clinicId, ...pipelineScope(request) } })
     if (!pipeline) return reply.status(404).send(notFound("Pipeline não encontrado."))
     if (pipeline.isDefault) {
       return reply.status(409).send({ error: { code: "DEFAULT_PIPELINE", message: "O pipeline Comercial não pode ser excluído." } })
     }
 
-    const defaultPipeline = await ensureDefaultPipeline(clinicId)
-    const target = defaultPipeline.stages.find((s) => s.type === CrmStageType.OPEN) ?? defaultPipeline.stages[0]
+    // Leads de um pipeline digital vão para outro digital (se houver); os demais, para o Comercial.
+    const sibling =
+      pipeline.kind === CrmPipelineKind.DIGITAL
+        ? await prisma.crmPipeline.findFirst({
+            where: { clinicId, kind: CrmPipelineKind.DIGITAL, id: { not: id } },
+            include: { stages: true },
+            orderBy: { position: "asc" },
+          })
+        : null
+    if (!sibling && request.clinicRole === "SALES") {
+      const leads = await prisma.lead.count({ where: { clinicId, pipelineId: id, archivedAt: null } })
+      if (leads > 0) {
+        return reply.status(409).send({
+          error: { code: "PIPELINE_HAS_LEADS", message: "Crie outro pipeline de infoprodutos antes, para os leads não se perderem." },
+        })
+      }
+    }
+    const destination = sibling ?? (await ensureDefaultPipeline(clinicId))
+    const sorted = [...destination.stages].sort((a, b) => a.position - b.position)
+    const target = sorted.find((s) => s.type === CrmStageType.OPEN) ?? sorted[0]
     await prisma.$transaction([
       prisma.lead.updateMany({
         where: { clinicId, pipelineId: id },
-        data: { pipelineId: defaultPipeline.id, stageId: target.id, stage: legacyFor(target) },
+        data: { pipelineId: destination.id, stageId: target.id, stage: legacyFor(target) },
       }),
       prisma.crmPipeline.delete({ where: { id } }),
     ])
-    return { pipelines: await listPipelines(clinicId) }
+    return { pipelines: await listPipelines(clinicId, pipelineScope(request)) }
   })
 
   fastify.post("/crm/pipelines/:id/stages", CRM_WRITE, async (request, reply) => {
@@ -156,7 +179,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
     const parsed = stageSchema.safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
     const pipeline = await prisma.crmPipeline.findFirst({
-      where: { id, clinicId },
+      where: { id, clinicId, ...pipelineScope(request) },
       include: { stages: { orderBy: { position: "asc" } } },
     })
     if (!pipeline) return reply.status(404).send(notFound("Pipeline não encontrado."))
@@ -171,7 +194,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
       }),
       prisma.crmPipelineStage.create({ data: { pipelineId: id, ...parsed.data, position } }),
     ])
-    return reply.status(201).send({ pipelines: await listPipelines(clinicId) })
+    return reply.status(201).send({ pipelines: await listPipelines(clinicId, pipelineScope(request)) })
   })
 
   fastify.patch("/crm/stages/:id", CRM_WRITE, async (request, reply) => {
@@ -179,7 +202,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
     const { id } = request.params as { id: string }
     const parsed = stageSchema.partial().safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
-    const stage = await prisma.crmPipelineStage.findFirst({ where: { id, pipeline: { clinicId } } })
+    const stage = await prisma.crmPipelineStage.findFirst({ where: { id, pipeline: { clinicId, ...pipelineScope(request) } } })
     if (!stage) return reply.status(404).send(notFound("Etapa não encontrada."))
 
     const typeChanged = parsed.data.type && parsed.data.type !== stage.type
@@ -191,7 +214,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
     if (typeChanged) {
       await prisma.lead.updateMany({ where: { clinicId, stageId: id }, data: { stage: legacyFor(updated) } })
     }
-    return { pipelines: await listPipelines(clinicId) }
+    return { pipelines: await listPipelines(clinicId, pipelineScope(request)) }
   })
 
   /** Exclui uma etapa; se tiver leads, eles vão para `moveToStageId` (mesmo pipeline). */
@@ -201,7 +224,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
     const { moveToStageId } = z.object({ moveToStageId: z.string().uuid().optional() }).parse(request.query)
 
     const stage = await prisma.crmPipelineStage.findFirst({
-      where: { id, pipeline: { clinicId } },
+      where: { id, pipeline: { clinicId, ...pipelineScope(request) } },
       include: { pipeline: { include: { stages: true } } },
     })
     if (!stage) return reply.status(404).send(notFound("Etapa não encontrada."))
@@ -227,7 +250,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
         data: { position: { decrement: 1 } },
       }),
     ])
-    return { pipelines: await listPipelines(clinicId) }
+    return { pipelines: await listPipelines(clinicId, pipelineScope(request)) }
   })
 
   /** Reordena as etapas de um pipeline (lista completa de ids na nova ordem). */
@@ -236,7 +259,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
     const { id } = request.params as { id: string }
     const parsed = z.object({ stageIds: z.array(z.string().uuid()).min(1) }).safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest("Ordem inválida."))
-    const pipeline = await prisma.crmPipeline.findFirst({ where: { id, clinicId }, include: { stages: true } })
+    const pipeline = await prisma.crmPipeline.findFirst({ where: { id, clinicId, ...pipelineScope(request) }, include: { stages: true } })
     if (!pipeline) return reply.status(404).send(notFound("Pipeline não encontrado."))
     const ids = new Set(pipeline.stages.map((s) => s.id))
     if (parsed.data.stageIds.length !== ids.size || parsed.data.stageIds.some((sid) => !ids.has(sid))) {
@@ -245,22 +268,27 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
     await prisma.$transaction(
       parsed.data.stageIds.map((stageId, position) => prisma.crmPipelineStage.update({ where: { id: stageId }, data: { position } })),
     )
-    return { pipelines: await listPipelines(clinicId) }
+    return { pipelines: await listPipelines(clinicId, pipelineScope(request)) }
   })
 
   // ==========================================================================
   // Produtos digitais
   // ==========================================================================
 
-  async function validateProductTarget(clinicId: string, pipelineId?: string | null, stageId?: string | null) {
+  async function validateProductTarget(
+    clinicId: string,
+    pipelineId?: string | null,
+    stageId?: string | null,
+    scope: Prisma.CrmPipelineWhereInput = {},
+  ) {
     if (stageId) {
-      const stage = await prisma.crmPipelineStage.findFirst({ where: { id: stageId, pipeline: { clinicId } } })
+      const stage = await prisma.crmPipelineStage.findFirst({ where: { id: stageId, pipeline: { clinicId, ...scope } } })
       if (!stage) return { error: "Etapa inválida." }
       if (pipelineId && stage.pipelineId !== pipelineId) return { error: "A etapa não pertence ao pipeline escolhido." }
       return { pipelineId: stage.pipelineId, stageId }
     }
     if (pipelineId) {
-      const pipeline = await prisma.crmPipeline.findFirst({ where: { id: pipelineId, clinicId } })
+      const pipeline = await prisma.crmPipeline.findFirst({ where: { id: pipelineId, clinicId, ...scope } })
       if (!pipeline) return { error: "Pipeline inválido." }
     }
     return { pipelineId: pipelineId ?? null, stageId: null }
@@ -278,7 +306,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
     const clinicId = request.clinic!.id
     const parsed = productSchema.safeParse(request.body)
     if (!parsed.success) return reply.status(400).send(badRequest(parsed.error.errors[0]?.message ?? "Dados inválidos."))
-    const target = await validateProductTarget(clinicId, parsed.data.pipelineId, parsed.data.buyerStageId)
+    const target = await validateProductTarget(clinicId, parsed.data.pipelineId, parsed.data.buyerStageId, pipelineScope(request))
     if ("error" in target) return reply.status(400).send(badRequest(target.error!))
     const product = await prisma.crmProduct.create({
       data: {
@@ -309,6 +337,7 @@ export async function pipelineRoutes(fastify: FastifyInstance) {
         clinicId,
         d.pipelineId !== undefined ? d.pipelineId : existing.pipelineId,
         d.buyerStageId !== undefined ? d.buyerStageId : existing.buyerStageId,
+        pipelineScope(request),
       )
       if ("error" in target) return reply.status(400).send(badRequest(target.error!))
       targetData = { pipelineId: target.pipelineId, buyerStageId: target.stageId }

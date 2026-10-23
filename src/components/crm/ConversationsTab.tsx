@@ -917,7 +917,7 @@ function Composer({
       </div>
       <p className="mt-1.5 text-[10px] text-muted-foreground">
         Enter envia · Shift+Enter quebra linha · 🎤 para gravar áudio
-        {noteMode && <Badge variant="outline" className="ml-2 h-4 rounded-full px-1.5 text-[9px]">não vai para o paciente</Badge>}
+        {noteMode && <Badge variant="outline" className="ml-2 h-4 rounded-full px-1.5 text-[9px]">não vai para o contato</Badge>}
       </p>
     </div>
   )

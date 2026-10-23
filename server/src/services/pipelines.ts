@@ -9,7 +9,7 @@
  *  - quando outra parte do app muda só o `stage` (ex.: proposta enviada,
  *    conversão), `reconcileLeadStages` move o lead para a etapa equivalente.
  */
-import { CrmStageType, LeadStage, Prisma, type CrmPipelineStage } from "@prisma/client"
+import { CrmPipelineKind, CrmStageType, LeadStage, Prisma, type CrmPipelineStage } from "@prisma/client"
 import { prisma } from "../db.js"
 
 type Tx = Prisma.TransactionClient | typeof prisma
@@ -147,4 +147,15 @@ export async function reconcileLeadStages(clinicId: string) {
       ),
     )
   }
+}
+
+/** Primeira etapa em andamento do primeiro pipeline de produtos digitais. */
+export async function firstDigitalStage(clinicId: string) {
+  const pipeline = await prisma.crmPipeline.findFirst({
+    where: { clinicId, kind: CrmPipelineKind.DIGITAL },
+    include: { stages: { orderBy: { position: "asc" } } },
+    orderBy: { position: "asc" },
+  })
+  if (!pipeline) return null
+  return pipeline.stages.find((s) => s.type === CrmStageType.OPEN) ?? pipeline.stages[0] ?? null
 }

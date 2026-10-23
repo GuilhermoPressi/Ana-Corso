@@ -44,7 +44,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { crmApi, formatPhone, relativeTime, type Contact } from "@/lib/crm-api"
 import { parseDecimal } from "@/lib/number"
 import { cn } from "@/lib/utils"
+import { isRestrictedRole } from "@/lib/roles"
+import { useAuthStore } from "@/stores/useAuthStore"
 import { usePatientStore } from "@/stores/usePatientStore"
+import { usePipelineStore } from "@/stores/usePipelineStore"
 import { useTagStore } from "@/stores/useTagStore"
 
 const leadStageLabel: Record<string, string> = {
@@ -56,6 +59,10 @@ const leadStageLabel: Record<string, string> = {
 }
 
 const ALL_TAGS = "__all__"
+
+function leadLabel(lead: NonNullable<Contact["lead"]>) {
+  return lead.pipelineStage?.name ?? leadStageLabel[lead.stage] ?? lead.stage
+}
 
 export function ContactsTab({
   focusContactId,
@@ -201,7 +208,7 @@ export function ContactsTab({
                       )}
                       {contact.lead && (
                         <Badge variant="outline" className="rounded-full text-[10px]">
-                          Lead · {leadStageLabel[contact.lead.stage] ?? contact.lead.stage}
+                          Lead · {leadLabel(contact.lead)}
                         </Badge>
                       )}
                     </div>
@@ -378,12 +385,19 @@ function ContactSheet({
   onOpenConversation: (contact: Contact) => void
 }) {
   const fetchLeads = usePatientStore((s) => s.fetchLeads)
+  const sales = isRestrictedRole(useAuthStore((s) => s.clinicRole))
+  const products = usePipelineStore((s) => s.products)
+  const loadProducts = usePipelineStore((s) => s.loadProducts)
   const [contact, setContact] = useState<Contact | null>(null)
   const [form, setForm] = useState({ name: "", email: "", notes: "" })
   const [saving, setSaving] = useState(false)
   const [patientSearch, setPatientSearch] = useState("")
   const [patientOptions, setPatientOptions] = useState<{ id: string; name: string; phone: string | null }[]>([])
-  const [leadForm, setLeadForm] = useState<{ interest: string; value: string } | null>(null)
+  const [leadForm, setLeadForm] = useState<{ interest: string; value: string; productId: string } | null>(null)
+
+  useEffect(() => {
+    if (sales) loadProducts().catch(() => {})
+  }, [sales, loadProducts])
 
   // Carrega da lista; se o contato não estiver nela (ex.: veio da conversa com filtro ativo), busca no servidor.
   useEffect(() => {
@@ -443,15 +457,16 @@ function ContactSheet({
     if (!contact || !leadForm) return
     setSaving(true)
     try {
+      const value = parseDecimal(leadForm.value)
       const { contact: saved } = await crmApi.createLeadFromContact(contact.id, {
-        interest: leadForm.interest,
-        value: parseDecimal(leadForm.value) || 0,
+        ...(sales ? { productId: leadForm.productId } : { interest: leadForm.interest }),
+        ...(value > 0 ? { value } : {}),
       })
       setContact(saved)
       onChanged(saved)
       setLeadForm(null)
       fetchLeads()
-      toast.success("Lead criado na coluna Novos contatos do funil.")
+      toast.success(sales ? "Lead criado no funil de infoprodutos." : "Lead criado na coluna Novos contatos do funil.")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível criar o lead.")
     } finally {
@@ -570,6 +585,7 @@ function ContactSheet({
               </section>
 
               {/* Paciente */}
+              {!sales && (
               <section>
                 <p className="mb-2 flex items-center gap-1.5 text-[13px] font-medium">
                   <UserRoundCheck className="size-4 text-success" /> Paciente
@@ -609,6 +625,7 @@ function ContactSheet({
                   </div>
                 )}
               </section>
+              )}
 
               {/* Lead */}
               <section>
@@ -618,7 +635,7 @@ function ContactSheet({
                 {contact.lead ? (
                   <div className="flex items-center justify-between gap-2 rounded-lg border p-2.5 text-sm">
                     <span>
-                      Lead em <strong>{leadStageLabel[contact.lead.stage] ?? contact.lead.stage}</strong>
+                      Lead em <strong>{leadLabel(contact.lead)}</strong>
                     </span>
                     <Button variant="ghost" size="sm" className="h-7 text-[11px]" onClick={() => patch({ leadId: null })}>
                       Desvincular
@@ -626,16 +643,36 @@ function ContactSheet({
                   </div>
                 ) : leadForm ? (
                   <div className="space-y-2 rounded-lg border p-3">
-                    <Input
-                      value={leadForm.interest}
-                      onChange={(event) => setLeadForm((f) => f && { ...f, interest: event.target.value })}
-                      placeholder="Interesse (ex.: Toxina botulínica)"
-                      className="h-8 text-[12px]"
-                    />
+                    {sales ? (
+                      <Select
+                        value={leadForm.productId}
+                        onValueChange={(value) => value && setLeadForm((f) => f && { ...f, productId: value })}
+                      >
+                        <SelectTrigger className="h-8 w-full text-[12px]">
+                          <SelectValue placeholder={products.length ? "Produto" : "Nenhum produto cadastrado"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {products
+                            .filter((p) => p.active)
+                            .map((p) => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        value={leadForm.interest}
+                        onChange={(event) => setLeadForm((f) => f && { ...f, interest: event.target.value })}
+                        placeholder="Interesse (ex.: Toxina botulínica)"
+                        className="h-8 text-[12px]"
+                      />
+                    )}
                     <Input
                       value={leadForm.value}
                       onChange={(event) => setLeadForm((f) => f && { ...f, value: event.target.value })}
-                      placeholder="Valor estimado (R$)"
+                      placeholder={sales ? "Valor (vazio = preço do produto)" : "Valor estimado (R$)"}
                       inputMode="decimal"
                       className="h-8 text-[12px]"
                     />
@@ -643,13 +680,13 @@ function ContactSheet({
                       <Button variant="ghost" size="sm" onClick={() => setLeadForm(null)}>
                         Cancelar
                       </Button>
-                      <Button size="sm" onClick={createLead} disabled={saving || !leadForm.interest.trim()}>
+                      <Button size="sm" onClick={createLead} disabled={saving || (sales ? !leadForm.productId : !leadForm.interest.trim())}>
                         Criar lead
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <Button variant="outline" size="sm" onClick={() => setLeadForm({ interest: "", value: "" })}>
+                  <Button variant="outline" size="sm" onClick={() => setLeadForm({ interest: "", value: "", productId: "" })}>
                     <Plus /> Criar lead no funil
                   </Button>
                 )}

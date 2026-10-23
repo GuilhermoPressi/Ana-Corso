@@ -1,9 +1,9 @@
-import type { FastifyInstance } from "fastify"
-import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, CrmStageType, LeadPurchaseStatus, LeadStage, PatientStatus } from "@prisma/client"
+import type { FastifyInstance, FastifyRequest } from "fastify"
+import { ClinicActivityAction, ClinicActivityEntityType, ClinicStatus, CrmPipelineKind, CrmStageType, Prisma, LeadPurchaseStatus, LeadStage, PatientStatus } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "../db.js"
 import { requireAuth } from "../middlewares/auth.js"
-import { ensureDefaultPipeline, legacyFor, reconcileLeadStages } from "../services/pipelines.js"
+import { ensureDefaultPipeline, firstDigitalStage, legacyFor, reconcileLeadStages } from "../services/pipelines.js"
 
 const createLeadSchema = z.object({
   name: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
@@ -32,10 +32,21 @@ const leadInclude = {
   },
 } as const
 
+const isSales = (request: FastifyRequest) => request.clinicRole === "SALES"
+
+/** O perfil Comercial só vê leads dos pipelines de produtos digitais. */
+function leadScope(request: FastifyRequest): Prisma.LeadWhereInput {
+  return isSales(request) ? { pipeline: { kind: CrmPipelineKind.DIGITAL } } : {}
+}
+
 /** Valida que a etapa pertence à clínica (e ao pipeline, quando informado). */
-async function resolveStage(clinicId: string, stageId: string, pipelineId?: string | null) {
+async function resolveStage(clinicId: string, stageId: string, pipelineId?: string | null, digitalOnly = false) {
   return prisma.crmPipelineStage.findFirst({
-    where: { id: stageId, pipeline: { clinicId }, ...(pipelineId ? { pipelineId } : {}) },
+    where: {
+      id: stageId,
+      pipeline: { clinicId, ...(digitalOnly ? { kind: CrmPipelineKind.DIGITAL } : {}) },
+      ...(pipelineId ? { pipelineId } : {}),
+    },
   })
 }
 
@@ -64,7 +75,7 @@ export async function leadRoutes(fastify: FastifyInstance) {
     const clinicId = request.clinic!.id
     await reconcileLeadStages(clinicId)
     const leads = await prisma.lead.findMany({
-      where: { clinicId, archivedAt: null },
+      where: { clinicId, archivedAt: null, ...leadScope(request) },
       include: leadInclude,
       orderBy: [{ position: "asc" }, { createdAt: "desc" }],
     })
@@ -76,7 +87,7 @@ export async function leadRoutes(fastify: FastifyInstance) {
     const clinicId = request.clinic!.id
     const { pipelineId } = z.object({ pipelineId: z.string().uuid().optional() }).parse(request.query)
     const leads = await prisma.lead.findMany({
-      where: { clinicId, archivedAt: null, ...(pipelineId ? { pipelineId } : {}) },
+      where: { clinicId, archivedAt: null, ...leadScope(request), ...(pipelineId ? { pipelineId } : {}) },
       include: { pipelineStage: { select: { type: true } } },
     })
 
@@ -115,9 +126,15 @@ export async function leadRoutes(fastify: FastifyInstance) {
     const userId = request.user!.id
 
     // Etapa: a informada, ou a equivalente ao `stage` no pipeline Comercial.
-    let stage = body.stageId ? await resolveStage(clinicId, body.stageId, body.pipelineId) : null
+    let stage = body.stageId ? await resolveStage(clinicId, body.stageId, body.pipelineId, isSales(request)) : null
     if (body.stageId && !stage) {
       return reply.status(400).send({ error: { code: "INVALID_INPUT", message: "Etapa inválida." } })
+    }
+    if (!stage && isSales(request)) {
+      stage = await firstDigitalStage(clinicId)
+      if (!stage) {
+        return reply.status(400).send({ error: { code: "NO_DIGITAL_PIPELINE", message: "Crie um pipeline de infoprodutos primeiro." } })
+      }
     }
     if (!stage) {
       const pipeline = await ensureDefaultPipeline(clinicId)
@@ -177,7 +194,7 @@ export async function leadRoutes(fastify: FastifyInstance) {
     const clinicId = request.clinic!.id
 
     const lead = await prisma.lead.findFirst({
-      where: { id, clinicId },
+      where: { id, clinicId, ...leadScope(request) },
     })
 
     if (!lead) {
@@ -196,7 +213,7 @@ export async function leadRoutes(fastify: FastifyInstance) {
     const userId = request.user!.id
 
     const existing = await prisma.lead.findFirst({
-      where: { id, clinicId },
+      where: { id, clinicId, ...leadScope(request) },
     })
 
     if (!existing) {
@@ -220,7 +237,7 @@ export async function leadRoutes(fastify: FastifyInstance) {
 
     let stageData: Record<string, unknown> = {}
     if (body.stageId) {
-      const stage = await resolveStage(clinicId, body.stageId, body.pipelineId)
+      const stage = await resolveStage(clinicId, body.stageId, body.pipelineId, isSales(request))
       if (!stage) return reply.status(400).send({ error: { code: "INVALID_INPUT", message: "Etapa inválida." } })
       if (stage.id !== existing.stageId) {
         const legacy = legacyFor(stage)
@@ -306,7 +323,7 @@ export async function leadRoutes(fastify: FastifyInstance) {
     const { stageId, position } = parseResult.data
 
     const existing = await prisma.lead.findFirst({
-      where: { id, clinicId },
+      where: { id, clinicId, ...leadScope(request) },
     })
 
     if (!existing) {
@@ -316,8 +333,8 @@ export async function leadRoutes(fastify: FastifyInstance) {
     }
 
     // Etapa de destino: informada diretamente ou a equivalente ao enum antigo.
-    let target = stageId ? await resolveStage(clinicId, stageId) : null
-    if (!target && parseResult.data.stage) {
+    let target = stageId ? await resolveStage(clinicId, stageId, null, isSales(request)) : null
+    if (!target && parseResult.data.stage && !isSales(request)) {
       const pipeline = await ensureDefaultPipeline(clinicId)
       const pipelineStages = existing.pipelineId
         ? await prisma.crmPipelineStage.findMany({ where: { pipelineId: existing.pipelineId } })
@@ -368,12 +385,15 @@ export async function leadRoutes(fastify: FastifyInstance) {
 
   // POST /api/leads/:id/convert (Convert Lead to Patient atomically and idempotently!)
   fastify.post("/leads/:id/convert", async (request, reply) => {
+    if (isSales(request)) {
+      return reply.status(403).send({ error: { code: "FORBIDDEN_FOR_ROLE", message: "Sem permissão para criar pacientes." } })
+    }
     const { id } = request.params as { id: string }
     const clinicId = request.clinic!.id
     const userId = request.user!.id
 
     const lead = await prisma.lead.findFirst({
-      where: { id, clinicId },
+      where: { id, clinicId, ...leadScope(request) },
     })
 
     if (!lead) {
@@ -447,7 +467,7 @@ export async function leadRoutes(fastify: FastifyInstance) {
     const clinicId = request.clinic!.id
 
     const existing = await prisma.lead.findFirst({
-      where: { id, clinicId },
+      where: { id, clinicId, ...leadScope(request) },
     })
 
     if (!existing) {

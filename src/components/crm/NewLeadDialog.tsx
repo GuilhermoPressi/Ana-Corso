@@ -156,7 +156,7 @@ export function NewLeadDialog({
 
             <div>
               <Label htmlFor="nl-value" className="text-[13px]">
-                Valor da proposta
+                {digital ? "Valor" : "Valor da proposta"}
               </Label>
               <div className="relative mt-1.5">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-medium text-muted-foreground">

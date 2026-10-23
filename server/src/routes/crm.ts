@@ -7,9 +7,13 @@ import {
   CrmMessageDirection,
   CrmMessageKind,
   CrmMessageStatus,
+  CrmPipelineKind,
+  CrmStageType,
+  LeadPurchaseStatus,
   LeadStage,
   Prisma,
   WhatsAppConnectionStatus,
+  type CrmPipelineStage,
 } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "../db.js"
@@ -34,6 +38,7 @@ import {
 import { StorageService } from "../services/storage.js"
 import crypto from "node:crypto"
 import { getAutomationSettings, parseTagRules, salesWebhookUrl } from "../services/crm-automations.js"
+import { firstDigitalStage, legacyFor } from "../services/pipelines.js"
 
 // As telas de atendimento fazem polling; o limite global (100/min por IP)
 // estoura fácil numa recepção com várias atendentes atrás do mesmo IP.
@@ -66,7 +71,7 @@ function serializeInstance(instance: Awaited<ReturnType<typeof prisma.whatsAppIn
 }
 
 const contactInclude = {
-  lead: { select: { id: true, name: true, stage: true } },
+  lead: { select: { id: true, name: true, stage: true, pipelineStage: { select: { name: true } } } },
   patient: { select: { id: true, name: true } },
   conversations: { select: { id: true, status: true, lastMessageAt: true, unreadCount: true }, take: 1 },
 } satisfies Prisma.CrmContactInclude
@@ -161,10 +166,13 @@ const updateContactSchema = z.object({
   leadId: z.string().uuid().nullable().optional(),
 })
 
-const createLeadSchema = z.object({
-  interest: z.string().trim().min(1, "Informe o interesse.").max(200),
-  value: z.number().nonnegative().optional().default(0),
-})
+const createLeadSchema = z
+  .object({
+    interest: z.string().trim().max(200).optional(),
+    value: z.number().nonnegative().optional(),
+    productId: z.string().uuid().optional(),
+  })
+  .refine((v) => v.productId || v.interest, { message: "Informe o interesse ou o produto." })
 
 const quickReplySchema = z.object({
   shortcut: z
@@ -263,13 +271,19 @@ export async function crmRoutes(fastify: FastifyInstance) {
    */
   function conversationScope(request: FastifyRequest): Prisma.CrmConversationWhereInput {
     if (request.clinicRole !== "SALES") return {}
-    return { OR: [{ assignedUserId: request.user!.id }, { assignedUserId: null }] }
+    // Atribuídas a ela, ou sem responsável desde que o contato não seja paciente da clínica.
+    return { OR: [{ assignedUserId: request.user!.id }, { assignedUserId: null, contact: { patientId: null } }] }
   }
 
   /** Contatos visíveis: para o perfil Comercial, sem conversa ou com conversa visível a ele. */
   function contactScope(request: FastifyRequest): Prisma.CrmContactWhereInput {
     if (request.clinicRole !== "SALES") return {}
-    return { OR: [{ conversations: { none: {} } }, { conversations: { some: conversationScope(request) } }] }
+    return {
+      OR: [
+        { patientId: null, conversations: { none: {} } },
+        { conversations: { some: conversationScope(request) } },
+      ],
+    }
   }
 
   async function loadConversation(request: FastifyRequest, id: string) {
@@ -1024,7 +1038,9 @@ export async function crmRoutes(fastify: FastifyInstance) {
     const existing = await prisma.crmContact.findFirst({ where: { id, clinicId, ...contactScope(request) } })
     if (!existing) return reply.status(404).send(notFound("Contato não encontrado."))
 
-    const { name, email, tags, notes, patientId, leadId } = parsed.data
+    const { name, email, tags, notes, leadId } = parsed.data
+    // O perfil Comercial não mexe no vínculo com pacientes.
+    const patientId = request.clinicRole === "SALES" ? undefined : parsed.data.patientId
     if (patientId) {
       const patient = await prisma.patient.findFirst({ where: { id: patientId, clinicId } })
       if (!patient) return reply.status(400).send(badRequest("Paciente não encontrado."))
@@ -1083,18 +1099,39 @@ export async function crmRoutes(fastify: FastifyInstance) {
       return reply.status(409).send({ error: { code: "ALREADY_LINKED", message: "Este contato já tem um lead vinculado." } })
     }
 
+    // Com produto (ou para o perfil Comercial), o lead vai para o pipeline de produtos digitais.
+    const sales = request.clinicRole === "SALES"
+    const product = parsed.data.productId
+      ? await prisma.crmProduct.findFirst({ where: { id: parsed.data.productId, clinicId } })
+      : null
+    if (parsed.data.productId && !product) return reply.status(400).send(badRequest("Produto inválido."))
+    let stage: CrmPipelineStage | null = null
+    if (product || sales) {
+      if (product?.pipelineId) {
+        const pipeline = await prisma.crmPipeline.findFirst({
+          where: { id: product.pipelineId, clinicId, ...(sales ? { kind: CrmPipelineKind.DIGITAL } : {}) },
+          include: { stages: { orderBy: { position: "asc" } } },
+        })
+        stage = pipeline?.stages.find((s) => s.type === CrmStageType.OPEN) ?? pipeline?.stages[0] ?? null
+      }
+      stage ??= await firstDigitalStage(clinicId)
+      if (!stage && sales) return reply.status(400).send(badRequest("Crie um pipeline de infoprodutos primeiro."))
+    }
+
     const updated = await prisma.$transaction(async (tx) => {
       const lead = await tx.lead.create({
         data: {
           clinicId,
-          patientId: contact.patientId,
+          patientId: sales ? null : contact.patientId,
           name: contact.name,
           phone: contact.phone,
           email: contact.email,
-          interest: parsed.data.interest,
+          interest: product?.name ?? parsed.data.interest ?? "",
           source: "WhatsApp",
-          value: parsed.data.value,
-          stage: LeadStage.NEW_CONTACT,
+          value: parsed.data.value ?? (product ? Number(product.price) : 0),
+          stage: stage ? legacyFor(stage) : LeadStage.NEW_CONTACT,
+          ...(stage ? { pipelineId: stage.pipelineId, stageId: stage.id } : {}),
+          ...(product ? { productId: product.id, purchaseStatus: LeadPurchaseStatus.INTERESTED } : {}),
           note: contact.notes,
           createdByUserId: userId,
           assignedUserId: userId,
