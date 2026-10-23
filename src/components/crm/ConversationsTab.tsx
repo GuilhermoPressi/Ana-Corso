@@ -15,13 +15,16 @@ import {
   Search,
   Send,
   StickyNote,
+  Tag,
   UserRound,
   Zap,
 } from "lucide-react"
 import { toast } from "sonner"
 
+import { AudioRecorder } from "@/components/crm/AudioRecorder"
 import { ContactTagsEditor } from "@/components/crm/ContactTagsEditor"
 import { TagChip } from "@/components/crm/TagChip"
+import { tagColorStyle } from "@/lib/tag-colors"
 import { QuickRepliesDialog } from "@/components/crm/QuickRepliesDialog"
 import { WhatsAppConnectionCard } from "@/components/crm/WhatsAppConnectionCard"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -65,6 +68,7 @@ const filters: { id: ConversationFilter; label: string; count?: keyof Conversati
 ]
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024
+const ALL_TAGS = "__all__"
 
 export function ConversationsTab({
   selectedId,
@@ -79,6 +83,8 @@ export function ConversationsTab({
 }) {
   const [filter, setFilter] = useState<ConversationFilter>("open")
   const [search, setSearch] = useState("")
+  const [tagFilter, setTagFilter] = useState<string>(ALL_TAGS)
+  const allTags = useTagStore((s) => s.tags)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [counts, setCounts] = useState<ConversationCounts | null>(null)
   const [loading, setLoading] = useState(true)
@@ -89,7 +95,7 @@ export function ConversationsTab({
 
   const loadList = useCallback(async () => {
     try {
-      const data = await crmApi.listConversations(filter, search)
+      const data = await crmApi.listConversations(filter, search, tagFilter === ALL_TAGS ? undefined : tagFilter)
       setConversations(data.conversations)
       setCounts(data.counts)
       onUnreadChange?.(data.counts.unread)
@@ -99,9 +105,9 @@ export function ConversationsTab({
       setLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter, search, onUnreadChange])
+  }, [filter, search, tagFilter, onUnreadChange])
 
-  usePolling(loadList, 5000, [filter, search])
+  usePolling(loadList, 5000, [filter, search, tagFilter])
 
   const loadWhatsapp = useCallback(async () => {
     const data = await crmApi.whatsappStatus().catch(() => null)
@@ -156,11 +162,7 @@ export function ConversationsTab({
   return (
     <div className="space-y-3">
       {whatsapp && whatsapp !== "CONNECTED" && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[13px] text-warning-foreground">
-          <AlertCircle className="size-4 shrink-0" />
-          <span className="flex-1">
-            O WhatsApp da clínica está desconectado. Você ainda pode consultar o histórico, mas não envia nem recebe mensagens.
-          </span>
+        <div className="flex justify-end">
           <Button size="sm" variant="outline" className="h-7" onClick={() => setConnectMode(true)}>
             Conectar WhatsApp
           </Button>
@@ -171,14 +173,34 @@ export function ConversationsTab({
         {/* Lista */}
         <div className={cn("flex min-h-0 flex-col border-r", selectedId && "hidden md:flex")}>
           <div className="space-y-2.5 border-b p-3">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Buscar por nome ou telefone"
-                className="h-9 pl-8"
-              />
+            <div className="flex gap-2">
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Buscar contato"
+                  className="h-9 pl-8"
+                />
+              </div>
+              <Select value={tagFilter} onValueChange={(value) => value && setTagFilter(value)}>
+                <SelectTrigger
+                  className={cn("h-9 w-[124px] shrink-0 text-[12px]", tagFilter !== ALL_TAGS && "border-primary/40 text-primary")}
+                  aria-label="Filtrar por etiqueta"
+                >
+                  <Tag className="size-3.5" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_TAGS}>Etiquetas</SelectItem>
+                  {allTags.map((tag) => (
+                    <SelectItem key={tag.id} value={tag.name}>
+                      <span className={cn("size-2 rounded-full", tagColorStyle(tag.color).dot)} />
+                      {tag.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {filters.map((item) => {
@@ -683,6 +705,7 @@ function Composer({
   const userName = useAuthStore((s) => s.user?.name ?? "")
   const [text, setText] = useState("")
   const [noteMode, setNoteMode] = useState(false)
+  const [recording, setRecording] = useState(false)
   const [sending, setSending] = useState(false)
   const [highlight, setHighlight] = useState(0)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -724,7 +747,7 @@ function Composer({
     }
   }
 
-  async function sendFile(file: File) {
+  async function sendFile(file: File, withCaption = true) {
     if (file.size > MAX_FILE_BYTES) {
       toast.error("O arquivo precisa ter no máximo 10 MB.")
       return
@@ -736,7 +759,7 @@ function Composer({
     setSending(true)
     try {
       const base64 = await fileToBase64(file)
-      const caption = text.trim() || undefined
+      const caption = withCaption ? text.trim() || undefined : undefined
       const result = await crmApi.sendMedia(conversationId, {
         fileName: file.name,
         mimeType: file.type || "application/octet-stream",
@@ -834,7 +857,7 @@ function Composer({
       </div>
 
       <div className="flex items-end gap-2">
-        {!noteMode && (
+        {!noteMode && !recording && (
           <>
             <input
               ref={fileRef}
@@ -858,30 +881,41 @@ function Composer({
             </Button>
           </>
         )}
-        <Textarea
-          ref={textareaRef}
-          value={text}
-          onChange={(event) => {
-            setText(event.target.value)
-            setHighlight(0)
-          }}
-          onKeyDown={onKeyDown}
-          rows={1}
-          placeholder={
-            noteMode
-              ? "Nota visível apenas para a equipe…"
-              : canSend
-                ? "Digite uma mensagem — use / para respostas rápidas"
-                : "WhatsApp desconectado"
-          }
-          className="max-h-40 min-h-10 resize-none"
-        />
-        <Button onClick={send} disabled={sending || !text.trim()} size="icon" aria-label="Enviar">
-          {sending ? <Loader2 className="animate-spin" /> : noteMode ? <StickyNote /> : <Send />}
-        </Button>
+        {!recording && (
+          <Textarea
+            ref={textareaRef}
+            value={text}
+            onChange={(event) => {
+              setText(event.target.value)
+              setHighlight(0)
+            }}
+            onKeyDown={onKeyDown}
+            rows={1}
+            placeholder={
+              noteMode
+                ? "Nota visível apenas para a equipe…"
+                : canSend
+                  ? "Digite uma mensagem — use / para respostas rápidas"
+                  : "WhatsApp desconectado"
+            }
+            className="max-h-40 min-h-10 resize-none"
+          />
+        )}
+        {/* Sem texto: microfone (como no WhatsApp). Com texto: enviar. */}
+        {!noteMode && (recording || !text.trim()) ? (
+          <AudioRecorder
+            disabled={sending || !canSend}
+            onRecordingChange={setRecording}
+            onSend={(file) => sendFile(file, false)}
+          />
+        ) : (
+          <Button onClick={send} disabled={sending || !text.trim()} size="icon" aria-label="Enviar">
+            {sending ? <Loader2 className="animate-spin" /> : noteMode ? <StickyNote /> : <Send />}
+          </Button>
+        )}
       </div>
       <p className="mt-1.5 text-[10px] text-muted-foreground">
-        Enter envia · Shift+Enter quebra linha
+        Enter envia · Shift+Enter quebra linha · 🎤 para gravar áudio
         {noteMode && <Badge variant="outline" className="ml-2 h-4 rounded-full px-1.5 text-[9px]">não vai para o paciente</Badge>}
       </p>
     </div>

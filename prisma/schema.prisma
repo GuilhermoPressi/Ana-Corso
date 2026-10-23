@@ -29,6 +29,7 @@ enum ClinicRole {
   ADMIN
   PROFESSIONAL
   RECEPTIONIST
+  SALES
 }
 
 enum AuditActorType {

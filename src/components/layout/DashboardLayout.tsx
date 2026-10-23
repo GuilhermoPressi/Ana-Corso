@@ -1,12 +1,20 @@
 import { useState } from "react"
-import { Outlet } from "react-router-dom"
+import { Navigate, Outlet, useLocation } from "react-router-dom"
 
 import { InboxNotifier } from "@/components/crm/InboxNotifier"
 import { Header } from "@/components/layout/Header"
 import { SidebarNav } from "@/components/layout/SidebarNav"
+import { DisconnectedBanner } from "@/components/crm/DisconnectedBanner"
+import { canAccessPath, homePathFor } from "@/lib/roles"
+import { useAuthStore } from "@/stores/useAuthStore"
 
 export function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const role = useAuthStore((s) => s.clinicRole)
+  const { pathname } = useLocation()
+
+  // Perfis restritos (ex.: Comercial) só abrem as telas liberadas.
+  if (!canAccessPath(role, pathname)) return <Navigate to={homePathFor(role)} replace />
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -17,6 +25,7 @@ export function DashboardLayout() {
 
       <div className="flex min-w-0 flex-1 flex-col lg:pl-[264px]">
         <Header mobileOpen={mobileOpen} onMobileOpenChange={setMobileOpen} />
+        <DisconnectedBanner />
         <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">
           <Outlet />
         </main>

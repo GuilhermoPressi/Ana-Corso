@@ -134,6 +134,13 @@ export async function authenticateSession(request: FastifyRequest, reply: Fastif
   }
 
   request.sessionToken = token
+
+  // Perfis restritos (ex.: Comercial) só acessam as rotas liberadas.
+  if (!isRouteAllowedForRole(request.clinicRole, request.method, request.url)) {
+    return reply.status(403).send({
+      error: { code: "FORBIDDEN_FOR_ROLE", message: "Seu perfil não tem acesso a esta área." },
+    })
+  }
 }
 
 export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {
@@ -164,7 +171,7 @@ export async function requireSystemAdmin(request: FastifyRequest, reply: Fastify
   }
 }
 
-import { hasPermission, type Permission } from "../utils/permissions.js"
+import { hasPermission, isRouteAllowedForRole, type Permission } from "../utils/permissions.js"
 
 export function requirePermission(permission: Permission) {
   return async (request: FastifyRequest, reply: FastifyReply) => {

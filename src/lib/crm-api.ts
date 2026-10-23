@@ -139,16 +139,20 @@ export const crmApi = {
   connectWhatsapp: () => request<{ instance: WhatsAppInstance }>("POST", "/api/crm/whatsapp/connect", {}),
   disconnectWhatsapp: () => request<{ instance: WhatsAppInstance | null }>("POST", "/api/crm/whatsapp/disconnect", {}),
 
-  listConversations: (filter: ConversationFilter, search: string) => {
+  listConversations: (filter: ConversationFilter, search: string, tag?: string) => {
     const params = new URLSearchParams({ filter })
     if (search.trim()) params.set("search", search.trim())
+    if (tag) params.set("tag", tag)
     return request<{ conversations: Conversation[]; counts: ConversationCounts }>("GET", `/api/crm/conversations?${params}`)
   },
   unreadTotal: () =>
     request<{
       unread: number
       latestInbound: { id: string; conversationId: string; contactName: string; receivedAt: string } | null
+      whatsapp: { status: WhatsAppStatus } | null
     }>("GET", "/api/crm/unread"),
+  testWhatsapp: () =>
+    request<{ checks: { ok: boolean; label: string; detail: string }[] }>("POST", "/api/crm/whatsapp/test", {}),
   getConversation: (id: string) =>
     request<{ conversation: Conversation; messages: Message[] }>("GET", `/api/crm/conversations/${id}`),
   markRead: (id: string) => request<{ ok: true }>("POST", `/api/crm/conversations/${id}/read`, {}),
