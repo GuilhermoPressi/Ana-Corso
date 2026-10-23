@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { findNavItem } from "@/lib/navigation"
 import { useAuthStore } from "@/stores/useAuthStore"
-import { isRestrictedRole } from "@/lib/roles"
+import { isRestrictedRole, navLabelFor } from "@/lib/roles"
 import { cn } from "@/lib/utils"
 import { useClinicStore } from "@/stores/useClinicStore"
 
@@ -40,9 +40,10 @@ export function Header({
 }) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const current = findNavItem(pathname)
   const profile = useClinicStore((state) => state.profile)
   const { user, clinic, clinics, switchClinic, logout } = useAuthStore()
+  const navItem = findNavItem(pathname)
+  const current = navItem ? navLabelFor(clinic?.role, navItem) : navItem
   const restricted = isRestrictedRole(clinic?.role)
 
   const displayName = user?.name || profile.professional || "Usuário"

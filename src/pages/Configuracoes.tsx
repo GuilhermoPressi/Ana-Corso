@@ -350,7 +350,7 @@ export default function Configuracoes() {
                         <SelectContent>
                           <SelectItem value="PROFESSIONAL">Profissional da Saúde (Atendimento)</SelectItem>
                           <SelectItem value="RECEPTIONIST">Recepcionista (Agenda & CRM)</SelectItem>
-                          <SelectItem value="SALES">Comercial (somente Conversas e CRM)</SelectItem>
+                          <SelectItem value="SALES">Comercial (infoprodutos: Conversas e CRM)</SelectItem>
                           <SelectItem value="ADMIN">Administrador da Clínica</SelectItem>
                         </SelectContent>
                       </Select>

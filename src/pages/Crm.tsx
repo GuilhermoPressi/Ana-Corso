@@ -64,6 +64,7 @@ import { usePatientStore } from "@/stores/usePatientStore"
 import { PURCHASE_STATUS_LABEL, STAGE_TYPE_LABEL, usePipelineStore, type StageType } from "@/stores/usePipelineStore"
 import { useTagStore } from "@/stores/useTagStore"
 import { useAuthStore } from "@/stores/useAuthStore"
+import { isRestrictedRole } from "@/lib/roles"
 
 const purchaseStyles: Record<string, string> = {
   INTERESTED: "border-sky-300 bg-sky-50 text-sky-800 dark:bg-sky-500/15 dark:text-sky-200",
@@ -85,6 +86,7 @@ export default function Crm() {
   const navigate = useNavigate()
   const role = useAuthStore((s) => s.clinicRole)
   const canAutomate = role === "OWNER" || role === "ADMIN"
+  const sales = isRestrictedRole(role)
   const aba = params.get("aba")
   const tab: CrmTab = aba === "contatos" ? "contatos" : aba === "automacoes" && canAutomate ? "automacoes" : "pipeline"
   const focusContactId = params.get("contato")
@@ -118,8 +120,12 @@ export default function Crm() {
   return (
     <div className="mx-auto max-w-[1500px]">
       <PageHeader
-        title="CRM de Pacientes e Leads"
-        description="Do primeiro contato ao fechamento, com o valor de cada proposta sempre à vista."
+        title={sales ? "CRM de Infoprodutos" : "CRM de Pacientes e Leads"}
+        description={
+          sales
+            ? "Leads de cursos, mentorias e imersões, do primeiro contato à compra."
+            : "Do primeiro contato ao fechamento, com o valor de cada proposta sempre à vista."
+        }
         actions={
 undefined
         }
@@ -171,6 +177,8 @@ function CrmPipeline() {
   const pipelines = usePipelineStore((state) => state.pipelines)
   const loadPipelines = usePipelineStore((state) => state.load)
   const createPipeline = usePipelineStore((state) => state.createPipeline)
+  const pipelinesLoaded = usePipelineStore((state) => state.loaded)
+  const sales = isRestrictedRole(useAuthStore((state) => state.clinicRole))
   const navigate = useNavigate()
 
   const [pipelineId, setPipelineId] = useState<string>(() => {
@@ -251,9 +259,11 @@ function CrmPipeline() {
     }
     loadPipelines().catch(() => {})
     if (target?.type === "WON" && previousType !== "WON") {
+      // Infoproduto não vira ficha de paciente.
+      const digitalLead = pipelines.find((p) => p.id === lead.pipelineId)?.kind === "DIGITAL"
       toast.success(`${lead.name} foi para ${target.name}`, {
         description: `${formatCurrency(lead.value)} saem do funil aberto.`,
-        action: { label: "Criar ficha", onClick: () => convert(lead) },
+        ...(digitalLead || sales ? {} : { action: { label: "Criar ficha", onClick: () => convert(lead) } }),
       })
     }
   }
@@ -271,7 +281,7 @@ function CrmPipeline() {
     const name = newPipelineName.trim()
     if (!name) return
     try {
-      const id = await createPipeline(name, newPipelineKind)
+      const id = await createPipeline(name, sales ? "DIGITAL" : newPipelineKind)
       selectPipeline(id)
       setNewPipelineName("")
       setCreatingPipeline(false)
@@ -281,13 +291,63 @@ function CrmPipeline() {
     }
   }
 
+  const newPipelineForm = (
+    <form onSubmit={submitNewPipeline} className="flex items-center gap-1.5">
+      <Input
+        autoFocus
+        value={newPipelineName}
+        onChange={(event) => setNewPipelineName(event.target.value)}
+        placeholder="Nome do pipeline"
+        className="h-9 w-[200px]"
+        maxLength={60}
+      />
+      {!sales && (
+        <Select value={newPipelineKind} onValueChange={(value) => value && setNewPipelineKind(value as "CLINIC" | "DIGITAL")}>
+          <SelectTrigger className="h-9 w-[170px] text-[12px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="DIGITAL">Produtos digitais</SelectItem>
+            <SelectItem value="CLINIC">Clínica</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
+      <Button type="submit" size="sm" disabled={!newPipelineName.trim()}>
+        Criar
+      </Button>
+      <Button type="button" variant="ghost" size="sm" onClick={() => setCreatingPipeline(false)}>
+        Cancelar
+      </Button>
+    </form>
+  )
+
   if (!pipeline) {
+    if (pipelinesLoaded && pipelines.length === 0) {
+      return (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed py-16 text-center">
+          <KanbanSquare className="size-8 text-primary/60" />
+          <p className="text-sm font-medium">Nenhum pipeline de infoprodutos ainda</p>
+          <p className="max-w-sm text-[13px] text-muted-foreground">
+            Crie o primeiro pipeline (ex.: "Mentoria", "Cursos online") para organizar os leads dos produtos digitais.
+          </p>
+          {creatingPipeline ? (
+            newPipelineForm
+          ) : (
+            <Button size="sm" onClick={() => setCreatingPipeline(true)}>
+              <Plus /> Criar pipeline
+            </Button>
+          )}
+        </div>
+      )
+    }
     return (
       <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
         <Loader2 className="size-4 animate-spin" /> Carregando funil…
       </div>
     )
   }
+
+  const digital = pipeline.kind === "DIGITAL"
 
   const firstOpenStage = stages.find((s) => s.type === "OPEN") ?? stages[0]
 
@@ -312,37 +372,13 @@ function CrmPipeline() {
           <Settings2 /> Etapas
         </Button>
         {creatingPipeline ? (
-          <form onSubmit={submitNewPipeline} className="flex items-center gap-1.5">
-            <Input
-              autoFocus
-              value={newPipelineName}
-              onChange={(event) => setNewPipelineName(event.target.value)}
-              placeholder="Nome do pipeline"
-              className="h-9 w-[200px]"
-              maxLength={60}
-            />
-            <Select value={newPipelineKind} onValueChange={(value) => value && setNewPipelineKind(value as "CLINIC" | "DIGITAL")}>
-              <SelectTrigger className="h-9 w-[170px] text-[12px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="DIGITAL">Produtos digitais</SelectItem>
-                <SelectItem value="CLINIC">Clínica</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button type="submit" size="sm" disabled={!newPipelineName.trim()}>
-              Criar
-            </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setCreatingPipeline(false)}>
-              Cancelar
-            </Button>
-          </form>
+          newPipelineForm
         ) : (
           <Button variant="ghost" size="sm" onClick={() => setCreatingPipeline(true)}>
             <Plus /> Novo pipeline
           </Button>
         )}
-        {pipeline.kind === "DIGITAL" && (
+        {digital && (
           <Button variant="outline" size="sm" onClick={() => setManagingProducts(true)}>
             <Package /> Produtos
           </Button>
@@ -350,7 +386,7 @@ function CrmPipeline() {
         <div className="ml-auto">
           <NewLeadDialog
             stageId={firstOpenStage?.id}
-            digital={pipeline.kind === "DIGITAL"}
+            digital={digital}
             products={products.filter((p) => p.active)}
           />
         </div>
@@ -364,7 +400,7 @@ function CrmPipeline() {
               <Wallet className="size-5" />
             </span>
             <div className="min-w-0">
-              <p className="text-[12px] font-medium text-muted-foreground">Propostas abertas</p>
+              <p className="text-[12px] font-medium text-muted-foreground">{digital ? "Em negociação" : "Propostas abertas"}</p>
               <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-primary">
                 {formatCurrency(summary.openTotal)}
               </p>
@@ -455,8 +491,9 @@ function CrmPipeline() {
                                 lead={lead}
                                 stageType={stage.type}
                                 dragging={dragSnapshot.isDragging}
+                                digital={digital}
                                 onEdit={() => setEditingId(lead.id)}
-                                onConvert={() => convert(lead)}
+                                onConvert={digital || sales ? undefined : () => convert(lead)}
                                 onLose={
                                   stage.type === "OPEN" && stages.some((s) => s.type === "LOST")
                                     ? () => moveTo(lead, stages.find((s) => s.type === "LOST")!.id)
@@ -547,6 +584,7 @@ function LeadCard({
   lead,
   stageType,
   dragging,
+  digital,
   onEdit,
   onConvert,
   onLose,
@@ -556,8 +594,9 @@ function LeadCard({
   lead: Lead
   stageType: StageType
   dragging: boolean
+  digital: boolean
   onEdit: () => void
-  onConvert: () => void
+  onConvert?: () => void
   onLose?: () => void
   onOpenConversation?: () => void
   onRemove: () => void
@@ -600,9 +639,11 @@ function LeadCard({
                 <DropdownMenuItem onClick={onEdit}>
                   <Pencil /> Editar
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onConvert} disabled={stageType === "LOST"}>
-                  <UserRoundCheck /> Converter em paciente
-                </DropdownMenuItem>
+                {onConvert && (
+                  <DropdownMenuItem onClick={onConvert} disabled={stageType === "LOST"}>
+                    <UserRoundCheck /> Converter em paciente
+                  </DropdownMenuItem>
+                )}
                 {onOpenConversation ? (
                   <DropdownMenuItem onClick={onOpenConversation}>
                     <MessageCircle /> Abrir conversa
@@ -613,7 +654,9 @@ function LeadCard({
                       <a
                         href={buildWhatsAppLink(
                           lead.phone,
-                          contextualMessage({
+                          digital
+                            ? `Olá, ${firstNameOf(lead.name)}! Tudo bem? Vi seu interesse em ${lead.product?.name ?? lead.interest} e posso te ajudar com qualquer dúvida.`
+                            : contextualMessage({
                             vars: {
                               firstName: firstNameOf(lead.name),
                               procedure: lead.interest,

@@ -8,7 +8,7 @@ import { navigation, secondaryNavigation, type NavItem } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/stores/useAuthStore"
 import { useInboxStore } from "@/stores/useInboxStore"
-import { canAccessPath, isRestrictedRole } from "@/lib/roles"
+import { canAccessPath, isRestrictedRole, navLabelFor } from "@/lib/roles"
 
 const adminNavItems: NavItem[] = [
   { title: "Painel SaaS", url: "/admin", icon: ShieldAlert, ready: true },
@@ -109,7 +109,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                   {group.label}
                 </p>
                 {filteredItems.map((item) => (
-                  <NavRow key={item.url} item={item} onNavigate={onNavigate} />
+                  <NavRow key={item.url} item={navLabelFor(clinic?.role, item)} onNavigate={onNavigate} />
                 ))}
               </div>
             )
@@ -123,12 +123,14 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           .map((item) => (
             <NavRow key={item.url} item={item} onNavigate={onNavigate} />
           ))}
-        <div className="mt-3 rounded-xl bg-gradient-to-br from-accent to-secondary p-3.5">
-          <p className="font-display text-[13px] font-semibold text-accent-foreground">Plano Premium</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-            SaaS Ana Corso · Gestão Ativa
-          </p>
-        </div>
+        {!isRestrictedRole(clinic?.role) && (
+          <div className="mt-3 rounded-xl bg-gradient-to-br from-accent to-secondary p-3.5">
+            <p className="font-display text-[13px] font-semibold text-accent-foreground">Plano Premium</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              SaaS Ana Corso · Gestão Ativa
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )

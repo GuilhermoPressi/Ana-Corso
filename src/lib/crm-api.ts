@@ -91,7 +91,7 @@ export type Contact = {
   patientId: string | null
   createdAt: string
   updatedAt: string
-  lead: { id: string; name: string; stage: string } | null
+  lead: { id: string; name: string; stage: string; pipelineStage?: { name: string } | null } | null
   patient: { id: string; name: string } | null
   conversation: { id: string; status: "OPEN" | "CLOSED"; lastMessageAt: string | null; unreadCount: number } | null
 }
@@ -197,7 +197,7 @@ export const crmApi = {
   deleteContact: (id: string) => request<{ ok: true }>("DELETE", `/api/crm/contacts/${id}`),
   openConversation: (contactId: string) =>
     request<{ conversation: Conversation }>("POST", `/api/crm/contacts/${contactId}/conversation`, {}),
-  createLeadFromContact: (contactId: string, input: { interest: string; value?: number }) =>
+  createLeadFromContact: (contactId: string, input: { interest?: string; value?: number; productId?: string }) =>
     request<{ contact: Contact }>("POST", `/api/crm/contacts/${contactId}/lead`, input),
 
   listQuickReplies: () => request<{ quickReplies: QuickReply[] }>("GET", "/api/crm/quick-replies"),
