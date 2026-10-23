@@ -48,7 +48,7 @@ const empty = {
   note: "",
 }
 
-export function NewLeadDialog() {
+export function NewLeadDialog({ stageId }: { stageId?: string } = {}) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(empty)
   const [touched, setTouched] = useState(false)
@@ -64,16 +64,17 @@ export function NewLeadDialog() {
 
     const created = await addLead({
       name: form.name,
-      phone: form.phone || "(51) 90000-0000",
+      phone: form.phone.trim(),
       interest: form.interest,
       source: form.source,
       value: parseDecimal(form.value),
       note: form.note.trim() || undefined,
+      stageId,
     })
 
     if (created) {
       toast.success(`${form.name.trim()} entrou no funil`, {
-        description: "O card está na coluna Novos contatos.",
+        description: "O card entrou na primeira etapa do pipeline.",
       })
 
       setForm(empty)
