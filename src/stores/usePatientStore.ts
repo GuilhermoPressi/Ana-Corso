@@ -30,6 +30,7 @@ export type NewLeadInput = {
   source: Lead["source"]
   value: number
   note?: string
+  stageId?: string
 }
 
 export type PaginationMeta = {
@@ -67,6 +68,10 @@ type PatientState = {
   addLead: (input: NewLeadInput) => Promise<Lead | null>
   addScheduledLead: (input: NewLeadInput & { scheduledFor: string }) => Promise<Lead | null>
   moveLead: (id: string, stage: LeadStage, toIndex?: number) => Promise<boolean>
+  /** Move o card para uma etapa de pipeline (arrastar no quadro). */
+  moveLeadToStage: (id: string, stageId: string, toIndex?: number) => Promise<Lead | null>
+  /** Salva a edição do card no servidor. */
+  saveLead: (id: string, patch: Record<string, unknown>) => Promise<{ lead?: Lead; error?: string }>
   updateLead: (id: string, patch: Partial<Lead>) => void
   removeLead: (id: string) => void
   convertLead: (id: string) => Promise<string | undefined>
@@ -171,6 +176,17 @@ export function mapDbLeadToFrontend(dbL: any): Lead {
     temperature: (dbL.temperature as any) || "morno",
     note: dbL.note || undefined,
     scheduledFor: dbL.scheduledFor ? new Date(dbL.scheduledFor).toISOString().split("T")[0] : undefined,
+    pipelineId: dbL.pipelineId || undefined,
+    stageId: dbL.stageId || undefined,
+    email: dbL.email || undefined,
+    assignedUser: dbL.assignedUser ?? null,
+    contact: dbL.crmContacts?.[0]
+      ? {
+          id: dbL.crmContacts[0].id,
+          tags: dbL.crmContacts[0].tags ?? [],
+          conversationId: dbL.crmContacts[0].conversations?.[0]?.id ?? null,
+        }
+      : null,
   }
 }
 
@@ -402,6 +418,7 @@ export const usePatientStore = create<PatientState>((set, get) => ({
           source: input.source,
           value: input.value,
           note: input.note || null,
+          stageId: input.stageId,
         }),
       })
 
@@ -482,6 +499,57 @@ export const usePatientStore = create<PatientState>((set, get) => ({
     } catch {
       set({ leads: currentLeads })
       return false
+    }
+  },
+
+  moveLeadToStage: async (id, stageId, toIndex) => {
+    const currentLeads = get().leads
+    const lead = currentLeads.find((item) => item.id === id)
+    if (!lead) return null
+
+    const moved: Lead = { ...lead, stageId, lastContact: CLINIC_TODAY }
+    const rest = currentLeads.filter((item) => item.id !== id)
+    const targetIds = rest.filter((item) => item.stageId === stageId).map((item) => item.id)
+    const anchorId = toIndex !== undefined ? targetIds[toIndex] : undefined
+    const absolute = anchorId ? rest.findIndex((item) => item.id === anchorId) : rest.length
+    const nextLeads = [...rest]
+    nextLeads.splice(absolute, 0, moved)
+    set({ leads: nextLeads })
+
+    try {
+      const res = await fetch(`/api/leads/${id}/stage`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stageId, position: toIndex ?? 0 }),
+      })
+      if (!res.ok) {
+        set({ leads: currentLeads })
+        return null
+      }
+      const data = await res.json()
+      const saved = mapDbLeadToFrontend(data.lead)
+      set((state) => ({ leads: state.leads.map((l) => (l.id === id ? saved : l)) }))
+      return saved
+    } catch {
+      set({ leads: currentLeads })
+      return null
+    }
+  },
+
+  saveLead: async (id, patch) => {
+    try {
+      const res = await fetch(`/api/leads/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) return { error: data?.error?.message || "Não foi possível salvar o lead." }
+      const saved = mapDbLeadToFrontend(data.lead)
+      set((state) => ({ leads: state.leads.map((l) => (l.id === id ? saved : l)) }))
+      return { lead: saved }
+    } catch {
+      return { error: "Erro de conexão ao salvar o lead." }
     }
   },
 

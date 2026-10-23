@@ -258,6 +258,7 @@ model Clinic {
   crmMessages          CrmMessage[]
   crmQuickReplies      CrmQuickReply[]
   crmTags              CrmTag[]
+  crmPipelines         CrmPipeline[]
 
   @@map("clinics")
 }
@@ -716,8 +717,12 @@ model Lead {
   wonAt          DateTime? @map("won_at")
   lostAt         DateTime? @map("lost_at")
   archivedAt     DateTime? @map("archived_at")
+  pipelineId     String?   @map("pipeline_id")
+  stageId        String?   @map("stage_id")
 
   clinic        Clinic     @relation(fields: [clinicId], references: [id], onDelete: Restrict)
+  pipeline      CrmPipeline?      @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
+  pipelineStage CrmPipelineStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
   patient       Patient?   @relation(fields: [patientId], references: [id], onDelete: SetNull)
   createdByUser User?      @relation("LeadCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   assignedUser  User?      @relation("LeadAssignedUser", fields: [assignedUserId], references: [id], onDelete: SetNull)
@@ -726,6 +731,7 @@ model Lead {
 
   @@index([clinicId, stage])
   @@index([clinicId, position])
+  @@index([clinicId, pipelineId, stageId])
   @@map("leads")
 }
 
@@ -1581,4 +1587,50 @@ model GoogleCalendarAccount {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("google_calendar_accounts")
+}
+
+// ============================================================================
+// Pipelines personalizados do CRM
+// ============================================================================
+
+enum CrmStageType {
+  OPEN
+  WON
+  LOST
+}
+
+model CrmPipeline {
+  id        String   @id @default(uuid())
+  clinicId  String   @map("clinic_id")
+  name      String
+  position  Int      @default(0)
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  clinic Clinic             @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  stages CrmPipelineStage[]
+  leads  Lead[]
+
+  @@index([clinicId, position])
+  @@map("crm_pipelines")
+}
+
+model CrmPipelineStage {
+  id          String       @id @default(uuid())
+  pipelineId  String       @map("pipeline_id")
+  name        String
+  color       String       @default("rosa")
+  type        CrmStageType @default(OPEN)
+  /** Etapa equivalente do funil original (mantém propostas, conversão e indicadores funcionando). */
+  legacyStage LeadStage?   @map("legacy_stage")
+  position    Int          @default(0)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  pipeline CrmPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  leads    Lead[]
+
+  @@index([pipelineId, position])
+  @@map("crm_pipeline_stages")
 }

@@ -23,6 +23,13 @@ export type Lead = {
   note?: string
   /** Recontato programado pela automação de pós-procedimento. */
   scheduledFor?: string
+  /** Pipeline personalizado e etapa em que o card está. */
+  pipelineId?: string
+  stageId?: string
+  email?: string
+  assignedUser?: { id: string; name: string } | null
+  /** Contato do WhatsApp vinculado (etiquetas e conversa). */
+  contact?: { id: string; tags: string[]; conversationId: string | null } | null
 }
 
 export const leadStages: { id: LeadStage; label: string; hint: string; open: boolean }[] = [

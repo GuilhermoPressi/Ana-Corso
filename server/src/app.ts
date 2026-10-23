@@ -23,6 +23,7 @@ import { mapRoutes } from "./routes/maps.js"
 import { notificationRoutes } from "./routes/notifications.js"
 import { patientRoutes } from "./routes/patients.js"
 import { photoRoutes } from "./routes/photos.js"
+import { pipelineRoutes } from "./routes/pipelines.js"
 import { planningRoutes } from "./routes/plannings.js"
 import { planRoutes } from "./routes/plans.js"
 import { postCareRoutes } from "./routes/postcare.js"
@@ -130,6 +131,7 @@ export function buildApp() {
   app.register(financeRoutes, { prefix: "/api" })
   app.register(dashboardRoutes, { prefix: "/api" })
   app.register(leadRoutes, { prefix: "/api" })
+  app.register(pipelineRoutes, { prefix: "/api" })
   app.register(crmRoutes, { prefix: "/api" })
   app.register(evolutionWebhookRoutes, { prefix: "/api" })
   app.register(planningRoutes, { prefix: "/api" })
