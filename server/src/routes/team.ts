@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify"
+import type { FastifyInstance, FastifyRequest } from "fastify"
 import { ClinicActivityAction, ClinicActivityEntityType, ClinicRole, ClinicStatus, InvitationStatus } from "@prisma/client"
 import { z } from "zod"
 import { prisma } from "../db.js"
@@ -19,9 +19,15 @@ const acceptInviteSchema = z.object({
   password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
 })
 
+const PUBLIC = { config: { public: true } }
+
+function isPublic(request: FastifyRequest) {
+  return (request.routeOptions.config as { public?: boolean }).public === true
+}
+
 export async function teamRoutes(fastify: FastifyInstance) {
   // Public route: View invitation details by token
-  fastify.get("/team/invitations/:token", async (request, reply) => {
+  fastify.get("/team/invitations/:token", PUBLIC, async (request, reply) => {
     const { token } = request.params as { token: string }
     const tokenHash = hashToken(token)
 
@@ -50,7 +56,7 @@ export async function teamRoutes(fastify: FastifyInstance) {
   })
 
   // Public route: Accept invitation & create/link user
-  fastify.post("/team/invitations/:token/accept", async (request, reply) => {
+  fastify.post("/team/invitations/:token/accept", PUBLIC, async (request, reply) => {
     const { token } = request.params as { token: string }
     const tokenHash = hashToken(token)
 
@@ -128,9 +134,13 @@ export async function teamRoutes(fastify: FastifyInstance) {
     })
   })
 
-  // Authenticated routes hook
-  fastify.addHook("preHandler", requireAuth)
+  // Authenticated routes hook (os hooks valem para o plugin inteiro; as rotas do convite são públicas)
   fastify.addHook("preHandler", async (request, reply) => {
+    if (isPublic(request)) return
+    await requireAuth(request, reply)
+  })
+  fastify.addHook("preHandler", async (request, reply) => {
+    if (isPublic(request)) return
     if (!request.clinic) {
       return reply.status(404).send({
         error: { code: "NOT_FOUND", message: "Nenhuma clínica ativa vinculada à sessão." },
@@ -183,7 +193,6 @@ export async function teamRoutes(fastify: FastifyInstance) {
         role: i.role,
         status: i.status,
         expiresAt: i.expiresAt,
-        inviteUrl: `/convite/${i.id}`,
       })),
     }
   })
@@ -206,6 +215,11 @@ export async function teamRoutes(fastify: FastifyInstance) {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
 
     const invitation = await prisma.$transaction(async (tx) => {
+      // Um convite pendente por e-mail: o novo substitui os anteriores.
+      await tx.clinicInvitation.updateMany({
+        where: { clinicId, email: email.toLowerCase().trim(), status: InvitationStatus.PENDING },
+        data: { status: InvitationStatus.REVOKED },
+      })
       const created = await tx.clinicInvitation.create({
         data: {
           clinicId,
@@ -344,5 +358,52 @@ export async function teamRoutes(fastify: FastifyInstance) {
     })
 
     return { message: "Membro removido da equipe com sucesso." }
+  })
+
+  // POST /api/team/invitations/:id/regenerate - Novo link para um convite pendente (o anterior deixa de valer)
+  fastify.post(
+    "/team/invitations/:id/regenerate",
+    { preHandler: requirePermission("TEAM_MANAGE") },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const clinicId = request.clinic!.id
+      const existing = await prisma.clinicInvitation.findFirst({
+        where: { id, clinicId, status: { in: [InvitationStatus.PENDING, InvitationStatus.EXPIRED] } },
+      })
+      if (!existing) {
+        return reply.status(404).send({ error: { code: "NOT_FOUND", message: "Convite não encontrado." } })
+      }
+      const token = crypto.randomUUID()
+      const invitation = await prisma.clinicInvitation.update({
+        where: { id },
+        data: {
+          tokenHash: hashToken(token),
+          status: InvitationStatus.PENDING,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      })
+      return {
+        invitation: {
+          id: invitation.id,
+          email: invitation.email,
+          role: invitation.role,
+          expiresAt: invitation.expiresAt,
+          inviteUrl: `/convite/${token}`,
+        },
+      }
+    },
+  )
+
+  // DELETE /api/team/invitations/:id - Cancela um convite pendente
+  fastify.delete("/team/invitations/:id", { preHandler: requirePermission("TEAM_MANAGE") }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const result = await prisma.clinicInvitation.updateMany({
+      where: { id, clinicId: request.clinic!.id, status: InvitationStatus.PENDING },
+      data: { status: InvitationStatus.REVOKED },
+    })
+    if (result.count === 0) {
+      return reply.status(404).send({ error: { code: "NOT_FOUND", message: "Convite não encontrado." } })
+    }
+    return { ok: true }
   })
 }

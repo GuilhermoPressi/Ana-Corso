@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Check, Mail, Plus, Save, Trash2, User, Users } from "lucide-react"
+import { Check, Link2, Mail, Plus, Save, Trash2, User, Users, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { WhatsAppConnectionCard } from "@/components/crm/WhatsAppConnectionCard"
+import { InviteLinkDialog, type InviteLink } from "@/components/team/InviteLinkDialog"
 import { GoogleCalendarCard } from "@/components/integrations/GoogleCalendarCard"
 import { useSearchParams } from "react-router-dom"
 import { formatDate } from "@/lib/utils"
@@ -46,7 +47,6 @@ type Invitation = {
   email: string
   role: string
   expiresAt: string
-  inviteUrl: string
 }
 
 const TABS = ["perfil", "equipe", "whatsapp", "integracoes"] as const
@@ -76,6 +76,24 @@ export default function Configuracoes() {
   const [inviteEmail, setInviteEmail] = useState("")
   const [inviteRole, setInviteRole] = useState<"PROFESSIONAL" | "RECEPTIONIST" | "SALES" | "ADMIN">("PROFESSIONAL")
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
+  const [inviteLink, setInviteLink] = useState<InviteLink | null>(null)
+
+  async function regenerateInvite(inv: Invitation) {
+    if (!window.confirm(`Gerar um novo link para ${inv.email}? O link enviado antes deixa de funcionar.`)) return
+    const res = await fetch(`/api/team/invitations/${inv.id}/regenerate`, { method: "POST" }).catch(() => null)
+    const data = await res?.json().catch(() => null)
+    if (!res?.ok) return toast.error(data?.error?.message || "Não foi possível gerar o link.")
+    setInviteLink({ email: inv.email, url: `${window.location.origin}${data.invitation.inviteUrl}` })
+    loadTeam()
+  }
+
+  async function cancelInvite(inv: Invitation) {
+    if (!window.confirm(`Cancelar o convite de ${inv.email}?`)) return
+    const res = await fetch(`/api/team/invitations/${inv.id}`, { method: "DELETE" }).catch(() => null)
+    if (!res?.ok) return toast.error("Não foi possível cancelar o convite.")
+    toast.success("Convite cancelado.")
+    loadTeam()
+  }
 
   useEffect(() => {
     fetchProfile()
@@ -126,7 +144,7 @@ export default function Configuracoes() {
 
       if (res.ok) {
         const data = await res.json()
-        toast.success(`Convite gerado com sucesso! Link: ${window.location.origin}${data.invitation.inviteUrl}`)
+        setInviteLink({ email: data.invitation.email, url: `${window.location.origin}${data.invitation.inviteUrl}` })
         setInviteDialogOpen(false)
         setInviteEmail("")
         loadTeam()
@@ -413,13 +431,28 @@ export default function Configuracoes() {
                   <h4 className="mb-2 text-[12px] font-semibold text-muted-foreground uppercase tracking-wider">Convites Pendentes</h4>
                   <div className="divide-y divide-border/50 border rounded-xl overflow-hidden">
                     {invitations.map((inv) => (
-                      <div key={inv.id} className="flex items-center justify-between p-3 bg-muted/20 text-xs">
+                      <div key={inv.id} className="flex flex-wrap items-center justify-between gap-2 p-3 bg-muted/20 text-xs">
                         <div className="flex items-center gap-2">
                           <Mail className="size-4 text-muted-foreground" />
                           <span>{inv.email}</span>
                           <Badge variant="secondary" className="text-[9px]">{ROLE_LABEL[inv.role] ?? inv.role}</Badge>
                         </div>
-                        <span className="text-[10px] text-muted-foreground">Expira em {formatDate(inv.expiresAt)}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="mr-2 text-[10px] text-muted-foreground">Expira em {formatDate(inv.expiresAt)}</span>
+                          <Button variant="outline" size="sm" className="h-7 text-[11px]" onClick={() => regenerateInvite(inv)}>
+                            <Link2 className="size-3.5" /> Gerar novo link
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-7 text-muted-foreground hover:text-destructive"
+                            aria-label={`Cancelar convite de ${inv.email}`}
+                            title="Cancelar convite"
+                            onClick={() => cancelInvite(inv)}
+                          >
+                            <X className="size-3.5" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -428,6 +461,8 @@ export default function Configuracoes() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <InviteLinkDialog invite={inviteLink} onClose={() => setInviteLink(null)} />
 
         <TabsContent value="whatsapp">
           <WhatsAppConnectionCard />
