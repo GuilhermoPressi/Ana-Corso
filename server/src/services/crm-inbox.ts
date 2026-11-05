@@ -238,25 +238,74 @@ type ParsedContent = {
   hasMedia: boolean
 }
 
+/** Envelopes que só embrulham a mensagem real. */
+const WRAPPER_KEYS = [
+  "ephemeralMessage",
+  "viewOnceMessage",
+  "viewOnceMessageV2",
+  "viewOnceMessageV2Extension",
+  "documentWithCaptionMessage",
+  "editedMessage",
+  "deviceSentMessage",
+  "futureProofMessage",
+  "groupMentionedMessage",
+  "botInvokeMessage",
+  "associatedChildMessage",
+  "lottieStickerMessage",
+] as const
+
 function unwrapMessage(message: any): any {
   let current = message
-  for (let i = 0; i < 4 && current; i++) {
-    const inner =
-      current.ephemeralMessage?.message ??
-      current.viewOnceMessage?.message ??
-      current.viewOnceMessageV2?.message ??
-      current.viewOnceMessageV2Extension?.message ??
-      current.documentWithCaptionMessage?.message ??
-      current.editedMessage?.message
-    if (!inner) break
-    current = inner
+  for (let i = 0; i < 6 && current; i++) {
+    const key = WRAPPER_KEYS.find((k) => current[k]?.message)
+    if (!key) break
+    current = current[key].message
   }
   return current
 }
 
+/** Chaves de metadados que acompanham o conteúdo e não são mensagem. */
+const META_KEYS = new Set(["messageContextInfo", "senderKeyDistributionMessage", "base64", "mediaUrl"])
+
+/** Mensagens de sistema/sem conteúdo visível: não entram na conversa. */
+const SILENT_KEYS = [
+  "reactionMessage",
+  "encReactionMessage",
+  "protocolMessage",
+  "pollUpdateMessage",
+  "keepInChatMessage",
+  "pinInChatMessage",
+  "albumMessage",
+  "messageHistoryBundle",
+  "requestPhoneNumberMessage",
+  "placeholderMessage",
+  "secretEncryptedMessage",
+  "encEventResponseMessage",
+] as const
+
+const UNSUPPORTED_PREFIX = "Tipo não suportado"
+
+/** Texto gravado para mensagens que o app não soube ler (antes e agora). */
+export function isUnsupportedText(text: string | null) {
+  return Boolean(text && (text === "Mensagem não suportada" || text.startsWith(UNSUPPORTED_PREFIX)))
+}
+
+const textContent = (text: string): ParsedContent => ({
+  kind: CrmMessageKind.TEXT,
+  text,
+  mimeType: null,
+  fileName: null,
+  hasMedia: false,
+})
+
+function pollText(poll: any) {
+  const options = Array.isArray(poll?.options) ? poll.options.map((o: any) => `• ${o?.optionName ?? ""}`) : []
+  return [`📊 Enquete: ${poll?.name ?? ""}`.trim(), ...options].join("\n")
+}
+
 export function parseMessageContent(rawMessage: any): ParsedContent | null {
   const m = unwrapMessage(rawMessage)
-  if (!m) return null
+  if (!m || typeof m !== "object") return null
   const media = (kind: CrmMessageKind, node: any, text: string | null = node?.caption ?? null): ParsedContent => ({
     kind,
     text: text || null,
@@ -265,14 +314,12 @@ export function parseMessageContent(rawMessage: any): ParsedContent | null {
     hasMedia: true,
   })
 
-  if (typeof m.conversation === "string") {
-    return { kind: CrmMessageKind.TEXT, text: m.conversation, mimeType: null, fileName: null, hasMedia: false }
-  }
-  if (m.extendedTextMessage?.text) {
-    return { kind: CrmMessageKind.TEXT, text: m.extendedTextMessage.text, mimeType: null, fileName: null, hasMedia: false }
-  }
+  if (typeof m.conversation === "string" && m.conversation) return textContent(m.conversation)
+  if (m.extendedTextMessage?.text) return textContent(m.extendedTextMessage.text)
   if (m.imageMessage) return media(CrmMessageKind.IMAGE, m.imageMessage)
   if (m.videoMessage) return media(CrmMessageKind.VIDEO, m.videoMessage)
+  // Recado de vídeo (bolinha).
+  if (m.ptvMessage) return media(CrmMessageKind.VIDEO, m.ptvMessage)
   if (m.audioMessage) return media(CrmMessageKind.AUDIO, m.audioMessage, null)
   if (m.documentMessage) return media(CrmMessageKind.DOCUMENT, m.documentMessage, m.documentMessage.caption ?? m.documentMessage.fileName ?? null)
   if (m.stickerMessage) return media(CrmMessageKind.STICKER, m.stickerMessage, null)
@@ -285,14 +332,52 @@ export function parseMessageContent(rawMessage: any): ParsedContent | null {
   if (m.contactMessage) {
     return { kind: CrmMessageKind.OTHER, text: `Contato compartilhado: ${m.contactMessage.displayName ?? ""}`.trim(), mimeType: null, fileName: null, hasMedia: false }
   }
-  if (m.reactionMessage || m.protocolMessage || m.senderKeyDistributionMessage) return null
-  if (m.buttonsResponseMessage?.selectedDisplayText) {
-    return { kind: CrmMessageKind.TEXT, text: m.buttonsResponseMessage.selectedDisplayText, mimeType: null, fileName: null, hasMedia: false }
+  if (m.contactsArrayMessage) {
+    const names = (m.contactsArrayMessage.contacts ?? []).map((c: any) => c?.displayName).filter(Boolean)
+    return { kind: CrmMessageKind.OTHER, text: `Contatos compartilhados: ${names.join(", ") || m.contactsArrayMessage.displayName || ""}`.trim(), mimeType: null, fileName: null, hasMedia: false }
   }
-  if (m.listResponseMessage?.title) {
-    return { kind: CrmMessageKind.TEXT, text: m.listResponseMessage.title, mimeType: null, fileName: null, hasMedia: false }
+  if (SILENT_KEYS.some((k) => m[k])) return null
+
+  // Respostas de botões, listas e menus (inclui anúncios com botão).
+  const reply =
+    m.buttonsResponseMessage?.selectedDisplayText ??
+    m.templateButtonReplyMessage?.selectedDisplayText ??
+    m.listResponseMessage?.title ??
+    m.interactiveResponseMessage?.body?.text
+  if (reply) return textContent(reply)
+
+  // Mensagens com botões/modelos (empresas e anúncios).
+  const template = m.templateMessage?.hydratedTemplate ?? m.templateMessage?.hydratedFourRowTemplate ?? m.templateMessage?.fourRowTemplate
+  const rich =
+    template?.hydratedContentText ??
+    template?.content?.namespace ??
+    m.buttonsMessage?.contentText ??
+    m.listMessage?.description ??
+    m.listMessage?.title ??
+    m.interactiveMessage?.body?.text ??
+    m.interactiveMessage?.header?.title
+  if (rich) return textContent(rich)
+
+  const poll = m.pollCreationMessage ?? m.pollCreationMessageV2 ?? m.pollCreationMessageV3 ?? m.pollCreationMessageV5
+  if (poll) return textContent(pollText(poll))
+  if (m.eventMessage) {
+    const when = m.eventMessage.startTime ? new Date(Number(m.eventMessage.startTime) * 1000).toLocaleString("pt-BR") : ""
+    return textContent([`📅 Evento: ${m.eventMessage.name ?? ""}`, when, m.eventMessage.description].filter(Boolean).join("\n"))
   }
-  return { kind: CrmMessageKind.OTHER, text: "Mensagem não suportada", mimeType: null, fileName: null, hasMedia: false }
+  if (m.groupInviteMessage) return textContent(`Convite para o grupo ${m.groupInviteMessage.groupName ?? ""}`.trim())
+  if (m.productMessage) {
+    const product = m.productMessage.product ?? {}
+    return textContent(`🛍️ Produto: ${product.title ?? ""}${product.description ? `\n${product.description}` : ""}`)
+  }
+  if (m.orderMessage) return textContent(`🛒 Pedido${m.orderMessage.message ? `: ${m.orderMessage.message}` : ""}`)
+  if (m.stickerPackMessage) return textContent("Pacote de figurinhas")
+  if (m.call || m.bcallMessage || m.callLogMesssage || m.scheduledCallCreationMessage) return textContent("📞 Chamada de voz/vídeo")
+
+  const keys = Object.keys(m).filter((k) => !META_KEYS.has(k))
+  // Só metadados (ex.: mensagem que o WhatsApp ainda não descriptografou): ignora.
+  if (keys.length === 0) return null
+  console.warn("[crm] tipo de mensagem não suportado:", keys.join(", "))
+  return { kind: CrmMessageKind.OTHER, text: `${UNSUPPORTED_PREFIX}: ${keys.join(", ")}`, mimeType: null, fileName: null, hasMedia: false }
 }
 
 function isIgnoredJid(jid: string) {
@@ -406,25 +491,62 @@ async function ingestMessage(instance: WhatsAppInstance, data: any) {
   }
 
   if (content.hasMedia) {
-    let base64: string | null = typeof data.message?.base64 === "string" ? data.message.base64 : null
-    let mimeType = content.mimeType
-    if (!base64) {
-      const downloaded = await evolution.downloadMedia(instance.instanceName, key.id)
-      if (downloaded.ok) {
-        base64 = downloaded.data.base64
-        mimeType = mimeType ?? downloaded.data.mimetype
-      }
-    }
-    if (base64) {
-      const storageKey = await storeMessageMedia(clinicId, conversation.id, message.id, base64, mimeType, content.fileName)
-      if (storageKey) {
-        await prisma.crmMessage.update({
-          where: { id: message.id },
-          data: { mediaStorageKey: storageKey, mediaMimeType: mimeType },
-        })
-      }
+    await attachIncomingMedia(instance, message, content, key.id, typeof data.message?.base64 === "string" ? data.message.base64 : null)
+  }
+}
+
+/** Baixa a mídia de uma mensagem recebida (base64 do webhook ou da Evolution) e grava no storage. */
+async function attachIncomingMedia(
+  instance: WhatsAppInstance,
+  message: { id: string; conversationId: string },
+  content: ParsedContent,
+  externalId: string,
+  inlineBase64: string | null,
+) {
+  let base64 = inlineBase64
+  let mimeType = content.mimeType
+  if (!base64) {
+    const downloaded = await evolution.downloadMedia(instance.instanceName, externalId)
+    if (downloaded.ok) {
+      base64 = downloaded.data.base64
+      mimeType = mimeType ?? downloaded.data.mimetype
     }
   }
+  if (!base64) return
+  const storageKey = await storeMessageMedia(instance.clinicId, message.conversationId, message.id, base64, mimeType, content.fileName)
+  if (storageKey) {
+    await prisma.crmMessage.update({
+      where: { id: message.id },
+      data: { mediaStorageKey: storageKey, mediaMimeType: mimeType },
+    })
+  }
+}
+
+/**
+ * Tenta ler de novo uma mensagem gravada como "não suportada", buscando o
+ * conteúdo original na Evolution pelo id do WhatsApp.
+ */
+export async function reloadUnsupportedMessage(instance: WhatsAppInstance, messageId: string) {
+  const message = await prisma.crmMessage.findFirst({ where: { id: messageId, clinicId: instance.clinicId } })
+  if (!message?.externalId) return { ok: false as const, error: "Mensagem sem identificação do WhatsApp." }
+  const found = await evolution.findMessage(instance.instanceName, message.externalId)
+  if (!found.ok) return { ok: false as const, error: found.error }
+  if (!found.data) return { ok: false as const, error: "A Evolution não guarda mais esta mensagem." }
+
+  const content = parseMessageContent(found.data.message)
+  if (!content) return { ok: false as const, error: "Esta mensagem não tem conteúdo para mostrar (reação, voto ou aviso do WhatsApp)." }
+  if (content.kind === CrmMessageKind.OTHER && isUnsupportedText(content.text)) {
+    return { ok: false as const, error: `Ainda não suportado (${content.text?.replace(`${UNSUPPORTED_PREFIX}: `, "")}).` }
+  }
+
+  const updated = await prisma.crmMessage.update({
+    where: { id: message.id },
+    data: { kind: content.kind, text: content.text, mediaMimeType: content.mimeType, mediaFileName: content.fileName },
+  })
+  if (content.hasMedia) {
+    await attachIncomingMedia(instance, updated, content, message.externalId, found.data.message?.base64 ?? null)
+  }
+  return { ok: true as const, message: await prisma.crmMessage.findUniqueOrThrow({ where: { id: message.id } }) }
 }
 
 const STATUS_RANK: Record<CrmMessageStatus, number> = {

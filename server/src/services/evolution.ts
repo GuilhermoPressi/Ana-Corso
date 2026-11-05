@@ -197,6 +197,20 @@ export const evolution = {
     })
   },
 
+  /** Busca uma mensagem já recebida pelo id do WhatsApp (formatos v2.0 e v2.2+). */
+  async findMessage(instanceName: string, messageId: string) {
+    const res = await evoFetch<any>(
+      "POST",
+      `/chat/findMessages/${enc(instanceName)}`,
+      { where: { key: { id: messageId } }, limit: 1 },
+      15_000,
+    )
+    if (!res.ok) return res
+    const records = res.data?.messages?.records ?? res.data?.records ?? (Array.isArray(res.data) ? res.data : [])
+    const record = (records as any[]).find((r) => r?.key?.id === messageId) ?? null
+    return { ok: true as const, data: record as { key: any; message: any } | null }
+  },
+
   /** Quais números têm WhatsApp e qual o JID correto de cada um. */
   async checkNumbers(instanceName: string, numbers: string[]) {
     const res = await evoFetch<any>("POST", `/chat/whatsappNumbers/${enc(instanceName)}`, { numbers }, 15_000)

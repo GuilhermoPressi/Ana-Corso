@@ -173,6 +173,7 @@ export const crmApi = {
     sendRequest(`/api/crm/conversations/${id}/messages`, { text, note }),
   sendMedia: (id: string, input: { fileName: string; mimeType: string; base64: string; caption?: string }) =>
     sendRequest(`/api/crm/conversations/${id}/media`, input),
+  reloadMessage: (id: string) => request<{ message: Message }>("POST", `/api/crm/messages/${id}/reload`, {}),
   retryMessage: (id: string) => sendRequest(`/api/crm/messages/${id}/retry`, {}),
   mediaUrl: (messageId: string) => `/api/crm/messages/${messageId}/media`,
 

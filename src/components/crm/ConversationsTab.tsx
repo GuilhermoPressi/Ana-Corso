@@ -438,6 +438,16 @@ function ConversationThread({
     }
   }
 
+  async function reload(message: Message) {
+    try {
+      const result = await crmApi.reloadMessage(message.id)
+      setMessages((current) => current.map((m) => (m.id === message.id ? result.message : m)))
+      toast.success("Mensagem carregada.")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível carregar a mensagem.")
+    }
+  }
+
   async function retry(message: Message) {
     try {
       const result = await crmApi.retryMessage(message.id)
@@ -540,7 +550,7 @@ function ConversationThread({
                 </span>
               </div>
               {group.messages.map((message) => (
-                <MessageBubble key={message.id} message={message} onRetry={() => retry(message)} />
+                <MessageBubble key={message.id} message={message} onRetry={() => retry(message)} onReload={() => reload(message)} />
               ))}
             </div>
           ))
@@ -591,7 +601,24 @@ function StatusIcon({ status }: { status: Message["status"] }) {
   return null
 }
 
-function MessageBubble({ message, onRetry }: { message: Message; onRetry: () => void }) {
+/** Mensagem gravada sem conteúdo legível (tipo do WhatsApp que o app não entendia). */
+function isUnsupported(message: Message) {
+  return (
+    message.kind === "OTHER" &&
+    Boolean(message.text && (message.text === "Mensagem não suportada" || message.text.startsWith("Tipo não suportado")))
+  )
+}
+
+function MessageBubble({
+  message,
+  onRetry,
+  onReload,
+}: {
+  message: Message
+  onRetry: () => void
+  onReload: () => Promise<void>
+}) {
+  const [reloading, setReloading] = useState(false)
   const outbound = message.direction === "OUTBOUND"
   const note = message.kind === "NOTE"
   const time = new Date(message.sentAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
@@ -627,6 +654,19 @@ function MessageBubble({ message, onRetry }: { message: Message; onRetry: () => 
           <span className="tabular-nums">{time}</span>
           {outbound && !note && <StatusIcon status={message.status} />}
         </div>
+        {isUnsupported(message) && (
+          <button
+            type="button"
+            disabled={reloading}
+            onClick={async () => {
+              setReloading(true)
+              await onReload().finally(() => setReloading(false))
+            }}
+            className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-primary underline-offset-2 hover:underline disabled:opacity-60"
+          >
+            {reloading ? <Loader2 className="size-3 animate-spin" /> : <RotateCcw className="size-3" />} Tentar carregar de novo
+          </button>
+        )}
         {message.status === "FAILED" && (
           <div className="mt-1.5 flex items-center justify-between gap-2 border-t border-destructive/20 pt-1.5 text-[11px] text-destructive">
             <span className="truncate" title={message.errorReason ?? undefined}>

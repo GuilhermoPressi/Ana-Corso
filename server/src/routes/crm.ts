@@ -29,6 +29,7 @@ import {
   phoneVariants,
   previewFor,
   refreshInstanceProfile,
+  reloadUnsupportedMessage,
   resolveWhatsAppNumber,
   storeMessageMedia,
   verifyInstanceConnection,
@@ -796,6 +797,21 @@ export async function crmRoutes(fastify: FastifyInstance) {
       message: serializeMessage(saved),
       ...(sent.ok ? {} : { error: { code: "SEND_FAILED", message: `Falha ao enviar: ${sent.error}` } }),
     })
+  })
+
+  /** Busca de novo na Evolution uma mensagem gravada como "não suportada". */
+  fastify.post("/crm/messages/:id/reload", CRM_WRITE, async (request, reply) => {
+    const clinicId = request.clinic!.id
+    const { id } = request.params as { id: string }
+    const message = await prisma.crmMessage.findFirst({
+      where: { id, clinicId, kind: CrmMessageKind.OTHER, conversation: conversationScope(request) },
+    })
+    if (!message) return reply.status(404).send(notFound("Mensagem não encontrada."))
+    const instance = await prisma.whatsAppInstance.findUnique({ where: { clinicId } })
+    if (!instance) return reply.status(409).send({ error: { code: "WHATSAPP_DISCONNECTED", message: "Conecte o WhatsApp primeiro." } })
+    const result = await reloadUnsupportedMessage(instance, message.id)
+    if (!result.ok) return reply.status(422).send({ error: { code: "NOT_RECOVERED", message: result.error } })
+    return { message: serializeMessage(result.message) }
   })
 
   fastify.post("/crm/messages/:id/retry", CRM_WRITE, async (request, reply) => {
