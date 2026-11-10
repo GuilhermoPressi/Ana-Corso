@@ -91,8 +91,9 @@ def qc(cfg_path):
     S, x, y = wc["lado_saida"], E["saida"]["largura"] - wc["margem_direita"] - wc["lado_saida"], wc["base_y"] - wc["lado_saida"]
     lg = ffmpeg_log(["-i", str(f), "-an", "-vf", f"crop={S}:{S}:{x}:{y},freezedetect=n=0.0008:d=0.6"])
     cam_fr = [(float(s), float(e)) for s, e in zip(re.findall(r"freeze_start: ([\d.]+)", lg), re.findall(r"freeze_end: ([\d.]+)", lg))]
-    cam_ruim = [z for z in cam_fr if not any(z[0] >= p0 and z[1] <= p1 for p0, p1 in planejado)]
-    check("congelados", not cam_ruim, f"webcam parada fora do planejado: {cam_ruim}" if cam_ruim else
+    # a webcam nunca pode congelar (o congelamento planejado é só da tela)
+    cam_ruim = cam_fr
+    check("congelados", not cam_ruim, f"webcam parada (perde sincronia labial): {cam_ruim}" if cam_ruim else
           f"ok (tela parada em {len(fr)} trechos é conteúdo estático; congelamento planejado: {len(planejado)})")
     res["status_auto"] = "APROVADO" if ok else "REPROVADO"
     res["status_visual"] = cfg.get("qc_visual", "revisar")

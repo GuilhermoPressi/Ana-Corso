@@ -19,11 +19,11 @@
   },
   "duracao": {
    "ok": true,
-   "info": "vídeo 26.67s / EDL 26.67s"
+   "info": "vídeo 28.70s / EDL 28.70s"
   },
   "sincronia": {
    "ok": true,
-   "info": "vídeo 26.667s x áudio 26.666s"
+   "info": "vídeo 28.700s x áudio 28.693s"
   },
   "faststart": {
    "ok": true,
@@ -31,7 +31,7 @@
   },
   "loudness": {
    "ok": true,
-   "info": "-14.7 LUFS, TP -3.4 dBTP"
+   "info": "-14.3 LUFS, TP -2.1 dBTP"
   },
   "quadros_pretos": {
    "ok": true,

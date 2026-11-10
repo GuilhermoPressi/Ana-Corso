@@ -113,11 +113,11 @@ def src_to_out(pieces, fps, ts):
 
 
 # ---------------------------------------------------------------- 2. áudio
-def build_audio(cfg, pieces, cache):
+def build_audio(cfg, pieces, cache, teto_extra=0.0):
     E = cfg["E"]
     A = E["audio"]
     fps = E["saida"]["fps"]
-    key = h([pieces, A])
+    key = h([pieces, A, round(teto_extra, 2)])
     out = cache / f"audio_{key}.wav"
     if out.exists():
         return out
@@ -156,7 +156,7 @@ def build_audio(cfg, pieces, cache):
                              "-f", "null", "-"], capture_output=True, text=True).stderr
         return float(re.findall(r"I:\s+(-?[\d.]+) LUFS", lg)[-1]), float(re.findall(r"Peak:\s+(-?[\d.]+) dBFS", lg)[-1])
     alvo, tp = A["lufs"], A["true_peak"]
-    lim = 10 ** ((tp - 0.5) / 20)
+    lim = 10 ** ((tp - 0.5 - teto_extra) / 20)
     ganho = alvo - medir(pre)[0]
     for _ in range(3):
         af = (f"volume={ganho:.2f}dB,aresample=192000,alimiter=limit={lim:.4f}:attack=3:release=60:level=disabled,"
@@ -366,7 +366,9 @@ class Compositor:
         rgba = arr[y0:y1, x0:x1]
         return (x0, y0, rgba[..., 2::-1].copy(), (rgba[..., 3:] / 255))
 
-    def compose(self, frame, cam_params, t_src):
+    def compose(self, frame, cam_params, t_src, cam_frame=None):
+        """frame = tela (pode ser um quadro congelado); cam_frame = quadro ao vivo para a webcam."""
+        cam_frame = frame if cam_frame is None else cam_frame
         E = self.E
         cx, cy, s = cam_params
         W, H = self.W, self.H
@@ -419,7 +421,7 @@ class Compositor:
             out[t1:b1] = (out[t1:b1].astype(np.float32) * (1 - k) + dark * k).astype(np.uint8)
         # webcam quadrada com sombra, cantos arredondados e borda
         x0, y0, side = self.cam_src
-        cam = cv2.resize(frame[y0:y0 + side, x0:x0 + side], (self.cam_S, self.cam_S), interpolation=cv2.INTER_AREA)
+        cam = cv2.resize(cam_frame[y0:y0 + side, x0:x0 + side], (self.cam_S, self.cam_S), interpolation=cv2.INTER_AREA)
         cxo, cyo, S, p = self.cam_x, self.cam_y, self.cam_S, self.sh_pad
         ya, yb, xa, xb = cyo - p, cyo + S + p, cxo - p, cxo + S + p
         sh = self.sh[max(0, -ya):self.sh.shape[0] - max(0, yb - H), max(0, -xa):self.sh.shape[1] - max(0, xb - W)]
@@ -507,8 +509,10 @@ def main():
         for i, to in enumerate(tempos):
             p = max((p for p in pieces if p["out"] <= to + 1e-6), key=lambda p: p["out"])
             ts = p["a"] + (to - p["out"])
-            fr = frame_at(src, congelado(cfg, ts) or ts)
-            img = comp.compose(fr, camera_at(seg_keys(cfg, p["seg"]), ts, E), ts)
+            cq = congelado(cfg, ts)
+            fr_live = frame_at(src, ts)
+            fr = frame_at(src, cq) if cq else fr_live
+            img = comp.compose(fr, camera_at(seg_keys(cfg, p["seg"]), ts, E), ts, cam_frame=fr_live)
             tmp = cache / f"previa_{i}.png"
             cv2.imwrite(str(tmp), img)
             outp = cache / f"previa_{i}_leg.png"
@@ -565,9 +569,10 @@ def main():
                 continue
             ts = want.pop(k)
             cq = congelado(cfg, ts)
-            if cq is not None:
-                fr = hold.get(round((cq - a0) * fps), fr) if hold.get(round((cq - a0) * fps)) is not None else fr
-            img = comp.compose(fr, camera_at(keys, ts, E), ts)
+            tela = fr
+            if cq is not None and hold.get(round((cq - a0) * fps)) is not None:
+                tela = hold[round((cq - a0) * fps)]
+            img = comp.compose(tela, camera_at(keys, ts, E), ts, cam_frame=fr)
             enc.stdin.write(img.tobytes())
             n_done += 1
             if n_done % 150 == 0:
@@ -578,6 +583,22 @@ def main():
             n_done += 1
     enc.stdin.close()
     enc.wait()
+    # true peak medido no AAC final; se estourar, baixa o teto do limitador e remuxa só o áudio
+    teto = 0.0
+    for _ in range(4):
+        lg = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(final), "-vn", "-af", "ebur128=peak=true",
+                             "-f", "null", "-"], capture_output=True, text=True).stderr
+        tp_fin = float(re.findall(r"Peak:\s+(-?[\d.]+) dBFS", lg)[-1])
+        if tp_fin <= E["audio"]["true_peak"]:
+            break
+        teto += tp_fin - E["audio"]["true_peak"] + 0.3
+        print(f"  true peak {tp_fin:.1f} dBTP após AAC; teto do limitador -{teto:.1f} dB e remux")
+        audio = build_audio(cfg, pieces, cache, teto)
+        tmp = final.with_suffix(".tmp.mp4")
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(final), "-i", str(audio), "-map", "0:v", "-map", "1:a",
+                        "-c:v", "copy", "-c:a", "aac", "-ar", str(E["audio"]["taxa"]), "-b:a", f"{Enc['audio_kbps']}k",
+                        "-movflags", "+faststart", "-shortest", str(tmp)], check=True)
+        tmp.replace(final)
     print("final:", final)
     leve = ROOT / "export_leve" / f"{cfg['arquivo']}_leve.mp4"
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(final), "-c:v", "libx264", "-preset", "medium",
