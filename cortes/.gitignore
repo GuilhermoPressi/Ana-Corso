@@ -1,0 +1,10 @@
+# Mídia pesada e modelos ficam fora do git
+brutos/*
+!brutos/.gitkeep
+trabalho/models/
+trabalho/cache/
+trabalho/audio/
+trabalho/frames/
+export/*.mp4
+export_leve/*.mp4
+review/*.mp4
