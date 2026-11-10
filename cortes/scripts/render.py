@@ -68,40 +68,106 @@ def load_words():
 
 
 # ---------------------------------------------------------------- 1. EDL
+_ENERGIA = None
+
+
+def energia():
+    """Envelope de energia (dBFS a cada 10 ms) do áudio original, gerado na Etapa 1."""
+    global _ENERGIA
+    if _ENERGIA is None:
+        _ENERGIA = np.load(WORK / "energia_10ms.npy")
+    return _ENERGIA
+
+
+def silencio_thr(E):
+    db = energia()
+    return float(np.percentile(db, 10)) + E["ritmo"].get("silencio_acima_do_piso_db", 8)
+
+
+def silencios(t0, t1, E):
+    """Trechos de silêncio real (energia < limiar por >= silencio_min) entre t0 e t1: [(ini, fim), ...]."""
+    db, thr = energia(), silencio_thr(E)
+    need = int(E["ritmo"].get("silencio_min", 0.06) * 100)
+    i0, i1 = max(0, int(t0 * 100)), min(len(db), int(t1 * 100))
+    runs, st = [], None
+    for i in range(i0, i1):
+        if db[i] < thr:
+            st = i if st is None else st
+        else:
+            if st is not None and i - st >= need:
+                runs.append((st / 100, i / 100))
+            st = None
+    if st is not None and i1 - st >= need:
+        runs.append((st / 100, i1 / 100))
+    return runs
+
+
+def fronteira(a, b, E, alcance=1.2):
+    """Entre a palavra a e a palavra b (b pode ser None = fim do material).
+    Retorna (fim_de_a, inicio_de_b, pausa_real, emendado). Procura numa janela que cobre o erro do whisper (~0,2 s)."""
+    R = E["ritmo"]
+    t0 = a["e"] - 0.15
+    t1 = (b["s"] + 0.15) if b else a["e"] + alcance
+    runs = silencios(t0, t1, E)
+    if b is None:
+        if runs:
+            rs, re_ = runs[0]
+            return rs + R["pad_depois"], None, re_ - rs, False
+        return t1, None, 0.0, True
+    if runs:
+        rs, re_ = max(runs, key=lambda r: r[1] - r[0])
+        meio = (rs + re_) / 2
+        return min(rs + R["pad_depois"], meio), max(re_ - R["pad_antes"], meio), re_ - rs, False
+    # sem silêncio: fala emendada -> corta no ponto de menor energia
+    db = energia()
+    i0, i1 = int(t0 * 100), int(t1 * 100)
+    m = (i0 + int(np.argmin(db[i0:i1]))) / 100
+    return m, m, 0.0, True
+
+
 def build_edl(cfg, words):
     E = cfg["E"]
     fps = E["saida"]["fps"]
     R = E["ritmo"]
-    pieces = []  # cada pedaço: {a, b, seg}
+    pieces = []
+    avisos = []
     for si, seg in enumerate(cfg["segmentos"]):
         # "de" = início da 1ª palavra; "ate" = início da última palavra (ela entra inteira)
         ws = [w for w in words if seg["de"] - 0.02 <= w["s"] <= seg["ate"] + 0.02]
         if not ws:
             sys.exit(f"segmento {si} sem palavras")
-        # próxima palavra depois do segmento (para não invadir)
-        nxt = next((w for w in words if w["s"] > ws[-1]["s"] and w not in ws), None)
-        prv = next((w for w in reversed(words) if w["e"] < ws[0]["s"]), None)
-        a = ws[0]["s"] - seg.get("pad_antes", R["pad_antes"])
+        idx0, idx1 = words.index(ws[0]), words.index(ws[-1])
+        prv = words[idx0 - 1] if idx0 > 0 else None
+        nxt = words[idx1 + 1] if idx1 + 1 < len(words) else None
+        # início do segmento
         if prv:
-            a = max(a, prv["e"] + 0.02)
-        groups = [[ws[0]]]
-        for w in ws[1:]:
-            if w["s"] - groups[-1][-1]["e"] > R["gap_max"]:
-                groups.append([w])
-            else:
-                groups[-1].append(w)
-        for gi, g in enumerate(groups):
-            ga = a if gi == 0 else g[0]["s"] - R["pad_antes"]
-            last = si == len(cfg["segmentos"]) - 1 and gi == len(groups) - 1
-            gb = g[-1]["e"] + (R["cauda_final"] if last else R["pad_depois"])
-            limite = (groups[gi + 1][0]["s"] - R["pad_antes"]) if gi + 1 < len(groups) else (nxt["s"] - 0.03 if nxt else gb)
-            gb = min(gb, limite)
-            n = max(1, round((gb - ga) * fps))
-            pieces.append({"a": round(ga, 4), "n": n, "seg": si})
+            _, ga, _, em = fronteira(prv, ws[0], E)
+            if em:
+                avisos.append(f"seg {si}: início emendado com a palavra anterior ({prv['w']}|{ws[0]['w']})")
+        else:
+            ga = ws[0]["s"] - R["pad_antes"]
+        cur_a = ga
+        for k in range(len(ws) - 1):
+            fa, ib, pausa, _ = fronteira(ws[k], ws[k + 1], E)
+            if pausa > R["gap_max"]:
+                pieces.append({"a": round(cur_a, 4), "n": max(1, round((fa - cur_a) * fps)), "seg": si})
+                cur_a = ib
+        # fim do segmento
+        if nxt and nxt["s"] - ws[-1]["e"] < 1.5:
+            gb, _, _, em = fronteira(ws[-1], nxt, E)
+            if em:
+                avisos.append(f"seg {si}: fim emendado com a palavra seguinte ({ws[-1]['w']}|{nxt['w']})")
+        else:
+            gb, _, _, _ = fronteira(ws[-1], None, E)
+        if si == len(cfg["segmentos"]) - 1:
+            lim = (nxt["s"] - 0.05) if nxt else gb + 1
+            gb = min(max(gb, ws[-1]["e"] + R["cauda_final"]), max(gb, lim)) if not (nxt and nxt["s"] - ws[-1]["e"] < 0.3) else gb
+        pieces.append({"a": round(cur_a, 4), "n": max(1, round((gb - cur_a) * fps)), "seg": si})
     t = 0
     for p in pieces:
         p["out"] = t
         t += p["n"] / fps
+    build_edl.avisos = avisos
     return pieces, t
 
 
@@ -147,6 +213,9 @@ def build_audio(cfg, pieces, cache, teto_extra=0.0):
             c[-xf:] *= fade_out
         y[pos:pos + len(c)] += c
         pos += len(c) - xf
+    fi, fo = int(sr * 0.015), int(sr * 0.06)
+    y[:fi] *= np.linspace(0, 1, fi)
+    y[-fo:] *= np.linspace(1, 0, fo)
     pre = cache / f"audio_{key}_pre.wav"
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(sr), "-ac", "1", "-i", "-", str(pre)],
                    input=y.tobytes(), check=True)
@@ -440,6 +509,18 @@ class Compositor:
         return out
 
 
+def insercao(cfg, ts):
+    """Inserção de contexto: a TELA vem de outro momento do vídeo (tela_t), enquanto áudio e webcam seguem em ts."""
+    for ins in cfg.get("insercoes", []):
+        if ins["de"] <= ts < ins["ate"]:
+            return ins
+    return None
+
+
+def tela_t_de(ins, ts):
+    return ins["tela_t"] + ((ts - ins["de"]) if ins.get("modo", "video") == "video" else 0.0)
+
+
 def congelado(cfg, ts):
     for c in cfg.get("congelar", []):
         if c["de"] <= ts < c["ate"]:
@@ -459,13 +540,38 @@ def decode_range(src, a, nframes, fps):
            "-f", "rawvideo", "-pix_fmt", "bgr24", "-threads", "4", "-"]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=SRC_W * SRC_H * 3)
     size = SRC_W * SRC_H * 3
-    for _ in range(nframes):
-        buf = p.stdout.read(size)
-        if len(buf) < size:
-            break
-        yield np.frombuffer(buf, np.uint8).reshape(SRC_H, SRC_W, 3)
-    p.stdout.close()
-    p.wait()
+    try:
+        for _ in range(nframes):
+            buf = p.stdout.read(size)
+            if len(buf) < size:
+                break
+            yield np.frombuffer(buf, np.uint8).reshape(SRC_H, SRC_W, 3)
+    finally:
+        p.kill()
+        p.stdout.close()
+        p.wait()
+
+
+class InsercaoDecoder:
+    """Decodifica as telas das inserções sob demanda, avançando um gerador por inserção (pouca memória)."""
+    def __init__(self, src):
+        self.src, self.gen, self.pos, self.last = src, {}, {}, {}
+
+    def get(self, key, t, fps):
+        k = (key)
+        if k not in self.gen or t < self.pos[k] - 1e-6 or t - self.pos[k] > 2.0:
+            if k in self.gen:
+                self.gen[k].close()
+            self.gen[k] = decode_range(self.src, t, 10 ** 6, fps)
+            self.pos[k] = t
+            self.last[k] = next(self.gen[k]).copy()
+        while self.pos[k] + 1 / fps <= t + 1e-6:
+            try:
+                self.last[k] = next(self.gen[k]).copy()
+            except StopIteration:
+                break
+            self.pos[k] += 1 / fps
+        return self.last[k]
 
 
 def frame_at(src, t):
@@ -510,9 +616,12 @@ def main():
             p = max((p for p in pieces if p["out"] <= to + 1e-6), key=lambda p: p["out"])
             ts = p["a"] + (to - p["out"])
             cq = congelado(cfg, ts)
+            ins = insercao(cfg, ts)
             fr_live = frame_at(src, ts)
-            fr = frame_at(src, cq) if cq else fr_live
-            img = comp.compose(fr, camera_at(seg_keys(cfg, p["seg"]), ts, E), ts, cam_frame=fr_live)
+            fr = frame_at(src, tela_t_de(ins, ts)) if ins else (frame_at(src, cq) if cq else fr_live)
+            cam = camera_at(sorted(ins["camera"], key=lambda k: k["t"]), ts - ins["de"], E) if ins else \
+                camera_at(seg_keys(cfg, p["seg"]), ts, E)
+            img = comp.compose(fr, cam, tela_t_de(ins, ts) if ins else ts, cam_frame=fr_live)
             tmp = cache / f"previa_{i}.png"
             cv2.imwrite(str(tmp), img)
             outp = cache / f"previa_{i}_leg.png"
@@ -547,6 +656,7 @@ def main():
          "-movflags", "+faststart", "-shortest", str(final)], stdin=subprocess.PIPE)
     n_done = 0
     n_total = sum(p["n"] for p in pieces)
+    ins_dec = InsercaoDecoder(src)
     # decodifica cada segmento de forma contínua e seleciona os quadros dos pedaços
     for si in range(len(cfg["segmentos"])):
         ps = [p for p in pieces if p["seg"] == si]
@@ -570,9 +680,16 @@ def main():
             ts = want.pop(k)
             cq = congelado(cfg, ts)
             tela = fr
-            if cq is not None and hold.get(round((cq - a0) * fps)) is not None:
+            cam = camera_at(keys, ts, E)
+            t_tela = ts
+            ins = insercao(cfg, ts)
+            if ins is not None:
+                t_tela = tela_t_de(ins, ts)
+                tela = ins_dec.get(id(ins), t_tela, fps)
+                cam = camera_at(sorted(ins["camera"], key=lambda k: k["t"]), ts - ins["de"], E)
+            elif cq is not None and hold.get(round((cq - a0) * fps)) is not None:
                 tela = hold[round((cq - a0) * fps)]
-            img = comp.compose(tela, camera_at(keys, ts, E), ts, cam_frame=fr)
+            img = comp.compose(tela, cam, t_tela, cam_frame=fr)
             enc.stdin.write(img.tobytes())
             n_done += 1
             if n_done % 150 == 0:

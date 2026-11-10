@@ -95,6 +95,19 @@ def qc(cfg_path):
     cam_ruim = cam_fr
     check("congelados", not cam_ruim, f"webcam parada (perde sincronia labial): {cam_ruim}" if cam_ruim else
           f"ok (tela parada em {len(fr)} trechos é conteúdo estático; congelamento planejado: {len(planejado)})")
+    # cortes em silêncio real (energia do original nos 30 ms de cada lado do corte)
+    db, thr = render.energia(), render.silencio_thr(E)
+    ruins = []
+    for q in pieces:
+        a0, b0 = q["a"], q["a"] + q["n"] / fps
+        ea = float(max(db[int(a0 * 100):int(a0 * 100) + 3]))
+        eb = float(max(db[int(b0 * 100) - 3:int(b0 * 100)]))
+        for t_, e_ in ((a0, ea), (b0, eb)):
+            if e_ > thr + 6:
+                ruins.append(f"{t_:.2f}s ({e_:.0f} dB)")
+    emendas = getattr(render.build_edl, "avisos", [])
+    check("cortes_silencio", len(ruins) <= len(emendas),
+          f"{len(pieces)} pedaços; cortes com voz: {ruins or 'nenhum'}; emendas naturais (corte no mínimo + fade): {emendas or 'nenhuma'}")
     res["status_auto"] = "APROVADO" if ok else "REPROVADO"
     res["status_visual"] = cfg.get("qc_visual", "revisar")
     return cfg, res, ok, pieces, total

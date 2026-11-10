@@ -47,7 +47,7 @@
     {
       "t": 730.01,
       "roi": [
-        380,
+        700,
         850,
         1080,
         760
@@ -57,7 +57,7 @@
     {
       "t": 735.0,
       "roi": [
-        380,
+        700,
         1000,
         1080,
         760
@@ -106,9 +106,87 @@
   "legenda_post": "Achou o criativo campeão e vai socar dinheiro nele? Ele morre em uma semana.\nEu prefiro volume de criativos e estabilidade: 5º mês acima de R$ 100 mil/mês com o mesmo produto.\nComece a me seguir para mais bastidores de low ticket.",
   "cta": "nenhum",
   "previa": [
-    1.2,
+    1.0,
     3.8,
-    10.0,
-    26.3
+    13.0,
+    21.0,
+    27.5
+  ],
+  "insercoes": [
+    {
+      "de": 739.4,
+      "ate": 743.8,
+      "tela_t": 806.0,
+      "modo": "video",
+      "_doc": "lista de anúncios (criativos) da campanha AD77-82, de 13:26 no original",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            380,
+            990,
+            1080,
+            600
+          ],
+          "ease": 0
+        },
+        {
+          "t": 1.9,
+          "roi": [
+            380,
+            1380,
+            1080,
+            220
+          ],
+          "ease": 0.5
+        },
+        {
+          "t": 3.5,
+          "roi": [
+            2150,
+            1455,
+            720,
+            120
+          ],
+          "ease": 0.5
+        }
+      ]
+    },
+    {
+      "de": 749.15,
+      "ate": 753.65,
+      "tela_t": 15.0,
+      "modo": "video",
+      "_doc": "painel UTMify (faturamento do mês até 22/09), de 0:15 no original",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            640,
+            1090,
+            1800,
+            480
+          ],
+          "ease": 0
+        },
+        {
+          "t": 2.8,
+          "roi": [
+            660,
+            1110,
+            1000,
+            240
+          ],
+          "ease": 0.5
+        }
+      ]
+    }
+  ],
+  "previa_rotulos": [
+    "gancho (anúncios)",
+    "zoom gasto AD82",
+    "levas de criativos",
+    "UTMify 100 mil",
+    "final"
   ]
 }

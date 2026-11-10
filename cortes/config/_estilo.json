@@ -93,10 +93,12 @@
     "taxa": 48000
   },
   "ritmo": {
-    "gap_max": 0.45,
-    "pad_antes": 0.08,
-    "pad_depois": 0.14,
-    "cauda_final": 0.35
+    "gap_max": 0.6,
+    "pad_antes": 0.06,
+    "pad_depois": 0.1,
+    "cauda_final": 0.6,
+    "silencio_min": 0.06,
+    "silencio_acima_do_piso_db": 8
   },
   "encode": {
     "crf": 17,
