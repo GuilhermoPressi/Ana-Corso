@@ -1,0 +1,239 @@
+{
+  "id": "YT01-C05",
+  "arquivo": "YT01-C05_longo_antes-depois",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "antes e depois",
+  "rank": 5,
+  "nota": 8.5,
+  "_gancho_reordenado": "SIM: 'sem o AD82 o custo por venda tá 91' (787,02s) foi puxada para o início; depois o corte começa do contexto (771,01s), onde a frase aparece de novo no lugar original.",
+  "segmentos": [
+    {
+      "de": 787.02,
+      "ate": 789.14,
+      "papel": "gancho",
+      "camera": [
+        {
+          "t": 787.02,
+          "roi": [
+            380,
+            1830,
+            1080,
+            200
+          ],
+          "ease": 0
+        },
+        {
+          "t": 788.2,
+          "roi": [
+            1700,
+            1830,
+            1080,
+            200
+          ],
+          "ease": 0.5
+        },
+        {
+          "t": 789.0,
+          "roi": [
+            2240,
+            1850,
+            520,
+            160
+          ],
+          "ease": 0.3
+        }
+      ],
+      "pad_antes": 0.0
+    },
+    {
+      "de": 771.01,
+      "ate": 850.0,
+      "papel": "contexto"
+    }
+  ],
+  "camera": [
+    {
+      "t": 771.01,
+      "roi": [
+        380,
+        980,
+        1080,
+        420
+      ],
+      "ease": 0
+    },
+    {
+      "t": 778.08,
+      "roi": [
+        1700,
+        980,
+        1080,
+        420
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 779.3,
+      "roi": [
+        2240,
+        1010,
+        520,
+        160
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 781.82,
+      "roi": [
+        380,
+        1780,
+        1080,
+        260
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 788.2,
+      "roi": [
+        1700,
+        1780,
+        1080,
+        260
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 789.0,
+      "roi": [
+        2240,
+        1830,
+        520,
+        160
+      ],
+      "ease": 0.3
+    },
+    {
+      "t": 792.62,
+      "roi": [
+        1660,
+        980,
+        1080,
+        640
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 797.5,
+      "roi": [
+        1700,
+        1460,
+        1100,
+        140
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 804.8,
+      "roi": [
+        380,
+        980,
+        1080,
+        640
+      ],
+      "ease": 0.6
+    },
+    {
+      "t": 811.68,
+      "roi": [
+        1660,
+        980,
+        1080,
+        640
+      ],
+      "ease": 0.6
+    },
+    {
+      "t": 841.5,
+      "roi": [
+        1660,
+        1000,
+        1080,
+        640
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 843.72,
+      "roi": [
+        1700,
+        1380,
+        1100,
+        120
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 845.6,
+      "roi": [
+        1960,
+        1395,
+        420,
+        110
+      ],
+      "ease": 0.35
+    },
+    {
+      "t": 847.28,
+      "roi": [
+        1660,
+        1000,
+        1080,
+        640
+      ],
+      "ease": 0.6
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "TIREI 1 ANÚNCIO: [R$ 33 × R$ 91]",
+  "gancho_falado": "Sem o AD82 o custo por venda tá 91",
+  "destaques": [
+    "82",
+    "AD82",
+    "134",
+    "33",
+    "91",
+    "mudou",
+    "100",
+    "%",
+    "Meta",
+    "20",
+    "75",
+    "matar",
+    "nova",
+    "campanha"
+  ],
+  "legenda_post": "Campanha com os anúncios 77 a 82: R$ 33 por venda. Outra campanha com os mesmos criativos, só que sem o AD82: R$ 91.\nA Meta joga a verba no campeão. Por isso eu não mexo na campanha que vende: subo uma nova para testar os outros.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum",
+  "previa": [
+    1.3,
+    10.7,
+    29.3,
+    73.8,
+    76.5
+  ],
+  "previa_rotulos": [
+    "gancho",
+    "zoom R$ 33",
+    "legenda sobre a tela",
+    "zoom R$ 75",
+    "final"
+  ],
+  "congelar": [
+    {
+      "de": 778.9,
+      "ate": 781.05,
+      "quadro": 778.6,
+      "_doc": "tooltip 'Conversões' tapava o R$ 33,51; mesmo quadro limpo de 0,3s antes"
+    }
+  ]
+}

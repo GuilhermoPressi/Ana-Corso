@@ -1,0 +1,108 @@
+{
+  "id": "YT01-C03",
+  "arquivo": "YT01-C03_curto_passo-a-passo",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "passo a passo",
+  "rank": 3,
+  "nota": 9,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 563.32,
+      "ate": 592.69,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 563.32,
+      "roi": [
+        1820,
+        940,
+        1080,
+        760
+      ],
+      "ease": 0
+    },
+    {
+      "t": 567.6,
+      "roi": [
+        1110,
+        515,
+        605,
+        1080
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 575.2,
+      "roi": [
+        1150,
+        600,
+        560,
+        760
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 586.2,
+      "roi": [
+        1350,
+        620,
+        380,
+        380
+      ],
+      "ease": 0.45
+    },
+    {
+      "t": 589.2,
+      "roi": [
+        1460,
+        660,
+        260,
+        230
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 591.0,
+      "roi": [
+        1150,
+        560,
+        560,
+        800
+      ],
+      "ease": 0.5
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "QUANTO INVESTIR [POR DIA]",
+  "gancho_falado": "A fórmula que eu sigo é 50% do valor do meu produto vezes o número de criativos",
+  "destaques": [
+    "fórmula",
+    "50",
+    "%",
+    "metade",
+    "vezes",
+    "criativos",
+    "97",
+    "100",
+    "5",
+    "250",
+    "dia"
+  ],
+  "legenda_post": "Quanto investir por dia num teste de criativos?\nMinha fórmula: 50% do valor do produto x número de criativos. Produto de R$ 100 com 5 criativos = R$ 250/dia.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum",
+  "previa": [
+    1.0,
+    25.1,
+    16.9,
+    27.0
+  ],
+  "previa_rotulos": [
+    "gancho",
+    "zoom 250",
+    "legenda sobre a tela",
+    "final"
+  ]
+}

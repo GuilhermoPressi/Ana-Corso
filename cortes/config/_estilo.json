@@ -1,0 +1,111 @@
+{
+  "_doc": "Estilo global dos cortes. Cada corte pode sobrescrever qualquer chave em \"estilo\".",
+  "saida": {
+    "largura": 1080,
+    "altura": 1920,
+    "fps": 30
+  },
+  "area_segura": {
+    "topo_pct": 14,
+    "base_pct": 20
+  },
+  "janela_conteudo": {
+    "_doc": "faixa da saída onde a ROI da tela é encaixada",
+    "y0": 300,
+    "y1": 1060
+  },
+  "zoom": {
+    "s_min": 0.6,
+    "_doc_s": "s = px da fonte por px da saída; 0.6 = 1,67x (limite de nitidez)",
+    "nitidez_abaixo_de": 0.9
+  },
+  "webcam": {
+    "fonte_caixa": [
+      3003,
+      651,
+      837,
+      470
+    ],
+    "lado_fonte": 470,
+    "centro_x_fonte": null,
+    "lado_saida": 430,
+    "margem_direita": 40,
+    "base_y": 1536,
+    "raio": 30,
+    "borda_px": 3,
+    "borda_alpha": 0.55,
+    "sombra_blur": 28,
+    "sombra_alpha": 0.6,
+    "sombra_offset": 10,
+    "canto": "direita"
+  },
+  "pip_mascara": {
+    "_doc": "apaga o PiP original da tela antes de recortar (não aparecer 2x)",
+    "x0": 2998,
+    "y0": 646,
+    "y1": 1126
+  },
+  "borrar_padrao": [
+    {
+      "_doc": "barra de favoritos (nomes de clientes/mentorias)",
+      "x": 0,
+      "y": 296,
+      "w": 2720,
+      "h": 86
+    }
+  ],
+  "arroba": {
+    "texto": "@GUILHERMOPRESSI",
+    "x": 44,
+    "y": 1468,
+    "tam_icone": 44,
+    "tam_texto": 30,
+    "alpha": 0.9,
+    "pilula_alpha": 0.35
+  },
+  "gancho": {
+    "fonte": "Anton",
+    "tamanho": 118,
+    "cor": "FFFFFF",
+    "destaque": "FFD60A",
+    "contorno": 8,
+    "sombra": 4,
+    "margem_topo": 300,
+    "dur": 2.8
+  },
+  "legenda": {
+    "fonte": "Anton",
+    "tamanho": 82,
+    "cor": "FFFFFF",
+    "destaque": "FFD60A",
+    "contorno": 7,
+    "sombra": 3,
+    "base_y": 1072,
+    "max_palavras": 3,
+    "max_chars": 16,
+    "pausa_quebra": 0.28
+  },
+  "audio": {
+    "lufs": -14,
+    "true_peak": -1.0,
+    "crossfade_ms": 20,
+    "taxa": 48000
+  },
+  "ritmo": {
+    "gap_max": 0.45,
+    "pad_antes": 0.08,
+    "pad_depois": 0.14,
+    "cauda_final": 0.35
+  },
+  "encode": {
+    "crf": 17,
+    "preset": "slow",
+    "audio_kbps": 192,
+    "leve_kbps": 2500
+  },
+  "fundo_cor": [
+    22,
+    18,
+    16
+  ]
+}
