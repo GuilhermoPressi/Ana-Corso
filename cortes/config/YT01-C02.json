@@ -1,0 +1,118 @@
+{
+  "id": "YT01-C02",
+  "arquivo": "YT01-C02_curto_numero",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "revelação de número",
+  "rank": 2,
+  "nota": 9,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 30.0,
+      "ate": 48.97,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 30.0,
+      "roi": [
+        650,
+        1130,
+        1000,
+        240
+      ],
+      "ease": 0
+    },
+    {
+      "t": 33.0,
+      "roi": [
+        650,
+        1100,
+        1950,
+        500
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 34.3,
+      "roi": [
+        650,
+        1110,
+        1000,
+        240
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 35.2,
+      "roi": [
+        1710,
+        1110,
+        760,
+        240
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 38.4,
+      "roi": [
+        2500,
+        1110,
+        480,
+        240
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 40.7,
+      "roi": [
+        2500,
+        1400,
+        1290,
+        740
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 44.2,
+      "roi": [
+        2500,
+        1400,
+        480,
+        230
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 47.1,
+      "roi": [
+        3035,
+        1110,
+        750,
+        240
+      ],
+      "ease": 0.5
+    }
+  ],
+  "insercoes": [],
+  "borrar": [],
+  "gancho_texto": "[R$ 61 MIL] DE LUCRO EM 22 DIAS",
+  "gancho_falado": "Dia 22 de setembro a gente já faturou R$ 105 mil",
+  "destaques": [
+    "105",
+    "44",
+    "2.71",
+    "2.39",
+    "61",
+    "mil",
+    "lucro",
+    "impostos",
+    "taxas",
+    "reembolsos",
+    "22",
+    "setembro"
+  ],
+  "legenda_post": "Abri minha UTMify: até 22 de setembro foram R$ 105 mil de faturamento líquido, R$ 44 mil em anúncios e R$ 61 mil de lucro com low ticket.\nROAS 2,71 e ROI 2,39 depois de impostos, taxas e reembolsos.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

@@ -1,0 +1,108 @@
+{
+  "id": "YT01-C16",
+  "arquivo": "YT01-C16_curto_passo-a-passo",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "passo a passo",
+  "rank": 16,
+  "nota": 7,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 327.5,
+      "ate": 367.72,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 327.5,
+      "roi": [
+        1300,
+        950,
+        1300,
+        760
+      ],
+      "ease": 0
+    },
+    {
+      "t": 331.6,
+      "roi": [
+        1540,
+        1060,
+        420,
+        240
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 335.4,
+      "roi": [
+        2015,
+        1060,
+        420,
+        240
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 343.1,
+      "roi": [
+        1300,
+        950,
+        1300,
+        760
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 346.6,
+      "roi": [
+        640,
+        1340,
+        700,
+        110
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 350.0,
+      "roi": [
+        1540,
+        1060,
+        420,
+        240
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 355.5,
+      "roi": [
+        1300,
+        1000,
+        1000,
+        1000
+      ],
+      "ease": 0.6
+    }
+  ],
+  "insercoes": [],
+  "borrar": [],
+  "gancho_texto": "ESCALO SEM AUMENTAR [A VERBA]",
+  "gancho_falado": "Como que eu escalo? Não aumento o investimento",
+  "destaques": [
+    "escalo",
+    "250",
+    "500",
+    "mil",
+    "83",
+    "88",
+    "criativos",
+    "ROI",
+    "2",
+    "duplico",
+    "escala",
+    "agressivo"
+  ],
+  "legenda_post": "Campanha vendendo bem? Eu não aumento um monte o orçamento dela.\nSubo uma nova leva de criativos: antes R$ 250/dia com ROI 2, agora R$ 500 para dobrar a escala.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

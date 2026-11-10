@@ -1,0 +1,79 @@
+{
+  "id": "YT01-C04",
+  "arquivo": "YT01-C04_curto_passo-a-passo",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "passo a passo",
+  "rank": 4,
+  "nota": 8.5,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 368.74,
+      "ate": 398.7,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 368.7,
+      "roi": [
+        1750,
+        950,
+        1300,
+        760
+      ],
+      "ease": 0
+    },
+    {
+      "t": 371.4,
+      "roi": [
+        2265,
+        950,
+        800,
+        700
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 379.8,
+      "roi": [
+        2500,
+        950,
+        800,
+        760
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 387.6,
+      "roi": [
+        1750,
+        950,
+        700,
+        760
+      ],
+      "ease": 0.5
+    }
+  ],
+  "insercoes": [],
+  "borrar": [],
+  "gancho_texto": "ONDE SEU FUNIL ESTÁ [VAZANDO]",
+  "gancho_falado": "Se eu não estou tendo ROI 2, eu olho essas métricas",
+  "destaques": [
+    "ROI",
+    "2",
+    "visualização",
+    "página",
+    "criativo",
+    "carregamento",
+    "checkout",
+    "copy",
+    "oferta",
+    "pagando",
+    "banner",
+    "depoimentos",
+    "confiança"
+  ],
+  "legenda_post": "Seu funil não vende? Olha onde ele está vazando:\nvisualização cara = criativo ou carregamento; sem checkout = página, copy ou oferta; checkout sem pagamento = revisa o checkout.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

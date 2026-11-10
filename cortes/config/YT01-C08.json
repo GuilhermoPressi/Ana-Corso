@@ -1,0 +1,65 @@
+{
+  "id": "YT01-C08",
+  "arquivo": "YT01-C08_curto_opiniao",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "opinião forte",
+  "rank": 8,
+  "nota": 8,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 640.95,
+      "ate": 661.85,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 640.9,
+      "roi": [
+        1670,
+        950,
+        1080,
+        900
+      ],
+      "ease": 0
+    },
+    {
+      "t": 653.1,
+      "roi": [
+        2245,
+        950,
+        700,
+        900
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 658.0,
+      "roi": [
+        2245,
+        1000,
+        500,
+        500
+      ],
+      "ease": 0.6
+    }
+  ],
+  "insercoes": [],
+  "borrar": [],
+  "gancho_texto": "R$ 500 EM 2 DIAS [OU 10]?",
+  "gancho_falado": "É melhor fazer testes de 2, 3 dias do que ficar 15 dias testando",
+  "destaques": [
+    "2",
+    "3",
+    "dias",
+    "15",
+    "prejuízo",
+    "500",
+    "10",
+    "50",
+    "informações"
+  ],
+  "legenda_post": "Prefiro gastar R$ 500 em 2 dias do que R$ 500 em 10 dias.\nTeste curto, pausa, arruma e melhora. Teste de 15 dias com prejuízo faz você perder as informações.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

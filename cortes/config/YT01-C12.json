@@ -1,0 +1,97 @@
+{
+  "id": "YT01-C12",
+  "arquivo": "YT01-C12_curto_opiniao",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "opinião forte",
+  "rank": 12,
+  "nota": 7.5,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 983.94,
+      "ate": 1010.78,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 983.9,
+      "roi": [
+        1700,
+        950,
+        1100,
+        760
+      ],
+      "ease": 0
+    },
+    {
+      "t": 1002.9,
+      "roi": [
+        700,
+        1250,
+        1080,
+        130
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 1005.0,
+      "roi": [
+        1770,
+        1250,
+        940,
+        130
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 1006.3,
+      "roi": [
+        1700,
+        950,
+        1100,
+        760
+      ],
+      "ease": 0.6
+    }
+  ],
+  "insercoes": [
+    {
+      "de": 984.8,
+      "ate": 991.2,
+      "tela_t": 806.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            380,
+            990,
+            1080,
+            600
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "lista de anúncios (criativos em vídeo, miniaturas borradas)"
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "NÃO USO CRIATIVO [ESTÁTICO]",
+  "gancho_falado": "Toda semana eu subo 5, 10 criativos em vídeo. Não trabalho com imagem",
+  "destaques": [
+    "5",
+    "10",
+    "vídeo",
+    "imagem",
+    "estático",
+    "carrossel",
+    "nunca",
+    "AD82",
+    "tempo",
+    "tela",
+    "compra"
+  ],
+  "legenda_post": "Toda semana eu subo de 5 a 10 criativos em vídeo. Imagem, estático e carrossel nunca me deram o resultado de um vídeo.\nTempo de tela vende.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

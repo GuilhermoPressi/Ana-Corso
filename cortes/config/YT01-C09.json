@@ -1,0 +1,267 @@
+{
+  "id": "YT01-C09",
+  "arquivo": "YT01-C09_longo_passo-a-passo",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "passo a passo",
+  "rank": 9,
+  "nota": 8,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 556.28,
+      "ate": 614.37,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 556.2,
+      "roi": [
+        2400,
+        940,
+        560,
+        760
+      ],
+      "ease": 0
+    },
+    {
+      "t": 563.32,
+      "roi": [
+        1820,
+        940,
+        1080,
+        760
+      ],
+      "ease": 0
+    },
+    {
+      "t": 567.6,
+      "roi": [
+        1110,
+        515,
+        605,
+        1080
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 575.2,
+      "roi": [
+        1150,
+        600,
+        560,
+        760
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 586.2,
+      "roi": [
+        1350,
+        620,
+        380,
+        380
+      ],
+      "ease": 0.45
+    },
+    {
+      "t": 589.2,
+      "roi": [
+        1460,
+        660,
+        260,
+        230
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 591.0,
+      "roi": [
+        1150,
+        560,
+        560,
+        800
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 593.0,
+      "roi": [
+        1820,
+        940,
+        1080,
+        760
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 601.0,
+      "roi": [
+        1950,
+        940,
+        700,
+        760
+      ],
+      "ease": 0.5
+    }
+  ],
+  "insercoes": [
+    {
+      "de": 572.4,
+      "ate": 573.98,
+      "tela_t": 806.0,
+      "modo": "parado",
+      "_doc": "lista de anúncios = 'número de criativos'",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            380,
+            990,
+            1080,
+            600
+          ],
+          "ease": 0
+        }
+      ]
+    },
+    {
+      "de": 573.98,
+      "ate": 575.98,
+      "tela_t": 735.0,
+      "modo": "parado",
+      "_doc": "'97R$' no nome da campanha = 'meu produto é 97 reais'",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            600,
+            1040,
+            1080,
+            500
+          ],
+          "ease": 0
+        },
+        {
+          "t": 0.9,
+          "roi": [
+            760,
+            1070,
+            480,
+            160
+          ],
+          "ease": 0.5
+        }
+      ]
+    },
+    {
+      "de": 591.0,
+      "ate": 593.2,
+      "tela_t": 735.0,
+      "modo": "parado",
+      "_doc": "coluna Orçamento 'R$ 250,00 Diário' = 'é isso que eu coloco por dia'",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1820,
+            940,
+            1080,
+            760
+          ],
+          "ease": 0
+        },
+        {
+          "t": 0.5,
+          "roi": [
+            2250,
+            1080,
+            560,
+            200
+          ],
+          "ease": 0.5
+        }
+      ]
+    },
+    {
+      "de": 594.4,
+      "ate": 600.8,
+      "tela_t": 806.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            380,
+            990,
+            1080,
+            600
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "anúncios = 'dividir 50 em cada anúncio'"
+    },
+    {
+      "de": 604.5,
+      "ate": 608.3,
+      "tela_t": 806.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            2150,
+            990,
+            700,
+            600
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "valor gasto concentrado no AD82 = 'gastar tudo em um anúncio só'"
+    },
+    {
+      "de": 609.1,
+      "ate": 613.2,
+      "tela_t": 845.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1650,
+            990,
+            1100,
+            560
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "anúncios sem venda = 'gasta e não vende, pauso'"
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "MINHA FÓRMULA DE [INVESTIMENTO]",
+  "gancho_falado": "Como que eu calculo o meu investimento?",
+  "destaques": [
+    "fórmula",
+    "50",
+    "%",
+    "metade",
+    "vezes",
+    "criativos",
+    "97",
+    "100",
+    "5",
+    "250",
+    "dia",
+    "Meta",
+    "venda",
+    "pauso",
+    "otimizar",
+    "anúncio"
+  ],
+  "legenda_post": "Minha fórmula de investimento: 50% do valor do produto x número de criativos.\nCada anúncio precisa fazer 1 venda por dia; gastou o valor do produto e não vendeu, eu pauso.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

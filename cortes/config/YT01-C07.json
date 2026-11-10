@@ -1,0 +1,105 @@
+{
+  "id": "YT01-C07",
+  "arquivo": "YT01-C07_curto_erro-comum",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "erro comum",
+  "rank": 7,
+  "nota": 8,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 492.31,
+      "ate": 529.06,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 492.3,
+      "roi": [
+        380,
+        990,
+        1080,
+        600
+      ],
+      "ease": 0
+    },
+    {
+      "t": 515.6,
+      "roi": [
+        380,
+        990,
+        1500,
+        600
+      ],
+      "ease": 0.6
+    },
+    {
+      "t": 525.0,
+      "roi": [
+        380,
+        1380,
+        1500,
+        220
+      ],
+      "ease": 0.6
+    }
+  ],
+  "insercoes": [
+    {
+      "de": 492.3,
+      "ate": 499.45,
+      "tela_t": 469.5,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1430,
+            1150,
+            800,
+            380
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "painel do anúncio: texto principal"
+    },
+    {
+      "de": 507.05,
+      "ate": 515.5,
+      "tela_t": 469.5,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1430,
+            1850,
+            800,
+            200
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "painel do anúncio: descrição"
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "PARE DE ESCREVER [\"COMPRE AGORA\"]",
+  "gancho_falado": "Não adianta no texto do anúncio eu ficar colocando 'compre agora por tantos reais'",
+  "destaques": [
+    "compre",
+    "agora",
+    "qualifique",
+    "pouco",
+    "descrição",
+    "dores",
+    "desejos",
+    "problemas",
+    "audiência",
+    "Meta"
+  ],
+  "legenda_post": "Texto do anúncio com 'compre agora por tantos reais' converte pouco.\nUma boa descrição fala das dores, desejos e problemas do seu público e ajuda a Meta a achar quem compra.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

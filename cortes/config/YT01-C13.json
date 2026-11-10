@@ -1,0 +1,221 @@
+{
+  "id": "YT01-C13",
+  "arquivo": "YT01-C13_longo_passo-a-passo",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "passo a passo",
+  "rank": 13,
+  "nota": 7.5,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 882.57,
+      "ate": 972.3,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 882.5,
+      "roi": [
+        380,
+        950,
+        1300,
+        760
+      ],
+      "ease": 0
+    },
+    {
+      "t": 890.0,
+      "roi": [
+        700,
+        1250,
+        1080,
+        130
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 919.4,
+      "roi": [
+        380,
+        990,
+        1080,
+        600
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 925.7,
+      "roi": [
+        1620,
+        1440,
+        600,
+        110
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 931.2,
+      "roi": [
+        2420,
+        1440,
+        600,
+        110
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 936.6,
+      "roi": [
+        1620,
+        990,
+        1100,
+        600
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 945.3,
+      "roi": [
+        2160,
+        1440,
+        600,
+        110
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 952.6,
+      "roi": [
+        1650,
+        950,
+        1100,
+        250
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 960.9,
+      "roi": [
+        2420,
+        990,
+        600,
+        110
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 962.8,
+      "roi": [
+        1650,
+        950,
+        1100,
+        250
+      ],
+      "ease": 0.6
+    }
+  ],
+  "insercoes": [
+    {
+      "de": 900.4,
+      "ate": 913.2,
+      "tela_t": 955.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            380,
+            950,
+            1600,
+            300
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "campanha de escala: só o AD82"
+    },
+    {
+      "de": 913.4,
+      "ate": 918.4,
+      "tela_t": 888.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1500,
+            1250,
+            1400,
+            120
+          ],
+          "ease": 0
+        },
+        {
+          "t": 1.6,
+          "roi": [
+            2600,
+            1250,
+            300,
+            110
+          ],
+          "ease": 0.5
+        }
+      ],
+      "_doc": "orçamento R$ 500,00 da ESCALA 1-1-1 ADS82"
+    },
+    {
+      "de": 949.8,
+      "ate": 952.4,
+      "tela_t": 888.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1500,
+            1250,
+            1400,
+            120
+          ],
+          "ease": 0
+        },
+        {
+          "t": 0.8,
+          "roi": [
+            2600,
+            1250,
+            300,
+            110
+          ],
+          "ease": 0.5
+        }
+      ],
+      "_doc": "orçamento R$ 500,00 da ESCALA 1-1-1 ADS82"
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "COMO EU ESCALO [O CAMPEÃO]",
+  "gancho_falado": "Se eu acho um criativo campeão, eu crio uma campanha de escala",
+  "destaques": [
+    "campeão",
+    "AD82",
+    "escala",
+    "isolado",
+    "500",
+    "cinco",
+    "4.500",
+    "34",
+    "128",
+    "ROI",
+    "2",
+    "3",
+    "41",
+    "7",
+    "97",
+    "order",
+    "bumps"
+  ],
+  "legenda_post": "Achei o criativo campeão (AD82): R$ 34 por venda e 128 vendas dividindo verba com outros anúncios.\nIsolei numa campanha de escala com R$ 500/dia: paga R$ 41 por venda, mas são R$ 500 a mais rodando.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

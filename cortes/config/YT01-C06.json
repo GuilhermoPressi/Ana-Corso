@@ -1,0 +1,151 @@
+{
+  "id": "YT01-C06",
+  "arquivo": "YT01-C06_longo_passo-a-passo",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "passo a passo",
+  "rank": 6,
+  "nota": 8.5,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 251.25,
+      "ate": 313.92,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 251.2,
+      "roi": [
+        1750,
+        950,
+        1300,
+        760
+      ],
+      "ease": 0
+    },
+    {
+      "t": 258.8,
+      "roi": [
+        2265,
+        950,
+        560,
+        760
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 271.4,
+      "roi": [
+        2565,
+        950,
+        500,
+        760
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 277.6,
+      "roi": [
+        2540,
+        1000,
+        320,
+        700
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 279.6,
+      "roi": [
+        2840,
+        1130,
+        620,
+        760
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 291.8,
+      "roi": [
+        2015,
+        950,
+        400,
+        760
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 305.9,
+      "roi": [
+        1950,
+        1080,
+        420,
+        110
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 311.9,
+      "roi": [
+        1750,
+        950,
+        1300,
+        760
+      ],
+      "ease": 0.6
+    }
+  ],
+  "insercoes": [
+    {
+      "de": 266.7,
+      "ate": 271.0,
+      "tela_t": 735.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            600,
+            1040,
+            1080,
+            500
+          ],
+          "ease": 0
+        },
+        {
+          "t": 0.8,
+          "roi": [
+            760,
+            1070,
+            480,
+            160
+          ],
+          "ease": 0.5
+        }
+      ],
+      "_doc": "'97R$' no nome da campanha = valor do produto"
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "AS 3 MÉTRICAS QUE [EU OLHO]",
+  "gancho_falado": "Eu sempre vou analisar essas três métricas",
+  "destaques": [
+    "ROAS",
+    "2",
+    "visualizações",
+    "4%",
+    "97",
+    "100",
+    "4",
+    "finalizações",
+    "23%",
+    "45%",
+    "50%",
+    "ROI",
+    "CPA",
+    "42",
+    "45"
+  ],
+  "legenda_post": "As 3 métricas que eu olho quando o ROAS está abaixo de 2:\ncusto por visualização de página até 4% do produto, finalização de compra até 23% e custo por compra entre 45% e 50%.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

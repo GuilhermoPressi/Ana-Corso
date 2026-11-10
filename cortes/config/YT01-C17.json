@@ -1,0 +1,179 @@
+{
+  "id": "YT01-C17",
+  "arquivo": "YT01-C17_longo_numero",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "revelação de número",
+  "rank": 17,
+  "nota": 7,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 30.0,
+      "ate": 106.49,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 30.0,
+      "roi": [
+        650,
+        1130,
+        1000,
+        240
+      ],
+      "ease": 0
+    },
+    {
+      "t": 33.0,
+      "roi": [
+        650,
+        1100,
+        1950,
+        500
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 34.3,
+      "roi": [
+        650,
+        1110,
+        1000,
+        240
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 35.2,
+      "roi": [
+        1710,
+        1110,
+        760,
+        240
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 38.4,
+      "roi": [
+        2500,
+        1110,
+        480,
+        240
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 40.7,
+      "roi": [
+        2500,
+        1400,
+        1290,
+        740
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 44.2,
+      "roi": [
+        2500,
+        1400,
+        480,
+        230
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 47.1,
+      "roi": [
+        3035,
+        1110,
+        750,
+        240
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 49.7,
+      "roi": [
+        1710,
+        1950,
+        1270,
+        190
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 61.0,
+      "roi": [
+        650,
+        1100,
+        3130,
+        1060
+      ],
+      "ease": 0.6
+    },
+    {
+      "t": 81.7,
+      "roi": [
+        1710,
+        1950,
+        1270,
+        190
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 88.2,
+      "roi": [
+        650,
+        1100,
+        1950,
+        700
+      ],
+      "ease": 0.8
+    }
+  ],
+  "insercoes": [
+    {
+      "de": 63.55,
+      "ate": 65.4,
+      "tela_t": 125.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            380,
+            940,
+            2000,
+            1100
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "Gerenciador (campanhas) = 'tráfego no Meta'"
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "[R$ 105 MIL] EM 22 DIAS",
+  "gancho_falado": "Dia 22 de setembro a gente já faturou R$ 105 mil",
+  "destaques": [
+    "105",
+    "44",
+    "2.71",
+    "2.39",
+    "61",
+    "mil",
+    "lucro",
+    "1.300",
+    "125",
+    "124",
+    "ManyChat",
+    "upsell",
+    "Meta"
+  ],
+  "legenda_post": "R$ 105 mil de faturamento líquido em 22 dias com low ticket, R$ 61 mil de lucro.\nTráfego no Meta + ManyChat + upsell para quem já comprou: é isso que deixa o funil estável.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

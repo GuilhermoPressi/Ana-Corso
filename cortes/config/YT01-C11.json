@@ -1,0 +1,136 @@
+{
+  "id": "YT01-C11",
+  "arquivo": "YT01-C11_curto_contraintuitivo",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "contraintuitivo",
+  "rank": 11,
+  "nota": 7.5,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 414.55,
+      "ate": 447.82,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 414.5,
+      "roi": [
+        380,
+        850,
+        1600,
+        500
+      ],
+      "ease": 0
+    },
+    {
+      "t": 418.4,
+      "roi": [
+        1300,
+        900,
+        1500,
+        1200
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 426.9,
+      "roi": [
+        1400,
+        1200,
+        1100,
+        130
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 428.4,
+      "roi": [
+        1400,
+        1370,
+        1100,
+        140
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 430.7,
+      "roi": [
+        1400,
+        1750,
+        1100,
+        140
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 432.8,
+      "roi": [
+        1400,
+        1960,
+        1100,
+        110
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 437.1,
+      "roi": [
+        1400,
+        1800,
+        1180,
+        220
+      ],
+      "ease": 0.6
+    },
+    {
+      "t": 445.4,
+      "roi": [
+        380,
+        850,
+        1600,
+        500
+      ],
+      "ease": 0.5
+    }
+  ],
+  "insercoes": [
+    {
+      "de": 447.6,
+      "ate": 448.6,
+      "tela_t": 806.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            380,
+            990,
+            1080,
+            600
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "lista de anúncios = 'é nos criativos'"
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "EU NÃO MEXO EM [NADA] AQUI",
+  "gancho_falado": "Dentro da campanha vocês vão ver que eu não mexo em nada",
+  "destaques": [
+    "nada",
+    "Advantage+",
+    "site",
+    "conversões",
+    "comprar",
+    "custo",
+    "posicionamento",
+    "público",
+    "aberto",
+    "criativos"
+  ],
+  "legenda_post": "Dentro da campanha eu não mexo em nada: tudo Advantage+, evento de compra, sem meta de custo e público aberto.\nA segmentação está nos criativos.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

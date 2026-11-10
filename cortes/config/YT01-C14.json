@@ -1,0 +1,215 @@
+{
+  "id": "YT01-C14",
+  "arquivo": "YT01-C14_longo_contraintuitivo",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "contraintuitivo",
+  "rank": 14,
+  "nota": 7.5,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 445.4,
+      "ate": 532.34,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 445.4,
+      "roi": [
+        380,
+        850,
+        1600,
+        500
+      ],
+      "ease": 0
+    },
+    {
+      "t": 449.8,
+      "roi": [
+        380,
+        990,
+        1080,
+        600
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 454.9,
+      "roi": [
+        2450,
+        1280,
+        520,
+        230
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 459.5,
+      "roi": [
+        380,
+        1380,
+        1500,
+        220
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 465.0,
+      "roi": [
+        1430,
+        1150,
+        800,
+        380
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 467.1,
+      "roi": [
+        1430,
+        1600,
+        800,
+        140
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 468.3,
+      "roi": [
+        1430,
+        1850,
+        800,
+        200
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 472.4,
+      "roi": [
+        380,
+        990,
+        1080,
+        600
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 492.3,
+      "roi": [
+        380,
+        990,
+        1080,
+        600
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 515.6,
+      "roi": [
+        380,
+        990,
+        1500,
+        600
+      ],
+      "ease": 0.6
+    },
+    {
+      "t": 525.0,
+      "roi": [
+        380,
+        1380,
+        1500,
+        220
+      ],
+      "ease": 0.6
+    }
+  ],
+  "insercoes": [
+    {
+      "de": 473.4,
+      "ate": 482.2,
+      "tela_t": 469.5,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1430,
+            1850,
+            800,
+            200
+          ],
+          "ease": 0
+        },
+        {
+          "t": 4.2,
+          "roi": [
+            1430,
+            1150,
+            800,
+            380
+          ],
+          "ease": 0.5
+        }
+      ],
+      "_doc": "painel do anúncio: descrição/texto"
+    },
+    {
+      "de": 492.3,
+      "ate": 499.45,
+      "tela_t": 469.5,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1430,
+            1150,
+            800,
+            380
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "painel do anúncio: texto principal"
+    },
+    {
+      "de": 507.05,
+      "ate": 515.5,
+      "tela_t": 469.5,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1430,
+            1850,
+            800,
+            200
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "painel do anúncio: descrição"
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "SEU PÚBLICO ESTÁ NO [TEXTO]",
+  "gancho_falado": "Onde que eu vou segmentar? É nos criativos",
+  "destaques": [
+    "segmentar",
+    "criativos",
+    "texto",
+    "título",
+    "descrição",
+    "Meta",
+    "audiência",
+    "dores",
+    "desejos",
+    "problemas",
+    "campeão"
+  ],
+  "legenda_post": "Eu não segmento público: deixo aberto e segmento nos criativos.\nTexto, título e descrição bem preenchidos fazem a Meta achar a sua audiência.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

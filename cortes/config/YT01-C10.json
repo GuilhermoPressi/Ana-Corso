@@ -1,0 +1,200 @@
+{
+  "id": "YT01-C10",
+  "arquivo": "YT01-C10_longo_erro-comum",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "erro comum",
+  "rank": 10,
+  "nota": 8,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 617.17,
+      "ate": 705.75,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 617.1,
+      "roi": [
+        2245,
+        1060,
+        600,
+        220
+      ],
+      "ease": 0
+    },
+    {
+      "t": 619.5,
+      "roi": [
+        1670,
+        950,
+        1300,
+        900
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 641.0,
+      "roi": [
+        1670,
+        950,
+        1080,
+        900
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 653.1,
+      "roi": [
+        2245,
+        950,
+        700,
+        900
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 664.5,
+      "roi": [
+        2245,
+        950,
+        700,
+        1100
+      ],
+      "ease": 0.6
+    },
+    {
+      "t": 688.8,
+      "roi": [
+        1670,
+        950,
+        1300,
+        900
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 702.4,
+      "roi": [
+        1670,
+        950,
+        1080,
+        900
+      ],
+      "ease": 0.5
+    }
+  ],
+  "insercoes": [
+    {
+      "de": 623.1,
+      "ate": 629.6,
+      "tela_t": 806.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            200,
+            990,
+            1300,
+            600
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "lista de anúncios = pausar só o anúncio"
+    },
+    {
+      "de": 633.8,
+      "ate": 636.9,
+      "tela_t": 735.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            600,
+            1040,
+            1080,
+            500
+          ],
+          "ease": 0
+        },
+        {
+          "t": 0.8,
+          "roi": [
+            760,
+            1070,
+            480,
+            160
+          ],
+          "ease": 0.5
+        }
+      ],
+      "_doc": "'97R$' = produto de 97"
+    },
+    {
+      "de": 680.5,
+      "ate": 688.2,
+      "tela_t": 845.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1650,
+            990,
+            1100,
+            560
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "anúncios sem venda (—) = gastou, não vendeu"
+    },
+    {
+      "de": 696.0,
+      "ate": 698.1,
+      "tela_t": 735.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            760,
+            1070,
+            480,
+            160
+          ],
+          "ease": 0
+        }
+      ],
+      "_doc": "'97R$' = cobrar 97"
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "NÃO TEM [R$ 250] POR DIA?",
+  "gancho_falado": "Ah, Guilherme, mas eu não tenho 250 pra investir por dia",
+  "destaques": [
+    "250",
+    "2",
+    "3",
+    "dias",
+    "pausa",
+    "anúncio",
+    "97",
+    "15",
+    "50",
+    "47",
+    "125",
+    "100",
+    "mata",
+    "mantém",
+    "67",
+    "caro",
+    "pouco"
+  ],
+  "legenda_post": "Não tem R$ 250 por dia para testar? Baixa o preço do produto: cobra R$ 47 e investe de R$ 100 a R$ 125 por dia.\nGastou e não vendeu, mata. Vendeu, mantém. Depois sobe para 67, 97.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}

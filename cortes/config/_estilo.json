@@ -52,6 +52,15 @@
       "y": 296,
       "w": 2720,
       "h": 86
+    },
+    {
+      "_doc": "nome no texto do anúncio ('a Ana'), painel aberto 465-471s",
+      "x": 2040,
+      "y": 1285,
+      "w": 130,
+      "h": 60,
+      "de": 464.0,
+      "ate": 472.5
     }
   ],
   "arroba": {

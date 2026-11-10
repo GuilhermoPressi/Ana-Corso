@@ -1,0 +1,119 @@
+{
+  "id": "YT01-C15",
+  "arquivo": "YT01-C15_curto_numero",
+  "fonte": "brutos/YT01.mp4",
+  "tipo": "revelação de número",
+  "rank": 15,
+  "nota": 7,
+  "_gancho_reordenado": "NÃO",
+  "segmentos": [
+    {
+      "de": 942.14,
+      "ate": 972.3,
+      "papel": "unico"
+    }
+  ],
+  "camera": [
+    {
+      "t": 942.0,
+      "roi": [
+        1620,
+        990,
+        1100,
+        600
+      ],
+      "ease": 0
+    },
+    {
+      "t": 945.3,
+      "roi": [
+        2160,
+        1440,
+        600,
+        110
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 952.6,
+      "roi": [
+        1650,
+        950,
+        1100,
+        250
+      ],
+      "ease": 0.5
+    },
+    {
+      "t": 960.9,
+      "roi": [
+        2420,
+        990,
+        600,
+        110
+      ],
+      "ease": 0.4
+    },
+    {
+      "t": 962.8,
+      "roi": [
+        1650,
+        950,
+        1100,
+        250
+      ],
+      "ease": 0.6
+    }
+  ],
+  "insercoes": [
+    {
+      "de": 949.8,
+      "ate": 952.4,
+      "tela_t": 888.0,
+      "modo": "parado",
+      "camera": [
+        {
+          "t": 0,
+          "roi": [
+            1500,
+            1250,
+            1400,
+            120
+          ],
+          "ease": 0
+        },
+        {
+          "t": 0.8,
+          "roi": [
+            2600,
+            1250,
+            300,
+            110
+          ],
+          "ease": 0.5
+        }
+      ],
+      "_doc": "orçamento R$ 500,00 da ESCALA 1-1-1 ADS82"
+    }
+  ],
+  "borrar": [],
+  "gancho_texto": "[R$ 500/DIA] EM 1 ANÚNCIO",
+  "gancho_falado": "Eu joguei ele numa outra campanha sozinho, 500 reais por dia só nele",
+  "destaques": [
+    "ROI",
+    "2",
+    "3",
+    "128",
+    "sozinho",
+    "500",
+    "dia",
+    "7",
+    "34",
+    "41",
+    "97",
+    "order",
+    "bumps"
+  ],
+  "legenda_post": "128 vendas com ROI 2 a 3: joguei esse anúncio sozinho numa campanha com R$ 500 por dia.\nO custo por venda subiu de R$ 34 para R$ 41, mas são R$ 500 a mais na escala.\nComece a me seguir para mais bastidores de low ticket.",
+  "cta": "nenhum"
+}
