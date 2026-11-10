@@ -74,7 +74,8 @@ def build_edl(cfg, words):
     R = E["ritmo"]
     pieces = []  # cada pedaço: {a, b, seg}
     for si, seg in enumerate(cfg["segmentos"]):
-        ws = [w for w in words if w["s"] >= seg["de"] - 0.02 and w["e"] <= seg["ate"] + 0.05]
+        # "de" = início da 1ª palavra; "ate" = início da última palavra (ela entra inteira)
+        ws = [w for w in words if seg["de"] - 0.02 <= w["s"] <= seg["ate"] + 0.02]
         if not ws:
             sys.exit(f"segmento {si} sem palavras")
         # próxima palavra depois do segmento (para não invadir)
@@ -149,15 +150,23 @@ def build_audio(cfg, pieces, cache):
     pre = cache / f"audio_{key}_pre.wav"
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", str(sr), "-ac", "1", "-i", "-", str(pre)],
                    input=y.tobytes(), check=True)
-    # loudnorm 2 passagens
-    ln = f"loudnorm=I={A['lufs']}:TP={A['true_peak']}:LRA=11"
-    m = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(pre), "-af", ln + ":print_format=json", "-f", "null", "-"],
-                       capture_output=True, text=True).stderr
-    j = json.loads(m[m.rindex("{"):m.rindex("}") + 1])
-    ln2 = (f"{ln}:measured_I={j['input_i']}:measured_TP={j['input_tp']}:measured_LRA={j['input_lra']}"
-           f":measured_thresh={j['input_thresh']}:offset={j['target_offset']}:linear=true")
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(pre), "-af", f"{ln2},aresample={sr}", "-ac", "2", str(out)],
-                   check=True)
+    # loudness: ganho exato + limitador de pico (true peak), medido e corrigido em 2 passagens
+    def medir(f):
+        lg = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(f), "-af", "ebur128=peak=true",
+                             "-f", "null", "-"], capture_output=True, text=True).stderr
+        return float(re.findall(r"I:\s+(-?[\d.]+) LUFS", lg)[-1]), float(re.findall(r"Peak:\s+(-?[\d.]+) dBFS", lg)[-1])
+    alvo, tp = A["lufs"], A["true_peak"]
+    lim = 10 ** ((tp - 0.5) / 20)
+    ganho = alvo - medir(pre)[0]
+    for _ in range(3):
+        af = (f"volume={ganho:.2f}dB,aresample=192000,alimiter=limit={lim:.4f}:attack=3:release=60:level=disabled,"
+              f"aresample={sr}")
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(pre), "-af", af, "-ac", "2", "-c:a", "pcm_f32le",
+                        str(out)], check=True)
+        i_med, p_med = medir(out)
+        if abs(i_med - alvo) <= 0.2:
+            break
+        ganho += alvo - i_med
     return out
 
 
@@ -193,13 +202,14 @@ def build_ass(cfg, pieces, words, total, cache):
     for p in pieces:
         a, b = p["a"], p["a"] + p["n"] / fps
         for w in words:
-            if a - 0.01 <= w["s"] and w["e"] <= b + 0.12 and w["s"] < b:
-                ow.append({"w": w["w"], "s": p["out"] + w["s"] - a, "e": min(p["out"] + w["e"] - a, p["out"] + p["n"] / fps)})
+            if a - 0.01 <= w["s"] < b - 0.03:
+                ow.append({"w": w["w"], "s": p["out"] + w["s"] - a, "e": min(p["out"] + w["e"] - a, p["out"] + p["n"] / fps),
+                           "seg": p["seg"]})
     blocks = []
     for w in ow:
         cur = blocks[-1] if blocks else None
         txt = " ".join(x["w"] for x in cur) if cur else ""
-        if (cur is None or len(cur) >= L["max_palavras"] or re.search(r"[.,?!;:]$", cur[-1]["w"])
+        if (cur is None or cur[-1]["seg"] != w["seg"] or len(cur) >= L["max_palavras"] or re.search(r"[.,?!;:]$", cur[-1]["w"])
                 or w["s"] - cur[-1]["e"] > L["pausa_quebra"] or len(txt) + 1 + len(w["w"]) > L["max_chars"]):
             blocks.append([w])
         else:
@@ -320,7 +330,7 @@ class Compositor:
         sh[pad + wc["sombra_offset"]:pad + wc["sombra_offset"] + S, pad:pad + S] = m / 255
         sh = cv2.GaussianBlur(sh, (0, 0), wc["sombra_blur"] / 2) * wc["sombra_alpha"]
         self.sh, self.sh_pad = sh[..., None], pad
-        self.overlay = self._arroba()
+        self.overlay = self._arroba() if self.E["arroba"].get("ativo", True) else None
 
     def _arroba(self):
         a = self.E["arroba"]
@@ -419,7 +429,9 @@ class Compositor:
         comp = reg * (1 - self.cam_mask) + cam.astype(np.float32) * self.cam_mask
         comp = comp * (1 - self.cam_border) + 255 * self.cam_border
         out[cyo:cyo + S, cxo:cxo + S] = comp.astype(np.uint8)
-        # @ e ícone
+        # @ e ícone (opcional)
+        if self.overlay is None:
+            return out
         ox, oy, rgb, al = self.overlay
         reg = out[oy:oy + rgb.shape[0], ox:ox + rgb.shape[1]].astype(np.float32)
         out[oy:oy + rgb.shape[0], ox:ox + rgb.shape[1]] = (reg * (1 - al) + rgb * al).astype(np.uint8)

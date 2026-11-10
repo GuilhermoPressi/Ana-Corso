@@ -61,7 +61,8 @@
     "tam_icone": 44,
     "tam_texto": 30,
     "alpha": 0.9,
-    "pilula_alpha": 0.35
+    "pilula_alpha": 0.35,
+    "ativo": false
   },
   "gancho": {
     "fonte": "Anton",
