@@ -8,3 +8,7 @@ trabalho/frames/
 export/*.mp4
 export_leve/*.mp4
 review/*.mp4
+
+# Quadros de revisão contêm dados da tela (financeiro, favoritos): não versionar
+review/*.jpg
+review/*.png
