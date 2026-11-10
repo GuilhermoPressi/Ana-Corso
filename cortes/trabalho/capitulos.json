@@ -1,0 +1,104 @@
+[
+ {
+  "inicio": 0,
+  "fim": 23,
+  "tela": "UTMify - Resumo",
+  "fala": "Abertura: objetivo do vídeo, R$ 100 mil/mês com low ticket; operação em dólar ainda pequena"
+ },
+ {
+  "inicio": 23,
+  "fim": 61,
+  "tela": "UTMify - Resumo (atualiza)",
+  "fala": "Números de setembro até dia 22: R$ 105 mil faturado, R$ 44 mil em anúncios, ROI 2,71 -> 2,39 após taxas, lucro R$ 61 mil; 1.300 vendas do tráfego, 125 ManyChat, 124 N/A"
+ },
+ {
+  "inicio": 61,
+  "fim": 108,
+  "tela": "UTMify - Resumo",
+  "fala": "Canais de venda: Meta Ads -> perfil -> palavra-chave -> ManyChat; N/A = upsell e disparos para quem já comprou"
+ },
+ {
+  "inicio": 108,
+  "fim": 148,
+  "tela": "Gerenciador - Campanhas (filtro 'apostila')",
+  "fala": "Abre o Gerenciador: não duplica campanha, várias campanhas porque testa muito criativo; escala 1-1-1"
+ },
+ {
+  "inicio": 148,
+  "fim": 210,
+  "tela": "Gerenciador - Campanhas (linha AD25-33)",
+  "fala": "Campanha de teste de criativo: R$ 6 mil, 143 vendas, CPA R$ 42; checkout mais barato que visualização porque manda direto pro checkout (produto físico impresso no criativo)"
+ },
+ {
+  "inicio": 210,
+  "fim": 247,
+  "tela": "Gerenciador - Campanhas",
+  "fala": "[MERCHAN] produto 'modelos de páginas de alta conversão' - não usar em corte"
+ },
+ {
+  "inicio": 247,
+  "fim": 314,
+  "tela": "Gerenciador - Campanhas",
+  "fala": "As 3 métricas: ROAS primeiro; se < 2: CPV < 4% do produto, checkout <= 23%, CPA 45-50% -> ROI 2; CPA ideal R$ 42-45"
+ },
+ {
+  "inicio": 314,
+  "fim": 368,
+  "tela": "Gerenciador - Campanhas",
+  "fala": "Como escala sem aumentar verba: sobe nova leva de criativos (83 a 88), 250 -> 500/dia"
+ },
+ {
+  "inicio": 368,
+  "fim": 401,
+  "tela": "Gerenciador - Campanhas",
+  "fala": "Diagnóstico do funil por etapa: CPV caro = criativo/carregamento; sem checkout = página/copy/oferta; sem pagamento = checkout/banner/depoimentos"
+ },
+ {
+  "inicio": 401,
+  "fim": 445,
+  "tela": "Gerenciador - edição campanha/conjunto",
+  "fala": "Configuração: tudo Advantage+, evento compra, sem meta de custo, público aberto"
+ },
+ {
+  "inicio": 445,
+  "fim": 556,
+  "tela": "Gerenciador - edição do anúncio",
+  "fala": "A segmentação está no criativo: sempre texto, título e descrição falando dor/desejo/público; 5 a 10 criativos por campanha"
+ },
+ {
+  "inicio": 556,
+  "fim": 715,
+  "tela": "Gerenciador - Campanhas + calculadora (~570s)",
+  "fala": "Fórmula do investimento: 50% do produto x nº de criativos = R$ 250/dia; pausa o anúncio que gasta o valor do produto sem vender; 500 em 2 dias > 500 em 10 dias; sem caixa: produto a 47 e 100-125/dia; mata/mantém"
+ },
+ {
+  "inicio": 715,
+  "fim": 759,
+  "tela": "Gerenciador - Campanhas",
+  "fala": "Não soca dinheiro no criativo campeão: estabilidade; 5º mês acima de R$ 100 mil/mês com o mesmo produto"
+ },
+ {
+  "inicio": 759,
+  "fim": 882,
+  "tela": "Gerenciador - Campanhas / Anúncios (77-82)",
+  "fala": "Case AD82: campanha 77-82 com 134 vendas a R$ 33; sem o AD82 o custo vai a R$ 91; Meta concentrou a verba; AD81 a R$ 75; matar o de R$ 162"
+ },
+ {
+  "inicio": 882,
+  "fim": 980,
+  "tela": "Gerenciador - Campanhas / Conjuntos (escala)",
+  "fala": "Campanha de escala: AD82 isolado, R$ 500/dia (5x o produto); R$ 4.500 investidos, CPA R$ 34, 128 vendas; isolado CPA R$ 41; ROI 2 direto, quase 3 com order bump"
+ },
+ {
+  "inicio": 980,
+  "fim": 1032,
+  "tela": "Gerenciador - Campanhas",
+  "fala": "Só criativo em vídeo, nada de estático/carrossel: tempo de tela vende"
+ },
+ {
+  "inicio": 1032,
+  "fim": 1084,
+  "tela": "Gerenciador - Campanhas",
+  "fala": "Remarketing e fora do Brasil ficam para outro vídeo; encerramento e @"
+ }
+]

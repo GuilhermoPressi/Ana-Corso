@@ -1,0 +1,323 @@
+[00:00.00] Fala galera, tudo certo?
+[00:01.22] O vídeo de hoje tem como objetivo te ensinar como que eu faço R$ 100 mil por mês com low ticket, vendendo aqui no Brasil.
+[00:08.90] A gente também tem uma operação em dólar, mas essa operação é uma operação que não está em uma grande escala ainda,
+[00:14.60] porque a gente vende para brasileiros fora do Brasil, a gente ainda está no processo de transformar o nosso produto em um produto em inglês e espanhol,
+[00:21.20] e aí sim a gente tende a ter uma escala muito maior.
+[00:23.52] Então esse aqui é o número do mês de setembro, a gente está no dia 22, então com certeza esses números vão melhorar muito ainda, tá?
+[00:30.00] Então dia 22 de setembro a gente já faturou R$ 105 mil, deixa eu atualizar aqui para vocês.
+[00:34.34] R$ 105 mil, gastamos R$ 44 mil com anúncios, nosso ROI está em 2.71, pagamos aqui impostos, taxas, reembolsos,
+[00:44.17] sobrou um ROI 2.39 e um lucro de R$ 61 mil.
+[00:49.73] A gente teve aqui como vocês podem ver, 1.300 vendas vindo do tráfego, 125 vendas vindo do ManyChat,
+[00:56.69] 124 vendas vindo do N/A, né?
+[00:59.89] Que não traqueou.
+[01:01.05] Basicamente qual é o nosso canal de vendas hoje?
+[01:03.59] A gente faz tráfego no Meta, e aí às vezes tem pessoas que começam a seguir,
+[01:08.15] tem pessoas que vão lá no perfil e olham os últimos conteúdos, assistem e tal,
+[01:13.23] e aí o que a gente faz, a gente sempre bota uma palavra-chave num carrossel e algum conteúdo, por quê?
+[01:17.23] Porque aí a pessoa comenta, vai para o ManyChat e lá no ManyChat a gente manda o link do produto, tá?
+[01:21.71] Mesma coisa nesse N/A aqui, a diferença é que esse N/A está muito atrelado a upsell e a vendas que a gente faz para quem já comprou.
+[01:28.21] Então, a pessoa comprou o produto, ele tem o upsell direto, logo depois, assim que ela compra já vai para uma página de boas-vindas com o upsell,
+[01:35.87] ou depois de um tempo a gente faz um disparo, ah, tem um outro produto aqui que é um outro material, uma outra apostila, um outro curso para a pessoa comprar,
+[01:44.37] e isso faz com que o nosso funil seja mais estável, tá?
+[01:47.21] A gente consiga trazer mais vendas.
+[01:48.43] Mas vamos parar de enrolação, deixa eu compartilhar o gerenciador de anúncio aqui com vocês agora, pessoal.
+[01:53.53] Já filtrei aqui para vocês, vou mostrar como que funciona as campanhas hoje na prática.
+[01:58.21] Esse é um funil que está bem escalado, tá?
+[02:00.23] Então vocês vão ver que, às vezes eu falo, ó, não cria muitas campanhas, não duplica a campanha, e a gente não duplica a campanha nenhuma.
+[02:08.15] Mas tem campanhas que a gente, tem estruturas que, cara, como a gente já está muito escalado, a gente testa muito criativo,
+[02:15.23] então a gente tem várias campanhas ativas, tá?
+[02:17.95] Mas vocês vão ver que a estrutura é bem simples de trabalhar.
+[02:20.65] Já filtrei pela que mais me deu resultado aqui, pegando o período desse mês, que é esta campanha aqui, uma escala 1-1-1.
+[02:27.15] Essa aqui é uma campanha mais avançada.
+[02:28.99] Eu vou começar pela segunda melhor campanha, que é essa aqui de teste de criativo, tá?
+[02:33.65] Essa campanha aqui é uma campanha hoje que já investimos 6 mil reais nela, nesse mês.
+[02:38.73] Ela nos gerou 143 vendas.
+[02:41.77] Dessas 143 vendas foi 42 reais o custo por venda.
+[02:47.50] A gente tem um custo por visualização de página de 13,26 e um custo por finalização de compra de 2,15.
+[02:55.16] Como assim, Guilherme?
+[02:56.00] O custo por finalização de compra...
+[02:57.34] O custo por finalização de compra está mais barato que o custo por visualização de página?
+[02:59.82] Neste caso aqui, sim. Por quê?
+[03:02.36] Porque este é um produto que a gente manda direto para o checkout.
+[03:04.74] Ele é um produto físico que a gente grava os criativos com ele impresso.
+[03:09.90] Então a pessoa já vai para o checkout já decidida, porque ela já viu o produto físico,
+[03:14.84] ela já sabe o que quer, ela só não sabe o preço ainda.
+[03:17.72] E aí a gente mostra ali, tem a cópia do checkout,
+[03:23.48] para que a pessoa consiga convencer.
+[03:27.37] Ela mais um pouquinho, quebrar alguma objeção, alguma coisa e passar o preço.
+[03:30.23] Se tu quer conhecer os meus modelos de páginas,
+[03:34.49] e hoje ainda tu não sabe qual página está validando,
+[03:38.11] não tem uma página certa, que tu sabe que aquilo ali dá certo,
+[03:41.61] eu tenho um produto chamado modelos de páginas de alta conversão.
+[03:45.89] E ali eu tenho três modelos.
+[03:46.97] Uma página para tu usar com VSL, que eu já validei, já testei.
+[03:50.01] Uma página para tu usar sem VSL.
+[03:52.61] E uma página que manda direto para o checkout.
+[03:54.77] Na verdade é uma imagem para tu colar no teu checkout.
+[03:57.37] O produto vai estar aqui na descrição.
+[03:58.09] Hoje é um produto que a gente consegue ajudar muitas pessoas,
+[04:00.63] que tem esse problema de página de vendas, de checkout personalizado,
+[04:04.35] não consegue converter e consegue resolver através disso.
+[04:07.03] Bom, mas voltando agora aqui para a parte do tráfego pago.
+[04:11.25] Como que eu gosto de ver um funil, tá pessoal?
+[04:13.27] Eu sempre vou analisar essas três métricas.
+[04:15.73] Na verdade eu sempre vou analisar a primeira métrica, que é ROAS.
+[04:18.83] Se o ROAS está abaixo de 2, eu analiso visualizações de página.
+[04:24.27] Ela sempre tem que estar 4% abaixo do...
+[04:27.37] O valor do produto, ou seja, o valor do produto é R$97,00.
+[04:31.35] Então o meu custo por visualização de página,
+[04:33.69] ele tem que ser menos do que 4% o valor do produto.
+[04:36.61] Ou seja, o produto é R$100,00, tem que estar a menos de R$4,00.
+[04:39.61] Finalizações de compra.
+[04:40.73] Se tu tem uma página, da página vai para o checkout, do checkout faz a venda.
+[04:44.75] Tu sempre tem que buscar pagar no máximo 23% o valor do produto,
+[04:49.65] como custo por finalização de compra.
+[04:51.81] E custo por compra, no máximo ali entre 45% a 50%,
+[04:57.40] o valor do produto é um número ideal para que tu consiga ter um ROI 2, que a gente chama.
+[05:03.90] Então, eu já sei que hoje o meu CPA, o meu custo por venda ideal desse produto aqui,
+[05:08.64] ele fica na casa desses 42 a 45.
+[05:11.92] Então eu sempre vou focar em trabalhar dentro dele.
+[05:14.34] Primeira coisa que eu olho é isso.
+[05:15.38] Custo por resultado está aqui dentro do ideal, está tendo ROI 2,
+[05:18.96] eu não me preocupo com mais nada, eu só faço mais criativos,
+[05:22.22] tanto formatos novos como variações do criativo campeão
+[05:25.92] e põe um novo texto.
+[05:27.50] Então, eu vou fazer um teste no tráfego, como que eu escalo?
+[05:30.20] Assim, tu vai ver aqui, eu subi essa campanha,
+[05:33.20] ela estava rodando com 250 por dia.
+[05:35.36] Aí eu vi que, pô, essa campanha está com custo por venda bem baratinho,
+[05:39.26] eu posso escalar mais, eu vou aumentar um monte o investimento?
+[05:43.08] Não, deixa essa campanha porque ela está vendendo bem,
+[05:46.58] eu vou subir uma nova leva de criativos, de 83 a 88.
+[05:50.00] Eu vou estar escalando porque antes eu investia 250,
+[05:52.96] com ROI 2 eu faturava 500.
+[05:55.48] Agora, eu vou testar novos criativos,
+[05:57.56] eu vou gastar em torno de 500,
+[05:59.80] se eu continuar tendo ROI 2, eu vou faturar mil,
+[06:02.28] com isso eu duplico a minha escala.
+[06:04.28] Esse é o formato que eu gosto de trabalhar,
+[06:05.66] eu não trabalho em um formato muito agressivo, tá?
+[06:08.74] Se eu não estou tendo ROI 2, eu olho essas métricas que eu te falei
+[06:11.46] e se o meu custo por visualização de página, ele está mais caro,
+[06:16.60] eu sei que eu tenho que melhorar criativo ou o carregamento da minha página.
+[06:19.82] Se as pessoas estão indo para a minha página com custo bom,
+[06:22.34] mas não está tendo muito checkout,
+[06:24.24] eu sei que eu tenho que melhorar a minha página, a minha copy, a minha oferta,
+[06:27.56] se as pessoas estão indo para o checkout e não estão pagando,
+[06:29.70] eu preciso revisar meu checkout, adicionar um banner,
+[06:32.36] provar, mostrar depoimentos,
+[06:33.64] está faltando alguma coisa ali que a pessoa não está tendo confiança de pagar
+[06:36.80] ou ela está tendo que preencher muitas informações, tá?
+[06:39.58] E essa é a estrutura que eu utilizo hoje.
+[06:41.82] Agora, eu vou entrar na parte de otimização de campanha realmente.
+[06:44.92] Então, deixa eu pegar essa campanha aqui, por exemplo, do criativo.
+[06:49.81] Eu posso pegar do 77 ao 82 também, para que vai ficar claro para vocês.
+[06:54.55] Ó, dentro da campanha, tá?
+[06:56.15] Vocês vão ver que eu não mexo em nada.
+[06:58.45] Aqui, ó, campanha, nome, objetivo, vendas, o orçamento, tudo Advantage+.
+[07:03.67] No conjunto de anúncio, mesma coisa, tá?
+[07:06.88] Local da conversão, site, maximizar o número de conversões,
+[07:10.68] evento de conversão é evento de comprar,
+[07:12.78] não boto meta de custo por resultado, não boto nada disso, beleza?
+[07:17.12] Subir a campanha, tudo Advantage+, não troco posicionamento,
+[07:20.72] não boto sugestão de público, não boto nada, deixo o público aberto.
+[07:25.40] E aí, aonde?
+[07:26.44] Onde que eu vou segmentar?
+[07:27.70] É nos criativos.
+[07:29.81] Quando eu entro nos criativos, vocês vão ver que, olha aqui essa campanha,
+[07:34.54] por exemplo, gastou dois reais em um anúncio, um real no outro,
+[07:37.84] nem deu tempo de testar eles ainda.
+[07:39.48] Deixa eu pegar esse aqui que eu trouxe todas as vendas,
+[07:41.62] mas vocês vão ver aqui, ó, que o que que é o diferencial, tá?
+[07:45.04] Eu coloco sempre texto, título e descrição dos anúncios.
+[07:49.68] É muito importante que a gente tenha isso.
+[07:52.40] Por quê?
+[07:53.38] Porque a Meta hoje, ela se baseia muito no que
+[07:56.96] tu tá dizendo no teu anúncio e que tu tá dizendo na tua descrição,
+[08:00.68] o texto do teu anúncio.
+[08:02.30] Então, sempre é importante tu preencher aquelas informações,
+[08:06.21] porque elas fazem com que a Meta consiga encontrar de melhor forma
+[08:11.15] a tua audiência.
+[08:12.31] Não adianta naquelas informações ali, por exemplo, texto do anúncio,
+[08:16.15] eu ficar colocando, compre agora por tantos reais.
+[08:19.53] Isso não vai fazer com que ele qualifique, e aquilo ali converte pouco.
+[08:23.13] Poucas pessoas compram porque leram a descrição.
+[08:27.12] Mas, se tu faz uma boa descrição que explica as dores, os desejos, os problemas,
+[08:32.88] que fala quem é a tua audiência,
+[08:35.56] isso faz com que a Meta consiga encontrar essa audiência de uma melhor forma.
+[08:39.62] Porque, às vezes, a tua audiência já tá pesquisando por um tipo de problema
+[08:43.38] e a Meta fala, opa, eu tenho informação desse cara aqui
+[08:45.60] que ele tá pesquisando sobre esse tipo de problema.
+[08:47.84] Vou entregar esse anúncio pra ele.
+[08:49.30] E aí é onde tu consegue ter um criativo campeão, tá?
+[08:53.08] Então, eu recomendo muito que faça isso.
+[08:55.06] Eu sempre coloco nas minhas campanhas,
+[08:57.12] sempre, quando eu vou testar criativo, mais de 5 criativos por campanha, tá?
+[09:03.82] Entre 5 a 10, nunca coloco tipo 15, 20 criativos na campanha.
+[09:08.00] Normalmente é entre 5 a 10, nunca menos que 5.
+[09:12.14] E não é que nunca, mas dificilmente mais do que 10, tá?
+[09:16.28] Agora, uma dúvida que pode surgir pra ti é sobre investimento.
+[09:20.10] Como que eu calculo o meu investimento, tá?
+[09:23.32] A fórmula que eu sigo é
+[09:28.07] 50% o valor do meu produto, ou seja, a metade do valor do meu produto,
+[09:32.51] vezes o número de criativos.
+[09:34.07] Então, por exemplo, o meu produto é 97 reais.
+[09:36.31] Deixa eu fazer número cheio, só pra gente não se perder.
+[09:38.41] O valor do meu produto é 100 reais.
+[09:41.71] 50% de 100 reais é 50 reais.
+[09:45.57] Se eu tenho 5 anúncios, eu faço 50 vezes 5.
+[09:48.67] Isso vai dar 250.
+[09:51.09] Então, é isso que eu coloco por dia.
+[09:53.09] Por que que eu coloco isso?
+[09:54.41] Porque se a Meta é dividir 50 reais em cada anúncio,
+[09:57.83] cada anúncio tem que fazer uma venda por dia pra esse ser um bom anúncio.
+[10:01.05] Porque eu busco pagar até, no máximo, 50 reais por venda.
+[10:04.49] Se a Meta gastar tudo em um anúncio só,
+[10:09.15] eu consigo, quando ele gasta o valor do meu produto e não vende,
+[10:12.47] eu pauso ele.
+[10:13.45] E aí, assim, eu consigo otimizar.
+[10:14.85] Então, 250 é um valor perfeito.
+[10:17.17] Ah, Guilherme, mas eu não tenho 250 pra investir por dia.
+[10:19.45] Até porque tu tem que testar por 2 ou 3 dias, no mínimo, o criativo.
+[10:23.07] Ah, no primeiro dia tu vai matar um, mas às vezes a Meta não vai ter gasto nos outros.
+[10:26.47] Aí tu não pausa a campanha.
+[10:27.83] Tu pausa só aquele anúncio que tá dando errado.
+[10:29.73] Se tu não tem todo o dinheiro, bota menos, tá?
+[10:31.93] O que que eu te digo, assim?
+[10:33.81] Não testa um produto de 97 reais colocando 15 reais por dia.
+[10:37.03] Colocando 50 reais por dia é muito pouco.
+[10:39.47] Vai ter que testar por vários dias.
+[10:40.95] É melhor que tu faça testes de 2, 3 dias, depois pause tudo pra arrumar e melhorar,
+[10:45.51] do que tu fique 15 dias testando, tomando prejuízo, aí tu pausa,
+[10:50.73] daí tu tem que arrumar, mas aí tu já perdeu as informações.
+[10:53.11] Então, eu prefiro, por exemplo, entre gastar 500 reais em 10 dias,
+[10:56.93] sendo 50 por dia, ou 500 reais em 2 dias, eu prefiro gastar 500 reais em 2 dias, tá?
+[11:02.33] 2 ou 3 dias ali.
+[11:04.49] Mas, então, caso tu realmente, Guilherme, não tenha todo esse valor,
+[11:08.97] baixa o valor do teu produto.
+[11:10.41] Cobra mais barato, então, por exemplo, cobra 47, daí ao invés de investir 250,
+[11:15.63] tu vai ter que investir em torno de 125 por dia, até 100 reais por dia ali tá bom.
+[11:20.45] E aí tu vai fazer o seguinte, gastou, o criativo não vendeu por 47, mata.
+[11:25.71] Gastou, não vendeu, mata.
+[11:27.07] Gastou, vendeu, mantém.
+[11:28.83] E aí, assim, tu vai comprando essa inteligência, que daí quando o teu funil
+[11:31.83] estiver vendendo muito bem, aí é só tu aumentar o investimento e cobrar mais caro,
+[11:35.63] entende? De 47 pra 67, pra 97, porque daí tu tem caixa pra conseguir manter
+[11:40.71] esse investimento, tá?
+[11:42.41] O que não pode acontecer é tu tentar cobrar caro por um produto e investir pouco.
+[11:46.47] Aí tu vai ter um problema que a Meta não vai, ela vai distribuir ali,
+[11:49.79] mas tu não vai conseguir testar da forma certa, vai ficar muito devagar o teu teste
+[11:53.71] e, assim, tu perde resultado.
+[11:55.97] Uma vez que feito isso,
+[11:56.89] eu vi que o conjunto aqui, a campanha tá vendendo bem, de novo,
+[12:01.51] eu não crio novos criativos aqui dentro, tu vê que eu não tô nem aumentando a verba,
+[12:06.11] eu coloquei por 250 reais e eu tô mantendo por 250 reais, porque o que que eu quero?
+[12:10.01] Eu quero volume de criativos, eu não quero ter um criativo que venda muito,
+[12:14.13] eu quero ter um criativo que fica meses vendendo e, assim, eu vou criando mais
+[12:17.57] e vou criando um ecossistema.
+[12:19.41] A maioria do erro das pessoas é eu acertei o criativo campeão,
+[12:22.33] aí eu vou socar dinheiro nele, ele vai morrer em uma semana, depois eu volto pra estaca zero.
+[12:26.91] Eu aqui, eu prefiro ter estabilidade, não é à toa que esse projeto,
+[12:29.81] a gente tá indo pro quinto mês vendendo mais de 100 mil por mês com o mesmo produto,
+[12:33.69] a gente prefere ter estabilidade do que tentar escalar a qualquer custo.
+[12:39.19] E aí, o que que eu vou fazendo de outros pontos?
+[12:41.99] Vocês podem ver aqui que eu tenho até campanhas mais caras, ó,
+[12:44.49] campanhas que eu testei, o criativo não vendeu, inclusive, se a gente for pegar aqui, ó,
+[12:51.01] vocês podem ver que campanha com anúncio 82, tá, o maior, essa aqui, ó, 77 a 82,
+[12:58.08] tem 134 vendas, 33 reais por compra.
+[13:01.82] Aí tem uma outra campanha aqui, ó, que é do mesmo AD 77 ao 82,
+[13:06.42] só que sem o AD82 o custo por venda tá 91.
+[13:10.30] Pô, o que que mudou? O que que mudou?
+[13:12.62] Que a Meta focou o investimento da campanha 100% aqui no anúncio 82,
+[13:18.88] e aí eu não conseguia testar esses outros anúncios aqui, o 78, o 79, o 77.
+[13:24.80] Aí o que que eu fiz?
+[13:25.76] Vou subir uma nova campanha, sem o AD82, pra testar os outros quatro criativos.
+[13:31.68] Mas eu não vou mexer na campanha que já está rodando e vendendo bem,
+[13:35.60] porque eu quero vender, eu não vou subir mais criativos aqui,
+[13:38.18] eu não vou tirar os criativos daqui, não vou excluir nada, não vou mexer.
+[13:41.62] Máximo eu vou aumentar um pouco a verba quando eu ver que faz sentido, ali,
+[13:43.92] 20% a cada dois, três, quatro dias.
+[13:47.02] Mas eu não quero ser agressivo e tentar forçar esse anúncio.
+[13:51.58] Então eu vou subir uma nova campanha, sem ele na campanha,
+[13:55.08] porque eu quero ver se os outros criativos vendem.
+[13:57.08] E aí eu vi que os outros criativos, sem ele, não vendem.
+[14:00.90] Então quando a gente entra aqui, ó, os criativos não venderam.
+[14:03.20] O máximo foi o anúncio 81, que trouxe um custo por venda de 75.
+[14:07.28] Então, aos poucos, eu já vou matar essa campanha, tá?
+[14:10.94] Logo logo essa campanha aqui eu já vou matar ela, conforme eu vou...
+[14:14.12] Ó, esse aqui tá com 75 de custo.
+[14:16.22] Esse aqui, ó, já dá pra matar. Ele tá com 162, meu produto é 97.
+[14:20.16] Eu já poderia matar ele, porque daí a Meta vai pegar o que tá gastando nele,
+[14:23.58] vai começar a gastar nesses outros três aqui, ou nesse 81.
+[14:26.86] E assim a gente vai jogando esse jogo.
+[14:28.78] Com isso, tô pagando mais caro? Tô.
+[14:31.65] Mas eu tô investindo mais. Eu tô tendo mais gente entrando na esteira de produtos.
+[14:35.75] Óbvio, eu quero pagar 91 reais por venda? Não.
+[14:38.51] Mas eu tô otimizando, entendeu?
+[14:40.49] Então esse é o processo.
+[14:42.57] Toda vez que eu faço criativos novos, eu subo uma campanha nova.
+[14:45.61] E aí, se eu acho um criativo campeão, assim como eu achei o AD82,
+[14:51.89] eu crio uma campanha de escala com o AD82, que é o campeão.
+[14:56.77] Como que é essa campanha de escala?
+[14:58.17] Gente, é exatamente a mesma estrutura.
+[15:00.39] O que muda é que ele tá isolado em um único conjunto, em uma única campanha.
+[15:05.05] Só tem o AD82 nessa campanha.
+[15:07.57] E aí é muito importante, tá?
+[15:09.49] Aí, nesse caso, eu invisto... Deixa eu só ver o que saiu aqui, minha métrica.
+[15:13.43] Nesse caso, eu invisto 500 reais por dia.
+[15:16.99] Eu boto cinco vezes o valor do produto.
+[15:19.44] Como nessa campanha aqui, ó...
+[15:21.56] Eu já tinha colocado o AD82.
+[15:23.58] E ele já tinha pego toda a verba pra ele.
+[15:25.48] Eu já investi 4.500, praticamente.
+[15:28.88] E ainda assim, ele tá me trazendo um custo por compra de 34 reais,
+[15:32.04] que é 10 a 15 reais abaixo do que eu tô disposto a pagar.
+[15:35.54] Então ele é muito bom.
+[15:36.62] Ele tá me dando um ROI 2 ou 3, porque aqui eu não tô contando order bumps, tá?
+[15:42.14] Então esse cara aqui tá me dando um ROI 2 ou 3 com volume.
+[15:45.06] Já fez 128 vendas.
+[15:46.42] O que eu fiz? Eu joguei ele numa outra campanha sozinho.
+[15:48.98] E aí sim, aí eu botei 500 reais por dia só nele.
+[15:52.62] Ele não vai dividir verba com mais nenhum anúncio.
+[15:54.84] E aí, o que aconteceu?
+[15:56.08] O custo por venda dele nessa campanha aumentou 7 reais comparado a outra, que é 34.
+[16:00.86] Aqui eu tô pagando 41.
+[16:02.82] Porém, eu tô botando 500 reais a mais na minha escala.
+[16:06.46] Um produto que tá me dando ROI 2 na venda direta, porque o produto é 97.
+[16:10.08] Se eu botar os order bumps, é quase um ROI 3, tá?
+[16:12.84] Então aqui eu tenho muita margem pra escalar ainda, beleza?
+[16:15.96] Um custo por visualização barato.
+[16:17.32] Um custo por finalização de compra barato.
+[16:18.92] E é assim que eu faço a escala.
+[16:20.16] De forma muito simples, eu vou testando o volume de criativos.
+[16:23.94] Toda semana eu subo 5, 10 criativos em vídeo.
+[16:27.36] Não trabalho com imagem, nem estático, nem carrossel, nada do tipo.
+[16:31.44] Tem pessoas que vendem assim.
+[16:32.88] Eu, Guilhermo, nunca consegui vender desta forma, tá?
+[16:37.36] Sem, assim, consegui fazer vendas, mas nada que...
+[16:39.78] Ah, nossa, que sustentou por semanas esse criativo.
+[16:42.88] Nunca um criativo estático deu o resultado que tá dando o AD82, por exemplo.
+[16:46.26] Porque eu acredito muito no tempo de tela.
+[16:47.80] Pessoa que tem tempo de tela te assistindo, ela compra mais.
+[16:51.02] Tu é uma pessoa que tá vendo esse vídeo aqui já há 20 minutos.
+[16:53.96] Deixa eu ver como é que tá a gravação.
+[16:55.04] A gravação já tá há 22 minutos.
+[16:57.82] Então, tu que tá vendo o meu vídeo há 22 minutos,
+[17:01.92] tu tá muito mais propenso a comprar algum produto meu
+[17:04.54] do que se eu aparecesse um anúncio pra ti falando
+[17:06.32] compre a minha mentoria, clique aqui, entende?
+[17:08.88] É muito diferente nessa questão, beleza?
+[17:12.58] Uma outra estrutura de campanha que eu utilizo é a campanha de remarketing, tá?
+[17:18.00] Mas tanto a de remarketing quanto a campanha de fora do Brasil,
+[17:21.14] eu vou te explicar num outro vídeo, porque senão esse vídeo vai ficar muito longo
+[17:25.16] e daí a gente já entra em outras estruturas ali, que são estruturas adicionais.
+[17:30.40] A principal é essa de teste de criativo e essa de escala.
+[17:34.12] Se tu fizer isso bem feito, tu tem um low ticket que vende 100 mil por mês.
+[17:37.86] Agora, como é que eu faço pra esse low ticket ter mais estabilidade,
+[17:41.40] pra esse low ticket vender 100 mil por mês por 5, 6, 10 meses?
+[17:45.50] Aí a gente precisa continuar fazendo isso mesmo.
+[17:48.00] Fazer isso aqui bem feito, mas adicionar outras estruturas,
+[17:50.86] como, por exemplo, pra fora do Brasil, pra fazer remarketing.
+[17:53.94] Então, pessoal, o vídeo foi esse. Espero que eu possa ter te ajudado.
+[17:58.26] Se tu ficou com alguma dúvida sobre o conteúdo, me manda aqui na descrição
+[18:01.24] ou me manda lá no meu Instagram, arroba @guilhermopressi.
