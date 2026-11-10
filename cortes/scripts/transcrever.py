@@ -9,8 +9,10 @@ import json
 import subprocess
 import sys
 import time
+import wave
 from pathlib import Path
 
+import numpy as np
 from faster_whisper import WhisperModel
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -30,7 +32,7 @@ def main(src: str, model_name: str = "large-v3") -> None:
         print("cache: transcrição já existe, pulando")
         return
 
-    audio = WORK / "audio" / "voz_16k.wav"
+    audio = WORK / "audio" / f"{Path(src).stem}_16k.wav"
     audio.parent.mkdir(parents=True, exist_ok=True)
     if not audio.exists():
         subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", src, "-vn", "-ac", "1", "-ar", "16000", str(audio)],
@@ -39,8 +41,11 @@ def main(src: str, model_name: str = "large-v3") -> None:
     model = WhisperModel(model_name, device="cpu", compute_type="int8",
                          download_root=str(WORK / "models" / "hf"), cpu_threads=4)
     t0 = time.time()
+    # Lê o WAV 16 kHz mono direto em numpy (evita incompatibilidade do PyAV usado pelo faster-whisper).
+    with wave.open(str(audio), "rb") as wf:
+        pcm = np.frombuffer(wf.readframes(wf.getnframes()), np.int16).astype(np.float32) / 32768.0
     segments, info = model.transcribe(
-        str(audio), language="pt", word_timestamps=True, vad_filter=True,
+        pcm, language="pt", word_timestamps=True, vad_filter=True,
         vad_parameters={"min_silence_duration_ms": 300}, beam_size=5,
         initial_prompt=PROMPT, condition_on_previous_text=True,
     )
