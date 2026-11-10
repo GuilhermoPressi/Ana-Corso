@@ -12,3 +12,4 @@ review/*.mp4
 # Quadros de revisão contêm dados da tela (financeiro, favoritos): não versionar
 review/*.jpg
 review/*.png
+__pycache__/
