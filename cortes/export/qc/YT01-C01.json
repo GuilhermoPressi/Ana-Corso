@@ -19,11 +19,11 @@
   },
   "duracao": {
    "ok": true,
-   "info": "vídeo 28.70s / EDL 28.70s"
+   "info": "vídeo 28.73s / EDL 28.73s"
   },
   "sincronia": {
    "ok": true,
-   "info": "vídeo 28.700s x áudio 28.693s"
+   "info": "vídeo 28.733s x áudio 28.714s"
   },
   "faststart": {
    "ok": true,
@@ -31,7 +31,7 @@
   },
   "loudness": {
    "ok": true,
-   "info": "-14.3 LUFS, TP -2.1 dBTP"
+   "info": "-14.2 LUFS, TP -4.2 dBTP"
   },
   "quadros_pretos": {
    "ok": true,
@@ -40,6 +40,10 @@
   "congelados": {
    "ok": true,
    "info": "ok (tela parada em 0 trechos é conteúdo estático; congelamento planejado: 0)"
+  },
+  "cortes_silencio": {
+   "ok": true,
+   "info": "3 pedaços; cortes com voz: nenhum; emendas naturais (corte no mínimo + fade): nenhuma"
   }
  },
  "status_auto": "APROVADO",
