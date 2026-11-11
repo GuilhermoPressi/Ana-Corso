@@ -1,0 +1,51 @@
+{
+ "arquivo": "YT01-C08_curto_opiniao.mp4",
+ "checks": {
+  "resolucao": {
+   "ok": true,
+   "info": "1080x1920"
+  },
+  "fps": {
+   "ok": true,
+   "info": "30.000"
+  },
+  "codec": {
+   "ok": true,
+   "info": "h264 High yuv420p"
+  },
+  "audio_fmt": {
+   "ok": true,
+   "info": "aac 48000 Hz 191 kbps"
+  },
+  "duracao": {
+   "ok": true,
+   "info": "vídeo 21.40s / EDL 21.40s"
+  },
+  "sincronia": {
+   "ok": true,
+   "info": "vídeo 21.400s x áudio 21.397s"
+  },
+  "faststart": {
+   "ok": true,
+   "info": "moov no início"
+  },
+  "loudness": {
+   "ok": true,
+   "info": "-14.4 LUFS, TP -4.2 dBTP"
+  },
+  "quadros_pretos": {
+   "ok": true,
+   "info": "0 trechos"
+  },
+  "congelados": {
+   "ok": true,
+   "info": "ok (tela parada em 0 trechos é conteúdo estático; congelamento planejado: 0)"
+  },
+  "cortes_silencio": {
+   "ok": true,
+   "info": "1 pedaços; cortes com voz: ['640.74s (-39 dB)']; emendas naturais (corte no mínimo + fade): ['seg 0: início emendado com a palavra anterior (dias.|É)']"
+  }
+ },
+ "status_auto": "APROVADO",
+ "status_visual": "revisar"
+}

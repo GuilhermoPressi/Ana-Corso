@@ -1,0 +1,51 @@
+{
+ "arquivo": "YT01-C07_curto_erro-comum.mp4",
+ "checks": {
+  "resolucao": {
+   "ok": true,
+   "info": "1080x1920"
+  },
+  "fps": {
+   "ok": true,
+   "info": "30.000"
+  },
+  "codec": {
+   "ok": true,
+   "info": "h264 High yuv420p"
+  },
+  "audio_fmt": {
+   "ok": true,
+   "info": "aac 48000 Hz 191 kbps"
+  },
+  "duracao": {
+   "ok": true,
+   "info": "vídeo 35.73s / EDL 35.73s"
+  },
+  "sincronia": {
+   "ok": true,
+   "info": "vídeo 35.733s x áudio 35.733s"
+  },
+  "faststart": {
+   "ok": true,
+   "info": "moov no início"
+  },
+  "loudness": {
+   "ok": true,
+   "info": "-14.3 LUFS, TP -4.1 dBTP"
+  },
+  "quadros_pretos": {
+   "ok": true,
+   "info": "0 trechos"
+  },
+  "congelados": {
+   "ok": true,
+   "info": "ok (tela parada em 0 trechos é conteúdo estático; congelamento planejado: 0)"
+  },
+  "cortes_silencio": {
+   "ok": true,
+   "info": "3 pedaços; cortes com voz: nenhum; emendas naturais (corte no mínimo + fade): nenhuma"
+  }
+ },
+ "status_auto": "APROVADO",
+ "status_visual": "revisar"
+}

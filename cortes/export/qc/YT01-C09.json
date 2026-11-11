@@ -1,0 +1,51 @@
+{
+ "arquivo": "YT01-C09_longo_passo-a-passo.mp4",
+ "checks": {
+  "resolucao": {
+   "ok": true,
+   "info": "1080x1920"
+  },
+  "fps": {
+   "ok": true,
+   "info": "30.000"
+  },
+  "codec": {
+   "ok": true,
+   "info": "h264 High yuv420p"
+  },
+  "audio_fmt": {
+   "ok": true,
+   "info": "aac 48000 Hz 191 kbps"
+  },
+  "duracao": {
+   "ok": true,
+   "info": "vídeo 58.40s / EDL 58.40s"
+  },
+  "sincronia": {
+   "ok": true,
+   "info": "vídeo 58.400s x áudio 58.400s"
+  },
+  "faststart": {
+   "ok": true,
+   "info": "moov no início"
+  },
+  "loudness": {
+   "ok": true,
+   "info": "-14.2 LUFS, TP -4.1 dBTP"
+  },
+  "quadros_pretos": {
+   "ok": true,
+   "info": "0 trechos"
+  },
+  "congelados": {
+   "ok": true,
+   "info": "ok (tela parada em 0 trechos é conteúdo estático; congelamento planejado: 0)"
+  },
+  "cortes_silencio": {
+   "ok": true,
+   "info": "2 pedaços; cortes com voz: ['615.00s (-44 dB)']; emendas naturais (corte no mínimo + fade): ['seg 0: fim emendado com a palavra seguinte (otimizar.|Então,)']"
+  }
+ },
+ "status_auto": "APROVADO",
+ "status_visual": "revisar"
+}
