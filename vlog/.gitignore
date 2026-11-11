@@ -9,3 +9,5 @@ export/*.mp4
 !.gitkeep
 trabalho/*
 !trabalho/.gitkeep
+pesquisa/studio/
+pesquisa/meu_canal.csv
