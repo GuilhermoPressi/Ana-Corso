@@ -1,0 +1,9 @@
+brutos/*
+referencias/*
+trabalho/wav/
+trabalho/proxies/
+export/*.mp4
+*.mov
+*.MOV
+*.mp4
+!.gitkeep
