@@ -1,4 +1,6 @@
-# Etapa 3: Dados que não podem aparecer (para aprovar)
+# Etapa 3: Dados que não podem aparecer. ✅ APROVADO em 20/11/2026
+
+Decisões: **BL03 ativo só nos nomes dos produtos** (as quantidades ficam visíveis) · BL02 "Daniel" mantido borrado por precaução · **S1: faturamento visível** · borrões fixos nas barras de endereço ok · demais suspeitos mantidos.
 
 Tempos em **P1/P2 mm:ss.s** do bruto. A minutagem no vídeo final sai na montagem.
 Configuração em `config/blur.json`. As folhas antes/depois estão em `review/borroes/<ID>.png`, com início, meio e fim de cada borrão e um zoom da região já borrada.

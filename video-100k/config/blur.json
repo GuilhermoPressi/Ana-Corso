@@ -1,12 +1,99 @@
 {
  "_doc": "Borrões em coordenadas do bruto (1280x720) e tempos do arquivo-fonte. caixa=[x0,y0,x1,y1] já com margem >=12px. ativo=false -> listado como suspeito mas não aplicado. Estilo: pixelização forte (bloco 14px) + desfoque, cantos arredondados (raio 8px). Quando o borrão cobre o trecho inteiro, ele já entra a 100% no 1º quadro do corte (nunca há fade de opacidade sobre dado visível). Os fades de 4 quadros só valem quando o dado entra/sai dentro do plano.",
- "bloco_px": 14, "raio_px": 8, "fade_quadros": 4,
+ "bloco_px": 14,
+ "raio_px": 8,
+ "fade_quadros": 4,
  "borroes": [
-  {"id":"BL01","fonte":"01","in":23.85,"out":48.85,"caixa":[112,62,1008,104],"oque":"URL do dashboard UTMify com ID privado","motivo":"suspeito (link privado)","ativo":true},
-  {"id":"BL02a","fonte":"01","in":23.85,"out":48.85,"caixa":[256,158,442,198],"oque":"título 'Dashboard - Daniel'","motivo":"suspeito (possível nome de cliente/sócio)","ativo":true},
-  {"id":"BL02b","fonte":"01","in":23.85,"out":48.85,"caixa":[76,456,148,490],"oque":"menu lateral 'Daniel'","motivo":"suspeito (possível nome de cliente/sócio)","ativo":true},
-  {"id":"BL03","fonte":"01","in":23.85,"out":48.85,"caixa":[256,656,566,720],"oque":"nomes de produtos e nº de vendas ('Pacote Destrave Corporal 2302', 'Corpo de Yôga 45')","motivo":"suspeito (produto do projeto/cliente)","ativo":false},
-  {"id":"BL04","fonte":"02","in":395.40,"out":1142.25,"caixa":[112,62,1032,104],"oque":"barra de endereço: link privado do arquivo no Drive (alterna com a página pública)","motivo":"suspeito (link privado)","ativo":true},
-  {"id":"BL05","fonte":"02","in":1258.80,"out":1332.45,"caixa":[112,62,1032,104],"oque":"barra de endereço: link privado da pasta no Drive","motivo":"suspeito (link privado)","ativo":true}
- ]
+  {
+   "id": "BL01",
+   "fonte": "01",
+   "in": 23.85,
+   "out": 48.85,
+   "caixa": [
+    112,
+    62,
+    1008,
+    104
+   ],
+   "oque": "URL do dashboard UTMify com ID privado",
+   "motivo": "suspeito (link privado)",
+   "ativo": true
+  },
+  {
+   "id": "BL02a",
+   "fonte": "01",
+   "in": 23.85,
+   "out": 48.85,
+   "caixa": [
+    256,
+    158,
+    442,
+    198
+   ],
+   "oque": "título 'Dashboard - Daniel'",
+   "motivo": "suspeito (possível nome de cliente/sócio)",
+   "ativo": true
+  },
+  {
+   "id": "BL02b",
+   "fonte": "01",
+   "in": 23.85,
+   "out": 48.85,
+   "caixa": [
+    76,
+    456,
+    148,
+    490
+   ],
+   "oque": "menu lateral 'Daniel'",
+   "motivo": "suspeito (possível nome de cliente/sócio)",
+   "ativo": true
+  },
+  {
+   "id": "BL03",
+   "fonte": "01",
+   "in": 23.85,
+   "out": 48.85,
+   "caixa": [
+    256,
+    656,
+    428,
+    720
+   ],
+   "oque": "nomes de produtos ('Pacote Destrave Corporal', 'Corpo de Yôga'); quantidades ficam visíveis",
+   "motivo": "aprovado pelo autor: esconder nome dos produtos do projeto",
+   "ativo": true
+  },
+  {
+   "id": "BL04",
+   "fonte": "02",
+   "in": 395.4,
+   "out": 1142.25,
+   "caixa": [
+    112,
+    62,
+    1032,
+    104
+   ],
+   "oque": "barra de endereço: link privado do arquivo no Drive (alterna com a página pública)",
+   "motivo": "suspeito (link privado)",
+   "ativo": true
+  },
+  {
+   "id": "BL05",
+   "fonte": "02",
+   "in": 1258.8,
+   "out": 1332.45,
+   "caixa": [
+    112,
+    62,
+    1032,
+    104
+   ],
+   "oque": "barra de endereço: link privado da pasta no Drive",
+   "motivo": "suspeito (link privado)",
+   "ativo": true
+  }
+ ],
+ "aprovado": "2026-11-20: BL01, BL02a/b, BL03 (só nomes), BL04, BL05 ativos; faturamento P1 visível (S1); demais suspeitos mantidos"
 }

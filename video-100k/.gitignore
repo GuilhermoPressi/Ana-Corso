@@ -11,3 +11,5 @@ trabalho/*
 
 # folhas "antes" contêm dados sensíveis originais
 review/borroes/*.png
+review/style/
+motion/kit/bg_*.png
