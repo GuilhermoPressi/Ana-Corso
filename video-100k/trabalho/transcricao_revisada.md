@@ -1,0 +1,374 @@
+# Transcrição revisada (faster-whisper medium, pt, revisada)
+
+Legenda: texto normal = MANTIDO no EDL atual; ~~riscado~~ = CORTADO. Tempos do arquivo-fonte. ⚠ = conferir de ouvido.
+
+Correções aplicadas: postila→apostila; monjaro→Mounjaro; botoxa→botox; on-drive→Drive; Cláudia/Cloud→Claude; "lotir que te é"→"low ticket é"; "vivenda caindo"→"ver venda caindo"; advantage mais→Advantage+; "este mesmo"→"esse mês"; "símbolo em imagem"→"os cinco em imagem"; "torre e te compra"→"hora de comprar" (inferido, conferir); entregados→entregáveis.
+
+Trechos a conferir de ouvido (Whisper incerto): 02 414–427 ("Descubra como é bom / copia e cole é muito bom"), 02 1339–1346 ("é uma regra ter?").
+
+## Parte 01
+
+- `   9.74` ~~(bastidor, retranscrito) Ah, vamos comprar uma… / É, de 135 por 40, né? / Mor, vou começar a gravar.~~
+- `  23.94` Como eu faria os meus primeiros R$ 100 mil por mês com o low ticket se eu estivesse começando
+- `  28.40` do zero. Hoje eu vou mostrar pra vocês tudo que eu apliquei nessa estratégia dessa campanha
+- `  33.62` aqui, desse projeto aqui, pra gente ter esse resultado esse mês, tá? Vou atualizar as
+- `  39.96` métricas aqui, ó. 259 mil de faturamento, 107 mil investidos, 152 mil reais de lucro
+- `  48.42` esse mês.
+- `  54.68` Explicando de forma detalhada para vocês como que funciona esse processo, eu vou começar
+- `  60.62` lá no conceito de produto, que é a primeira etapa, a gente entendeu o que a gente vai
+- `  64.24` vender.
+- `  65.08` A primeira etapa do produto é a gente vender algo tangível, vender algo que a gente
+- `  70.60` consiga tocar ou que a gente consiga através do celular mostrar, rolar na tela.
+- `  77.72` Isso é muito importante para que a pessoa sinta, para que ela entenda o que é o produto,
+- `  82.94` para que saia do imaginário dela e se torne algo que está ali no dia a dia dela, que
+- `  89.22` ela consiga ver, que ela consiga se visualizar com aquilo ali e que não seja ela imaginando
+- `  94.64` um produto mas não tendo a certeza do que vai ser entregue.
+- `  98.24` Então, você está mostrando para ela, oh, você vai receber isso aqui.
+- ` 101.24` Isso foi muito importante para esse produto destravar e vender mais de 100 mil por mês.
+- ` 107.66` Por que isso é muito importante?
+- ` 109.36` Essa etapa de ter o produto tangível, ela vai ser principalmente na etapa de criativos muito utilizada.
+- ` 115.58` Então, tu fazer anúncios mostrando o produto, isso dá muito certo para apostilas,
+- ` 119.74` que tu vai folhando a apostila e mostrando ali o conteúdo dela já no criativo.
+- ` 126.04` Ou aplicativos que tu consegue mostrar na tela do teu celular
+- ` 128.92` e mostrar, utilizando ele ali num problema real que a tua audiência passa.
+- ` 135.68` Fazendo isso de uma forma bem feita, a gente vai pro segundo ponto, que é a oferta.
+- ` 141.96` Entender como que a gente vai linkar um produto, que é algo ali, bruto,
+- ` 148.52` e vai transformar numa narrativa que convence a pessoa de pagar por isso.
+- ` 153.90` Nesse caso, eu tenho alguns pontos que eu te indico sobre a oferta.
+- ` 157.82` ~~Primeiro ponto, a tua oferta, ela precisa ser algo.~~
+- ` 165.06` ~~Ah, esqueci o que eu ia falar.~~
+- ` 167.18` ~~Não quer pedir um açaí para nós?~~
+- ` 170.48` ~~Ah, estava pensando nisso agora.~~
+- ` 174.36` ~~Durante o esquecimento da oferta, porque pensou no açaí?~~
+
+## Parte 02
+
+- `   0.00` E essa parte da oferta é muito importante, porque alguns pontos que você precisa ter
+- `   5.82` pra sua oferta vender bem, primeiro ponto, não vá pra grandes mercados, a tendência
+- `  12.10` é as pessoas irem para emagrecimento, dinheiro, renda extra, ou relacionamentos, e são grandes
+- `  19.08` mercados, segmente, nicha, não tenha medo de nichar, ~~esses produtos que eu crio,~~
+- `  28.22` Esse que eu vou mostrar no exemplo pra vocês é um produto que ele é extremamente nichado.
+- `  36.24` Eu tenho mentorados que vendem apostilas com protocolos para psicopedagogos que cuidam
+- `  43.62` de crianças autistas.
+- `  46.02` Eu tenho mentorados que vendem apostilas para esteticistas que aplicam botox e tem
+- `  50.58` medo de errar.
+- `  51.46` Eu tenho mentorados que aplicam minicursos e apostilas para tecladistas cristãos que
+- `  58.56` têm a dor de não conseguir preencher os louvores na igreja.
+- `  62.04` Esses são os que mais faturam.
+- `  63.68` Quem fica ali patinando é a pessoa que entra na mentoria e simplesmente ela quer
+- `  70.10` vender o Mounjaro natural, só que ela quer num dia para o outro escalar para 100 mil
+- `  78.54` por mês.
+- `  79.04` E pra tu vender ofertas assim tão que escalam tanto, tu precisa ter um certo nível de experiência.
+- `  86.84` Então eu te indico sempre começar mais simples.
+- `  89.84` Lembrando, tu não precisa começar com uma oferta que vende um milhão por mês.
+- `  94.24` Hoje tu tá no zero, começa com uma oferta que vende cem no dia, cem reais no dia.
+- `  99.58` Aí depois cria um plano pra vender duzentos reais por dia, depois quatrocentos reais
+- ` 103.92` por dia, mil reais por dia, e aí tu vai chegar no cem mil.
+- ` 107.56` O problema das pessoas é querer já começar com a oferta maior, com uma oferta que escala.
+- ` 113.04` Começa com uma simples que pague as suas contas de hoje.
+- ` 116.12` Aí com isso tu vai liberar tempo, vai ter experiência para criar ofertas maiores.
+- ` 120.14` Foi assim que eu vendi 100 mil, foi assim que eu vendi 1 milhão, foi assim que eu vendi 5 milhões.
+- ` 124.70` Então, o ponto importante é esse que eu queria alinhar com vocês.
+- ` 129.32` A oferta precisa ser nichada.
+- ` 131.52` O mais sub-nichada possível. Por que ela tem que ser sub-nichada?
+- ` 134.24` Porque ela vai entrar numa fatia de público que é diferente.
+- ` 139.74` Exemplo do emagrecimento.
+- ` 141.44` Eu vendo aqui uma dieta para te emagrecer 8 quilos até o final do mês.
+- ` 145.92` Pô, uma oferta agressiva.
+- ` 148.54` Estamos no dia 19, eu vou perder quase 1 quilo por dia.
+- ` 152.80` Agora, essa oferta é uma oferta que sempre vai ter,
+- ` 157.16` e uma das maiores objeções que tem um low ticket é.
+- ` 159.92` Será que é para mim?
+- ` 161.50` Todo mundo tem essa dúvida.
+- ` 162.80` Agora, se tu faz um low ticket de uma dieta pra emagrecer 8kg até o final do mês pra
+- ` 168.00` pessoas que tomam um Mounjaro, então é uma dieta específica pra quem toma um Mounjaro?
+- ` 172.90` A pessoa que toma um Mounjaro já não vai querer, mas será que é pra mim?
+- ` 176.20` Não.
+- ` 176.68` Com certeza é.
+- ` 177.40` Toma um Mounjaro.
+- ` 178.28` É pra ti.
+- ` 179.18` Podemos ir mais longe.
+- ` 180.78` A gente pode ir pra pessoas que querem emagrecer 8kg até o final do mês tomando
+- ` 185.74` um Mounjaro ~~e que querem, no final, que tomam um Mounjaro, que tomam um Mounjaro~~ e tem mais
+- ` 202.58` de 45 anos, é mais específica, o Brasil é gigante, o mundo é gigante, então tu sempre
+- ` 209.42` vai achar pessoas específicas.
+- ` 210.74` Se a gente achou 15 mil pessoas para comprar em um curso de aplicar, aprender a tocar teclado na igreja
+- ` 221.24` com a dor de preencher os louvores,
+- ` 224.86` tu acha que tu não vai achar 15 mil pessoas que querem emagrecer 8 quilos até o final do mês,
+- ` 230.50` que tomam Mounjaro e que tem mais de 45 anos e que são mulheres, por exemplo?
+- ` 234.40` Tu vai conseguir achar muito mais, então é possível.
+- ` 237.34` Basta tu conseguir segmentar e nichar da forma certa.
+- ` 244.06` Passando da parte aqui da oferta, ela precisa ser algo tangível,
+- ` 248.16` ela precisa ser nichada.
+- ` 250.54` Agora a gente vai entrar um pouco pra parte de página.
+- ` 253.76` Vamos construir a nossa página de vendas.
+- ` 256.42` ~~Na parte de página de vendas...~~
+- ` 298.22` ~~Na parte de páginas de vendas, eu vou mostrar um exemplo da páginas de vendas do meu produto~~
+- ` 303.76` ~~que os caras pegam o ar.~~
+- ` 330.06` ~~Vou deixar gravando ali, tá vai ficar esquisito.~~
+- ` 378.08` ~~Onde eu posso ir?~~
+- ` 384.58` Agora na página de vendas eu vou mostrar pra vocês um exemplo de página que eu tô
+- ` 388.98` utilizando pra esse produto e que tu pode copiar ele exatamente igual pro teu produto,
+- ` 393.46` tá?
+- ` 396.30` Ó, eu separei aqui no on-drive, primeiro vem uma headline principal, nessa headline
+- ` 403.50` Eu costumo usar coisas como...
+- ` 414.64` Descubra como...
+- ` 415.66` Aqui é o gancho, né?
+- ` 419.20` Então a gente precisa testar, por exemplo.
+- ` 420.72` Descubra como é bom.
+- ` 422.84` Copia e cole é muito bom.
+- ` 424.62` A pessoa entende que é tudo pronto ali.
+- ` 427.28` Outra coisa.
+- ` 427.96` você usar o tempo ou o tamanho do teu produto. Por exemplo, 200 protocolos para faturar até
+- ` 440.34` 100 mil nos próximos 30 dias. Isso aqui é algo que você pode usar. É a mesma headline,
+- ` 445.92` só que com um gancho diferente. Então a headline é isso aqui. Descubra como faturar
+- ` 451.64` até 100 mil nos próximos 30 dias, essa que é a promessa. Agora eu levanto os mecanismos
+- ` 459.70` recebendo em real ou dólar, porque o meu público gosta de venda em dólar, com o que?
+- ` 468.72` Com a máquina automática de vendas low ticket, só que no criativo ele já viu
+- ` 474.48` o produto por dentro, ele já viu o checklist que ele recebe lá dentro do produto, entende?
+- ` 481.04` Agora, aqui a gente tem um subtítulo e uma descrição.
+- ` 486.84` O que seria isso?
+- ` 488.02` Seria essa etapa aqui.
+- ` 489.30` Aqui é uma hora de quebrar a objeção.
+- ` 491.76` Aqui é o momento de provar pra ele que se ele tem alguma dúvida.
+- ` 497.48` Por exemplo, lembra que eu falei do será que é pra mim?
+- ` 500.10` Agora que tu pisa em cima disso, entendeu?
+- ` 502.60` Então tu fala como, mesmo começando do absoluto zero,
+- ` 506.42` sem precisar aparecer, e mesmo que tu nunca tenha vendido nada na internet.
+- ` 512.64` Essa primeira etapa é pra provar pra ele que é pra ele.
+- ` 517.96` No caso de um outro produto, por exemplo, num segmento que eu falei ali do Botox,
+- ` 524.08` quem tem medo de aplicar Botox, mesmo começando da absoluto zero,
+- ` 528.72` se é uma profissional iniciante, tendo medo de causar intercorrências
+- ` 535.70` E, mesmo que nunca tenha feito essa aplicação antes.
+- ` 542.74` Tipo, nossa, a pessoa, ela tá começando absoluto zero,
+- ` 545.92` ela tem medo de causar intercorrências e ela, ou ela já fez alguma aplicação,
+- ` 551.94` mas uma aplicação mais simples, nunca fez uma tão avançada.
+- ` 554.44` Putz, esses três coisas aqui pegam o público inteiro.
+- ` 556.86` Pô, isso aqui é pra mim.
+- ` 558.18` E depois a gente complementa com.
+- ` 559.66` É a mesma metodologia validada em, por exemplo, mais de 70 profissionais, ou mais de 500,
+- ` 567.08` mais de mil profissionais da estética, para você aplicar e não ter medo de causar intercorrências
+- ` 574.24` nunca mais.
+- ` 575.48` No meu caso aqui, ficou para esse produto, o método exato validado em mais de 70 países
+- ` 580.98` para tu plugar, ligar os anúncios e ver venda caindo todos os dias para sempre.
+- ` 586.34` Perfeito?
+- ` 587.12` Esse seria a primeira dobra da página.
+- ` 588.84` Depois a gente vem uma dobra, falando, conheça a plataforma por dentro, tá?
+- ` 593.82` No caso aqui eu não estou usando esse botão, não estou usando o botão, mas eu uso a
+- ` 598.64` imagem, a imagem é muito importante, ser uma imagem que o teu público chama a atenção
+- ` 603.08` do público.
+- ` 604.04` Então por exemplo, como meu produto é um mini curso, esse que eu estou dando exemplo
+- ` 607.04` aqui pra vocês, ele é um mini curso, ele é um produto que eu não consigo tangibilizar
+- ` 615.14` ele tão bem na página, mas no criativo eu consigo mostrar a área de membros.
+- ` 621.62` ~~Aí, na página, por exemplo, se tu vende uma apostila, deixa eu ver um exemplo aqui~~
+- ` 628.00` ~~que eu posso mostrar pra vocês, não, na real eu não vou mostrar exemplo nenhum.~~
+- ` 633.92` ~~Se tu quer mostrar uma apostila,~~ se tu vende uma apostila, aqui seria legal tu ter a tua
+- ` 642.00` apostila e os entregáveis da tua apostila que eu tenho aqui mais embaixo, quando a gente
+- ` 647.18` chega lá na hora de comprar ⚠, olha aqui, tem o meu desafio, que é como se fosse a
+- ` 651.14` minha apostila desse produto, tem aqui um outro bônus, tem aqui a área de membros, tem
+- ` 656.38` aqui outro bônus, entende?
+- ` 667.48` ~~Deixa eu ver o que o Gui respondeu lá, o bicho.~~
+- ` 672.34` ~~Não, cabaz Gustavo, cabaz, é que tu trouxe alguns pontos para antes,~~
+- ` 674.38` ~~eu só queria se deixar claro ali pra ti.~~
+- ` 675.76` ~~Mas também se eu fui listo, porque não foi a minha intenção.~~
+- ` 678.72` ~~Sim, com mais ou menos as circunstâncias, né?~~
+- ` 680.54` ~~Acho que seria o ideal mesmo de não passem para trás,~~
+- ` 682.24` ~~botar pra vender a escola que, querendo ou não, é o melhor produto que vocês têm, né?~~
+- ` 685.18` ~~É o que mais vende.~~
+- ` 686.38` ~~E como eu comentei antes, com certeza no tráfego é vender melhor.~~
+- ` 688.50` ~~Então vamos fazer isso, já falzei com as campanhas do manual, vamos, agora eu vou pegar aqui no feriado, sentar com o Guilherme e organizar um plano de ação de o que que precisa pra gente colo...~~
+- ` 698.86` ~~Puta merda! Aí foi falso da perca, tô com uma diarreia...~~
+- ` 702.92` ~~É não, eu imaginei que era uma diarreia, não tinha como não ser aquilo ali...~~
+- ` 706.72` ~~Opa, se não tem a tampa, tu tinha estoporado pra parede, tinha limpo, lavado, tudo de merda.~~
+- ` 712.90` ~~Tudo isso então, foi mal ainda?~~
+- ` 714.36` ~~Caraca, você é gordo aqui.~~
+- ` 716.82` ~~É, não, eu tive que limpar até uma merda só.~~
+- ` 718.80` ~~Tá ligado? Ah, tu tá me devendo algumas já.~~
+- ` 721.14` ~~Uma térmica.~~
+- ` 722.38` ~~Eu vou me cagar toda segunda-feira,~~
+- ` 724.18` ~~quando tu chegar tu vai ter que...~~
+- ` 725.48` ~~vai se foder no banheiro.~~
+- ` 739.42` ~~Bom, voltando aqui.~~
+- ` 743.60` Então, normalmente, eu indico que tem aquela dessas imagens aqui, ó, lá no topo, tá?
+- ` 750.66` Lá aqui na primeira dobra, perfeito?
+- ` 754.66` Logo na sequência, nessa estrutura de página que tá vendendo ali 200 mil por mês, tem
+- ` 761.58` uma prévia em vídeo mostrando a plataforma.
+- ` 764.90` Uma prévia assim quase como uma VSL, só que ao invés de ter toda uma narrativa
+- ` 769.16` de vendas é, cara, é o vídeo e é mostrando assim, ó, aqui tá a área de membros, é
+- ` 773.60` onde tu vai acessar, como tu recebe o produto, aí a pessoa clicando no e-mail, clicando,
+- ` 778.04` fazendo login, ou mostrando a área de membros, a área de membros bonita, ou no caso, mostrando
+- ` 783.34` o produto, se for uma apostila, como que a pessoa vai entrar pra acessar e daí depois
+- ` 788.64` mostra a apostila física, folher todas as páginas da apostila. Isso é algo que
+- ` 793.86` que hoje a gente faz com a Claude. A gente manda pra IA o vídeo mostrando a área de membros,
+- ` 800.06` e a gente manda pra IA o PDF da apostila. E ela mesmo faz pra nós o vídeo e aí depois ela corta
+- ` 808.04` pra uma apresentação, como se fosse a apostila ali, impressa, folhando. Tá? Então isso é algo
+- ` 812.86` que você pode perguntar pra IA, mandar o áudio aí. Claude, eu quero fazer um vídeo de
+- ` 816.56` apresentação do meu produto pra que as pessoas entendam como ele funciona por dentro. Então tá
+- ` 822.08` aqui o produto, eu quero que tu faça um momento ali folhando ele, pras pessoas lerem partes
+- ` 827.80` do produto, óbvio que eu não quero que ela lê todo o produto né, e antes disso também
+- ` 833.00` eu quero mostrar como que funciona após a compra, pra pessoa entender que ela vai
+- ` 836.58` entrar numa plataforma de pagamento, vai ter uma área de membros e tal.
+- ` 841.32` Terceira dobra, pra quem é esse treinamento?
+- ` 844.72` Nessa terceira dobra ela funciona mais ou menos dessa forma aqui tá?
+- ` 850.68` Este guia pra você é pra ti que tá começando do zero, não ter nenhuma ideia, é pra ti
+- ` 856.18` que tem pouco orçamento, tem medo de gastar dinheiro, então a gente vai pegar aqui todo
+- ` 860.24` o público e todo o público tem dores diferentes, então ah, é pro cara que tem medo de intercorrência,
+- ` 866.56` no caso de um botox, ou vou usar um exemplo de emagrecimento, é pra quem já treinou
+- ` 872.36` muito e não conseguiu emagrecer. É pra quem nunca treinou, é pra quem fica horas fazendo
+- ` 881.08` corrida na rua ou cardio e não consegue ter resultado. Então tu vai pontuar todas as
+- ` 886.90` dores do teu público. Tu vai falar, é pra ti que sofre com esse problema, é pra ti
+- ` 890.50` que sofre com esse outro problema, é pra ti que sofre com esse outro problema. Tu
+- ` 894.52` vai colocar aqui. A ideia agora é, dentro do público, a gente encontrar dores diferentes
+- ` 900.02` e fazer com que a pessoa unifique aqui.
+- ` 902.16` Ah, é pra mim então, perfeito.
+- ` 904.68` Agora, o que tu vai dominar,
+- ` 906.54` então aqui é o conteúdo do curso,
+- ` 909.24` o conteúdo do curso
+- ` 910.16` eu entrego nesses módulos aqui,
+- ` 912.58` veja tudo que tu vai receber.
+- ` 914.98` Módulo 1,
+- ` 915.82` módulo 2, módulo 3, módulo 4.
+- ` 918.42` No caso de uma apostila,
+- ` 920.02` eu faço a mesma coisa, só que ao invés de ter
+- ` 922.64` módulos, eu falo ali
+- ` 925.46` pode ser
+- ` 926.34` etapa 1, pode ser
+- ` 930.94` Pode ser no capítulo 1, no capítulo 2, mas tu bota tudo que a pessoa vai aprender com
+- ` 935.60` essa apostila, tudo que ela vai ter de acesso com essa apostila, tá?
+- ` 941.04` Aqui também, ó, aqui tem o que tu vai dominar, que é os entregáveis.
+- ` 944.72` Aqui se tu quiser, ó, essa dobra é uma dobra mais opcional.
+- ` 947.68` A gente já testou com ou sem ela, não fez muita diferença.
+- ` 950.30` Por exemplo, se for uma apostila muito grande ou um outro produto, um curso, um treinamento,
+- ` 954.84` Você vai colocar os módulos e aí o nome deles, para a pessoa entender etapa por etapa, tá?
+- ` 960.66` Cada aula, cada módulo que tu pode colocar, beleza?
+- ` 964.58` Aí depois entram os bônus, os bônus seriam esse módulo aqui, ó, os bônus que tu entrega,
+- ` 971.34` tá?
+- ` 973.04` E aí aqui entra a parte de preço, que é essa parte aqui, ó.
+- ` 979.14` Então, uma foto com todo o produto, a logo do produto, o valor, o botão e aqui a compra
+- ` 990.36` segura, privacidade, satisfação garantida.
+- ` 993.82` É isso aqui que vem, e aqui vem o primeiro botão de vendas.
+- ` 998.10` Esse é o primeiro botão que vai aparecer, e do lado da imagemzinha.
+- `1002.40` Aqui pra cima eu não estou usando nenhum outro botão, esses dois botões eu excluí
+- `1006.76` naquele teste que eu tô fazendo que tá vendendo mais de cem mil por mês.
+- `1010.62` Então, depois disso vem a dobra de garantia.
+- `1015.32` A dobra de garantia eu costumo utilizar nesse formato, ó.
+- `1020.40` Garantia incondicional de sete dias, esse texto é uma dobra bem simples, mas pra pessoa
+- `1024.68` importante saber que ela pode comprar e pedir o reembolso se for necessário.
+- `1029.08` Motivos pra tu se inscrever agora.
+- `1033.28` Nessa página, eu alterei por essa aqui, ó, motivos, tu pode tentar por conta própria,
+- `1039.64` continuar travado, no caso do emagrecimento, pode continuar sem conseguir emagrecer, pode
+- `1043.62` continuar se olhando no espelho e não se sentindo bem, entendeu, se for um negócio
+- `1049.88` mais de educação vendendo para professores, por exemplo, pode continuar tendo que criar
+- `1056.18` atividades do zero, sem saber o que dá certo, o que dá errado, perdendo horas criando atividades
+- `1062.86` enquanto tu pode comprar aqui a minha apostila com 200 atividades, entendeu?
+- `1068.64` Que daí é a opção 2, copiando e colando da apostila validada.
+- `1074.22` ~~Vamo caralho, vim andar, foda-me o oco.~~
+- `1078.70` ~~Quanto?~~
+- `1081.78` ~~Acho que foi o vôo ne...~~
+- `1085.54` ~~Não.~~
+- `1089.20` ~~Feito orgânico também.~~
+- `1098.22` E aqui por último, dúvidas frequentes.
+- `1101.50` Essas dúvidas frequentes eu coloco aqui embaixo.
+- `1104.32` Então eu boto bastante perguntas, tá?
+- `1106.06` E essas perguntas, o que que eu erro que o pessoal faz?
+- `1109.00` Pagamento seguro?
+- `1110.16` Como terei acesso?
+- `1111.32` Quais formas de pagamento?
+- `1112.34` E acabou.
+- `1113.94` Não?
+- `1114.62` Tu tem que colocar aqui, ó, dúvidas específicas.
+- `1117.20` Sabe lá nas dores, aquele, o que é pra...
+- `1119.12` Será que é pra mim?
+- `1119.98` Tem que quebrar aqui, ó.
+- `1121.26` Vou faturar 100 mil por mês, com certeza, entendeu?
+- `1124.30` Essa versão inclui perguntas que ele pode ter na cabeça dele.
+- `1127.90` Não necessariamente é pergunta, tipo...
+- `1130.48` Dá pra parcelar? Entendeu? Tem que ter umas perguntas sobre a entrega do produto, como
+- `1135.44` que funciona o produto, porque as vezes a pessoa tá tendo essa dúvida e ela não tá
+- `1139.36` sabendo falar e tu não tá conseguindo resolver na página, tá? Esse é o processo que eu
+- `1145.80` utilizo pra testar na prática as páginas, é a página que a gente tá utilizando
+- `1151.48` e tá vendendo muito bem, tá? Agora, o próximo nível é o nível de criativos.
+- `1157.44` Na parte de criativos, a gente vai trabalhar sempre com formatos diferentes, e aí a gente
+- `1163.34` vai gravar 5 criativos, eu vou dizer pra vocês também.
+- `1166.02` Normalmente eu faço 3 em vídeo, 2 em imagem.
+- `1169.18` Os em imagem eu normalmente faço pelo stories do Instagram, então eu coloco uma imagem
+- `1173.34` bacana e aí eu escrevo o texto, normalmente o texto eu vou pegar uma referência aqui
+- `1178.58` pra mostrar pra vocês.
+- `1185.76` ~~Opa, aí, outro bagulho.~~
+- `1203.44` ~~Pô, tipo, eu ia falar, eu ia chupar.~~
+- `1210.10` ~~Aí está lá. Depois, pode ser lá no final, Begri faz um...~~
+- `1218.46` ~~Begri, depois eu vou contar um pouco do começo.~~
+- `1224.26` ~~Pegar e falar, e eu gravei um vídeo mostrando pra vocês como que eu crio um produto lá dentro da Claude,~~
+- `1236.60` ~~Eu vou deixar aqui em cima pra vocês clicarem e assistirem depois, mas a hora é depois, primeiro, só pra tipo assim, pra adivinhar um vídeo novo.~~
+- `1246.82` ~~Tu me lembra disso?~~
+- `1249.10` ~~Tu me lembra disso?~~
+- `1249.98` ~~Eu me lembro disso.~~
+- `1255.14` ~~Ó, alguns exemplos de criativos,~~ ó, alguns exemplos de criativos, formatos de criativos que eu utilizo aqui, tá?
+- `1264.88` Primeiro formato, nota do celular.
+- `1269.08` Esse aqui é um formato criativo que a gente já usou e que já vendeu muito.
+- `1273.32` Tem que óbvio, aqui tem que ser um texto que fale sobre o teu produto.
+- `1278.30` Aqui tem que ser coisas do teu método que trazem um diferencial e que falam sobre o
+- `1283.44` benefício do produto.
+- `1285.82` E aqui um convite.
+- `1290.58` O print do WhatsApp também vende muito bem.
+- `1295.36` Caixinha de pergunta é o meu preferido, uma pergunta comum da tua audiência e tu responde
+- `1300.96` com três itens, tipo faça isso, isso e isso, isso aqui eu gosto muito e dá um resultado
+- `1305.96` bem legal.
+- `1307.14` E tu pode colocar imagens no fundo ao invés de ficar dessa forma aqui assim, tu pode
+- `1310.98` colocar imagens.
+- `1314.50` Esse tipo antes e depois aqui também é bem legal, então sempre faça criativo, eu nunca
+- `1320.40` vou fazer, por exemplo, duas caixinhas de pergunta, eu vou fazer uma caixinha de pergunta
+- `1324.18` e eu vou fazer um check list, por exemplo, mas ele precisa ser bem diferente, é importante
+- `1329.34` que seja diferente.
+- `1331.48` E depois, três criativos em vídeo, esses criativos em vídeo, é uma regra ter?
+- `1339.44` Não, você pode fazer o os cinco em imagem, desde que sejam diferentes, mas eu sempre gosto de ter criativos em vídeo rodando juntos.
+- `1346.68` E os em vídeo é bem simples, pode ser desde...
+- `1350.42` Olha que legal essa apostila aqui com 200 protocolos para você emagrecer em 8 dias.
+- `1358.68` Eu também posso fazer eu falando isso aqui e cortando embaixo de mim tem um vídeo de uma pessoa na academia,
+- `1366.56` Se dedicando muito ali, se esforçando muito, e é uma pessoa acima do peso, ou uma pessoa
+- `1372.04` que já tá muito forte, que é o objetivo do meu público chegar naquele peso ali, entendeu?
+- `1376.94` É um formato diferente, no fim eu tô falando a mesma coisa.
+- `1379.32` Só que um eu só tô falando, o outro eu tô falando e tem um vídeo embaixo, já
+- `1382.52` são dois anúncios diferentes.
+- `1386.16` E depois eu posso fazer uma terceira variação, aí pode ser uma variação, por exemplo,
+- `1389.78` que eu tô só narrando e no vídeo tá passando outras coisas, tá?
+- `1395.66` Não tem problema, precisa testar os formatos, mas é muito legal que se não em todos, mas
+- `1401.54` pelo menos em dois a três criativos ali por campanha, você mostre o produto, tá?
+- `1406.92` Ele esteja explicado, ele esteja mostrando ele ali, beleza?
+- `1413.08` ~~Tem esses criativos em mãos, agora a gente vai entrar no tráfego pago, agora a gente~~
+- `1417.00` ~~vai analisar campanhas.~~
+- `1421.16` ~~Pô, isso aqui é um curso, né?~~
+- `1423.98` ~~É...~~
+- `1426.74` ~~É que eu estou explicando bem. Atenta, não está ruim, está bom?~~
+- `1431.10` ~~Eu estou falando que está ruim.~~
+- `1433.32` ~~Você está explicando bem, então a ideia não era ser tão, tão aprofundadamente, entendeu?~~
+- `1444.58` ~~Tá, então de repente eu não vou entrar na parte do tráfego.~~
+- `1448.42` ~~Eu vou só falar por cima, e aí depois eu falo, se você quiser aprender mais, eu tenho~~
+- `1454.00` ~~mais vídeos aqui no canal que explicam essa mesma estrutura de campanha.~~
+- `1460.10` Agora entrando na parte do tráfego pago, a gente utiliza uma estrutura de campanha
+- `1464.98` 1.1.5, uma campanha, um conjunto de anúncios, Advantage+, totalmente aberto, eu não
+- `1471.28` faço nenhuma segmentação, e 5 criativos.
+- `1474.92` Esses 5 criativos que a gente preparou no último, ali quando a gente tava falando de
+- `1480.08` criativos.
+- `1482.30` Se tu quiser entrar mais detalhadamente nessa estratégia de tráfego, o intuito desse vídeo
+- `1487.22` é falar sobre produto, oferta, páginas e criativos, tá?
+- `1490.86` Se tu quiser entender mais sobre a parte de tráfego, mais mão na massa, subir a campanha
+- `1495.74` e a metodologia exata, eu te indico entrar aqui no meu canal, já aproveita pra se
+- `1500.76` escrever e olhar os vídeos que eu posto, que eu posto toda semana vídeos mostrando
+- `1505.90` estratégias de tráfego pago para produtos low ticket.
+- `1508.88` Então como esse vídeo já está um vídeo bem extenso, eu acredito que vai ser melhor
+- `1512.80` para você assistir um outro vídeo falando somente de tráfego.
+- `1517.22` Basicamente o que eu fiz neste projeto, que está faturando mais de 100 mil por mês
+- `1521.12` e o que eu faria se eu estivesse começando do zero seria isso.
+- `1524.76` Resumidamente, uma apostila nichada, segmentada por uma dor muito específica, com variações
+- `1531.18` de criativos, criativos bem diferentes um do outro, mas todos mostrando o produto, e uma
+- `1536.44` página de venda seguindo aquele exato formato que eu mostrei ali.
+- `1541.04` Fazendo isso de uma forma bem feita e aprendendo o tráfego que eu mostro nos
+- `1545.06` outros vídeos aqui no canal, eu tenho certeza que tu vai chegar no 100 mil por mês, mesmo
+- `1549.12` começando do zero.
+- `1551.58` ~~O que eu tinha que falar mais?~~
+- `1563.22` ~~Eu também tenho um outro vídeo aqui no canal que eu ensino~~ a criar um produto do zero utilizando
+- `1579.82` o Claude, tá? Então, eu vou deixar aqui em cima pra vocês poderem acessar esse vídeo
+- `1584.32` também e assistirem. É muito importante que vocês aprendam isso, mas termino de ver
+- `1588.40` esse vídeo aqui primeiro. ~~E agora eu encerro o vídeo? Eu não preciso encerrar porque~~
+- `1595.04` ~~eu tenho... nós vamos gravar o encerramento, né? Então tá.~~

@@ -1,0 +1,41 @@
+{
+ "01": [
+  {
+   "inicio": 0.0,
+   "fim": 53.0,
+   "tipo": "tela"
+  },
+  {
+   "inicio": 53.0,
+   "fim": 179.5,
+   "tipo": "camera"
+  }
+ ],
+ "02": [
+  {
+   "inicio": 0.0,
+   "fim": 394.5,
+   "tipo": "camera"
+  },
+  {
+   "inicio": 394.5,
+   "fim": 1144.5,
+   "tipo": "tela"
+  },
+  {
+   "inicio": 1144.5,
+   "fim": 1231.0,
+   "tipo": "camera"
+  },
+  {
+   "inicio": 1231.0,
+   "fim": 1334.0,
+   "tipo": "tela"
+  },
+  {
+   "inicio": 1334.0,
+   "fim": 1598.0,
+   "tipo": "camera"
+  }
+ ]
+}

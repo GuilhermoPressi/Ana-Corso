@@ -1,0 +1,10 @@
+# brutos e derivados pesados/sensíveis ficam fora do git
+brutos/
+export/
+trabalho/*
+!trabalho/diagnostico.md
+!trabalho/transcricao_revisada.md
+!trabalho/cenas.json
+*.wav
+*.mov
+*.mp4

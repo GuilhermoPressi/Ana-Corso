@@ -1,0 +1,23 @@
+{
+ "_doc": "Trechos MANTIDOS em ordem, tempos em segundos do arquivo-fonte. Tudo fora destes trechos é cortado. 'cobrir' = trocar a imagem de um intervalo por outra fonte mantendo o áudio (J/L-cut). Pausas internas > pausa_max são encurtadas para pausa_alvo no limite de palavra com crossfade de 20ms.",
+ "fontes": {"01": "brutos/01_100KPORMESSEESTIVESSECOMECANDO.mov", "02": "brutos/02_100KPORMESSEESTIVESSECOMECANDO.mov"},
+ "pausa_max": 0.6, "pausa_alvo": 0.35, "crossfade_ms": 20,
+ "manter": [
+  {"id":"K01","fonte":"01","in":23.85,"out":48.85,"nota":"gancho + dashboard"},
+  {"id":"K02","fonte":"01","in":54.55,"out":156.75,"nota":"produto tangível"},
+  {"id":"K03","fonte":"02","in":0.00,"out":26.60,"nota":"oferta / nichar"},
+  {"id":"K04","fonte":"02","in":28.15,"out":187.15},
+  {"id":"K05","fonte":"02","in":201.30,"out":255.45},
+  {"id":"K06","fonte":"02","in":384.50,"out":393.85,"nota":"abre página de vendas"},
+  {"id":"K07","fonte":"02","in":396.20,"out":405.30},
+  {"id":"K08","fonte":"02","in":414.55,"out":621.55},
+  {"id":"K09","fonte":"02","in":637.75,"out":657.90},
+  {"id":"K10","fonte":"02","in":743.50,"out":1071.90},
+  {"id":"K11","fonte":"02","in":1098.10,"out":1142.25},
+  {"id":"K12","fonte":"02","in":1144.45,"out":1179.30},
+  {"id":"K13","fonte":"02","in":1258.80,"out":1332.45,"cobrir":[{"in":1331.40,"out":1332.45,"com_fonte":"02","com_in":1334.00,"motivo":"janela do OBS na troca tela->câmera"}]},
+  {"id":"K14","fonte":"02","in":1335.45,"out":1410.40},
+  {"id":"K15","fonte":"02","in":1460.00,"out":1550.00,"nota":"tráfego + resumo"},
+  {"id":"K16","fonte":"02","in":1575.00,"out":1588.95,"nota":"CTA outro vídeo (tomada final)"}
+ ]
+}
