@@ -1,4 +1,6 @@
-# Etapa 2: Erros de gravação (para aprovar)
+# Etapa 2: Erros de gravação. ✅ APROVADO em 20/11/2026
+
+Decisões: A4 fica "Agora entrando na parte do tráfego pago" · C9: o encerramento será gravado e adicionado depois (fica um espaço depois de 26:28.9) · trecho de 6:54–7:07 mantido.
 
 Tempos no formato **P1/P2 mm:ss.s** do arquivo bruto: P1 = 01_…mov, P2 = 02_…mov.
 A transcrição completa, com o que é cortado riscado, está em `trabalho/transcricao_revisada.md`. Os cortes estão em `config/edl.json`.

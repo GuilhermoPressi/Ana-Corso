@@ -8,3 +8,6 @@ trabalho/*
 *.wav
 *.mov
 *.mp4
+
+# folhas "antes" contêm dados sensíveis originais
+review/borroes/*.png
