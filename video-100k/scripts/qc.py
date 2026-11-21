@@ -59,11 +59,13 @@ while True:
     for k,rx in PAD.items():
         for mm in re.finditer(rx,txt,re.I): rel["ocr"].append({"t":t,"tipo":k,"texto":mm.group(0)})
     t+=1
+json.dump(rel,open(f"{O}/qc_parcial.json","w"),ensure_ascii=False,indent=1)
 # 3) fala
 from faster_whisper import WhisperModel
 wav=f"{M.W}/qc_audio.wav"; subprocess.run(["ffmpeg","-v","error","-y","-i",V,"-ac","1","-ar","16000",wav],check=True)
 mod=WhisperModel("medium",device="cpu",compute_type="int8",cpu_threads=4)
-segs_w,_=mod.transcribe(wav,language="pt",condition_on_previous_text=False)
+aud=np.frombuffer(subprocess.run(["ffmpeg","-v","error","-i",wav,"-f","s16le","-"],capture_output=True).stdout,np.int16).astype(np.float32)/32768
+segs_w,_=mod.transcribe(aud,language="pt",condition_on_previous_text=False)
 BAST=re.compile(r"(corta|de novo|deixa eu refazer|\bpera\b|grava(r|ndo)|encerramento|açaí|esqueci|não pode (aparecer|mostrar)|borra|esconde|n[ãa]o mostra|bagulho|caralho|merda|diarreia|Begri|lembra disso)",re.I)
 for s in segs_w:
     if BAST.search(s.text): rel["fala"].append({"t":round(s.start,1),"texto":s.text.strip()})
