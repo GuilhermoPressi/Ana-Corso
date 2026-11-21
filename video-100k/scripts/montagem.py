@@ -76,8 +76,10 @@ def f2final(segs,f,t):
 def duracao(segs): return (segs[-1]["final_f"]+segs[-1]["out_f"]-segs[-1]["in_f"])/FPS
 
 # ---------- vídeo ----------
+def chave_seg(s):
+    import hashlib; return hashlib.md5(json.dumps([s["fonte"],s["in_f"],s["out_f"],s["zoom"],s["cobrir"],json.load(open(f"{B}/config/blur.json"))["borroes"]],sort_keys=True).encode()).hexdigest()[:12]
 def render_seg(i,s):
-    o=f"{W}/seg/{i:03d}.mp4"
+    o=f"{W}/seg/{chave_seg(s)}.mp4"
     if os.path.exists(o): return o
     os.makedirs(f"{W}/seg",exist_ok=True)
     a=s["in_f"]/FPS; n=s["out_f"]-s["in_f"]; b=a+n/FPS
@@ -103,7 +105,7 @@ def video():
     segs=carregar()
     from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(2) as ex: list(ex.map(lambda p: render_seg(*p), enumerate(segs)))
-    open(f"{W}/lista.txt","w").write("".join(f"file 'seg/{i:03d}.mp4'\n" for i in range(len(segs))))
+    open(f"{W}/lista.txt","w").write("".join(f"file 'seg/{chave_seg(x)}.mp4'\n" for x in segs))
     run(["ffmpeg","-v","error","-y","-f","concat","-safe","0","-i",f"{W}/lista.txt","-c","copy",f"{W}/base.mp4"])
     print("base ok")
 
@@ -132,7 +134,8 @@ SONS={"mapa":lambda p:[("sopro",0.0),("impacto",0.35)],
       "escada":lambda p:[("sopro",0.0)]+[("tick",t) for t in p["tempos"][:-1]]+[("impacto",p["tempos"][-1])],
       "antesdepois":lambda p:[("sopro",0.0),("tick",p["tAntes"]),("impacto",p["tDepois"])],
       "lowerthird":lambda p:[("ponto",0.0)],
-      "final":lambda p:[("sopro",0.0),("resolucao",0.5)]}
+      "final":lambda p:[("sopro",0.0),("resolucao",0.5)],
+      "estrutura":lambda p:[("sopro",0.0),("tick",p["tempos"]["n1"]),("tick",p["tempos"]["n2"])]+[("tick",t) for t in p["tempos"]["tags"]]+[("impacto",p["tempos"]["criativos"])]}
 def plano():
     segs=carregar(); d=json.load(open(f"{B}/config/motion.json"))["insercoes"]; out=[]
     for m in d:
@@ -140,8 +143,9 @@ def plano():
         if m["fonte"] is None: F=duracao(segs)
         else:
             F=f2final(segs,m["fonte"],m["T"]); rm=lambda x: round(f2final(segs,m["fonte"],m["T"]+x)-F,3)
-            for k in ("tempos",):
-                if k in p: p[k]=[rm(x) for x in p[k]]
+            if "tempos" in p:
+                if isinstance(p["tempos"],dict): p["tempos"]={k:([rm(x) for x in v] if isinstance(v,list) else rm(v)) for k,v in p["tempos"].items()}
+                else: p["tempos"]=[rm(x) for x in p["tempos"]]
             for k in ("tAntes","tDepois"):
                 if k in p: p[k]=rm(p[k])
             if "passos" in p and isinstance(p["passos"][0],dict):

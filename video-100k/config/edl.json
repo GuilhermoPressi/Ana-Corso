@@ -16,11 +16,25 @@
    "nota": "gancho + dashboard"
   },
   {
-   "id": "K02",
+   "id": "K02a",
    "fonte": "01",
    "in": 54.55,
-   "out": 156.75,
+   "out": 134.95,
    "nota": "produto tangível"
+  },
+  {
+   "id": "K16",
+   "fonte": "02",
+   "in": 1575.0,
+   "out": 1588.95,
+   "nota": "convite ao vídeo de criar produto com o Claude (movido para depois de produto, pedido do autor)"
+  },
+  {
+   "id": "K02b",
+   "fonte": "01",
+   "in": 135.45,
+   "out": 156.75,
+   "nota": "ponte para a oferta"
   },
   {
    "id": "K03",
@@ -121,18 +135,12 @@
    "in": 1460.0,
    "out": 1550.0,
    "nota": "tráfego + resumo"
-  },
-  {
-   "id": "K16",
-   "fonte": "02",
-   "in": 1575.0,
-   "out": 1588.95,
-   "nota": "CTA outro vídeo (tomada final)"
   }
  ],
  "aprovado_erros": "2026-11-20: A4 = 'Agora entrando na parte do tráfego pago'; encerramento será adicionado depois (slot após K16); 6:54–7:07 mantido",
  "slot_encerramento": {
   "depois_de": "K16",
   "status": "aguardando arquivo do encerramento"
- }
+ },
+ "ajuste_2": "2026-11-21: K16 movido para entre K02a e K02b; vídeo termina em 'mesmo começando do zero' (K15), encerramento será adicionado depois"
 }

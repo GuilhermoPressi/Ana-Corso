@@ -1,4 +1,4 @@
-# Sistema de motion: Grupo GPressi (v2, tema escuro, aguardando aprovação)
+# Sistema de motion: Grupo GPressi (v2, tema escuro, aprovado)
 
 Fonte única de verdade: `motion/kit/kit.html`. Os tokens e curvas abaixo estão no código.
 A v2 segue o seu retorno e o vídeo de referência:
@@ -83,6 +83,7 @@ Na saída, a tela recolhe de volta nele.
 | 5 | `antesdepois` | tela cheia | comparação |
 | 6 | `destaque` | sobre gravação de tela (alfa) | contorno desenhado que desliza entre alvos, com etiqueta e o entorno escurecido 45% |
 | 7 | `lowerthird` | sobre o vídeo (alfa) | nome |
+| 9 | `estrutura` | tela cheia | árvore Campanha → Conjunto (com etiquetas) → N criativos; cada nó entra na palavra |
 | 8 | `final` | tela cheia (≤20s) | tela final com 2 espaços para os elementos do YouTube |
 
 Render: `node motion/render.mjs <comp> '<props>' <pasta>` gera PNG RGBA. A amostra e a montagem usam `motion/amostra.py`, com borrões no ffmpeg (`scripts/ffblur.py`), upscale para 1080p, overlay e sons.

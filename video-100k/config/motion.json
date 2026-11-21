@@ -755,39 +755,97 @@
   {
    "id": "MO29",
    "fonte": "02",
-   "T": 1466.5,
-   "comp": "metrica",
-   "tipo": "sobreposição (alfa) lado esquerdo",
+   "T": 1463.6,
+   "comp": "estrutura",
+   "tipo": "tela cheia (sua voz continua)",
    "grupo": "A",
    "props": {
-    "dur": 8.4,
-    "x": 100,
-    "y": 150,
-    "w": 560,
-    "tamNum": 88,
-    "itens": [
-     {
-      "label": "Campanha",
-      "valor": 1
-     },
-     {
-      "label": "Conjunto · Advantage+",
-      "valor": 1
-     },
-     {
-      "label": "Criativos",
-      "valor": 5
-     }
+    "dur": 13.6,
+    "titulo": "Estrutura 1 · 1 · 5",
+    "nivel1": "Campanha",
+    "nivel2": "Conjunto de anúncios",
+    "tags": [
+     "Advantage+",
+     "Totalmente aberto",
+     "Sem segmentação"
+    ],
+    "criativos": 5,
+    "tempos": {
+     "titulo": 0.25,
+     "n1": 3.16,
+     "n2": 4.34,
+     "tags": [
+      5.54,
+      6.74,
+      8.1
+     ],
+     "criativos": 10.44
+    }
+   },
+   "texto": "“Estrutura 1 · 1 · 5”: Campanha → Conjunto de anúncios (Advantage+, Totalmente aberto, Sem segmentação) → Criativo 1…5, cada nó na palavra",
+   "por": "Mostra visualmente a estrutura de campanha que você descreve (pedido do autor: tráfego mais visual).",
+   "final": 1099.64
+  },
+  {
+   "id": "MO32",
+   "fonte": "02",
+   "T": 1487.5,
+   "comp": "frase",
+   "tipo": "sobreposição (alfa) canto inferior esquerdo",
+   "grupo": "A",
+   "props": {
+    "dur": 3.8,
+    "linhas": [
+     "Produto, oferta,",
+     "páginas e criativos"
     ],
     "tempos": [
-     0.26,
-     1.44,
-     7.54
-    ]
+     0.36,
+     0.8,
+     1.74,
+     1.98,
+     2.16
+    ],
+    "chaveLinha": 1,
+    "x": 90,
+    "y": 740,
+    "w": 480,
+    "tam": 52
    },
-   "texto": "Estrutura “1 · 1 · 5”: “1” Campanha · “1” Conjunto · Advantage+ · “5” Criativos",
-   "por": "Traduz o código “1.1.5” (abstrato) nos três níveis que você explica.",
-   "final": 1099.64
+   "texto": "“Produto, oferta, / páginas e criativos”",
+   "por": "Lembra o foco do vídeo quando você diz o intuito dele."
+  },
+  {
+   "id": "MO33",
+   "fonte": "02",
+   "T": 1504.0,
+   "comp": "frase",
+   "tipo": "sobreposição (alfa) canto inferior esquerdo",
+   "grupo": "A",
+   "props": {
+    "dur": 4.9,
+    "linhas": [
+     "Toda semana:",
+     "tráfego pago",
+     "para low ticket"
+    ],
+    "tempos": [
+     0.24,
+     0.52,
+     2.66,
+     2.96,
+     3.26,
+     3.78,
+     4.02
+    ],
+    "chaveLinha": 1,
+    "x": 90,
+    "y": 680,
+    "w": 480,
+    "tam": 52
+   },
+   "texto": "“Toda semana: / tráfego pago / para low ticket”",
+   "por": "Reforça o convite para os vídeos semanais de tráfego no canal."
   },
   {
    "id": "MO30",

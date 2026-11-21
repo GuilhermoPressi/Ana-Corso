@@ -58,8 +58,8 @@ K.mapa=(p)=>{
   const tit=el("div","t-h2 abs",cam,p.titulo);css(tit,{left:"160px",top:"110px"});
   const X0=300,X1=1620,Y0=880,Y1=480;   // linha ascendente
   const nodes=p.etapas.map((s,i)=>{const x=lerp(X0,X1,i/(n-1)),y=lerp(Y0,Y1,i/(n-1));
-    const c=el("div","abs",cam);const w=(X1-X0)/(n-1)-28;css(c,{left:(x-w/2)+"px",top:(y-150)+"px",width:w+"px",height:"104px"});cartaoEscuro(c,i===at);
-    const lb=el("div","",c,s);css(lb,{position:"absolute",left:"24px",right:"24px",top:"26px",fontWeight:i===at?"800":"600",fontSize:i===at?"38px":"32px",lineHeight:"1.15",color:i===at?COR.off:rgba(COR.cinza,.7)});
+    const c=el("div","abs",cam);const w=(X1-X0)/(n-1)-28;css(c,{left:(x-w/2)+"px",bottom:(1080-(y-40))+"px",width:w+"px",minHeight:"96px",padding:"22px 24px",boxSizing:"border-box"});cartaoEscuro(c,i===at);
+    const lb=el("div","",c,s);css(lb,{position:"relative",fontWeight:i===at?"800":"600",fontSize:i===at?"38px":"32px",lineHeight:"1.15",color:i===at?COR.off:rgba(COR.cinza,.7)});
     const no=el("div","abs",cam);css(no,{borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"800",fontSize:"26px"});
     return {x,y,c,lb,no,w}});
   const svgNS="http://www.w3.org/2000/svg";const svg=document.createElementNS(svgNS,"svg");svg.setAttribute("width",1920);svg.setAttribute("height",1080);css(svg,{position:"absolute",left:0,top:0});cam.insertBefore(svg,cam.firstChild);
@@ -231,6 +231,42 @@ K.final=(p)=>{
     const nasc=mola(t),abre=P(t,.1,D.transforma,E.transforma),vai=P(t,.4,.7,E.transforma);
     revela(bg,960,540,lerp(0,R,abre));ponto(dot,lerp(960,160+w+30,vai),lerp(540,420+80*.78,vai),14,nasc);
     textoIn(tit,t,.45,null);textoIn(sub,t,.6,null);slots.forEach((s,i)=>textoIn(s,t,.7+i*.1,null))}};
+};
+
+
+/* 9) ESTRUTURA de campanha (tela cheia): árvore Campanha -> Conjunto -> N criativos. Cada nó/etiqueta entra na palavra.
+   props: titulo, nivel1, nivel2, tags[], criativos (n), rotCriativos[], tempos:{titulo,n1,n2,tags[],criativos} */
+K.estrutura=(p)=>{
+  const dur=p.dur||12, tp=p.tempos;
+  const bg=el("div","abs");css(bg,{inset:0});fundoEscuro(bg,50,35);
+  const tit=el("div","t-h1 abs",bg,p.titulo);css(tit,{left:"160px",top:"96px"});
+  const ns="http://www.w3.org/2000/svg";const svg=document.createElementNS(ns,"svg");svg.setAttribute("width",1920);svg.setAttribute("height",1080);css(svg,{position:"absolute",left:0,top:0});bg.appendChild(svg);
+  const linha=(x1,y1,x2,y2)=>{const l=document.createElementNS(ns,"path");l.setAttribute("d",`M${x1},${y1} C${x1},${(y1+y2)/2} ${x2},${(y1+y2)/2} ${x2},${y2}`);l.setAttribute("fill","none");l.setAttribute("stroke",rgba(COR.off,.55));l.setAttribute("stroke-width",2.5);svg.appendChild(l);const L=l.getTotalLength();l.setAttribute("stroke-dasharray",L);return {l,L}};
+  const no=(x,y,w,txt,sub)=>{const c=el("div","abs",bg);css(c,{left:(x-w/2)+"px",top:y+"px",width:w+"px",padding:"22px 28px",textAlign:"center"});cartaoEscuro(c,false);
+    const t=el("div","",c,txt);css(t,{fontWeight:"800",fontSize:"40px",lineHeight:"1.1"});
+    if(sub){const s2=el("div","label",c,sub);css(s2,{marginTop:"8px"})} return c};
+  const n1=no(960,210,560,p.nivel1,"1 campanha"), n2=no(960,420,640,p.nivel2,"1 conjunto");
+  const tags=p.tags.map((t,i)=>{const g=el("div","abs",bg,t);css(g,{top:"580px",left:(960+(i-(p.tags.length-1)/2)*380-170)+"px",width:"340px",textAlign:"center",padding:"12px 18px",borderRadius:"999px",fontWeight:"700",fontSize:"26px",background:rgba(COR.prof,.7),border:`1.5px solid ${rgba(COR.off,.3)}`});return g});
+  const N=p.criativos, cw=230, gap=36, x0=960-(N*cw+(N-1)*gap)/2;
+  const cards=[...Array(N)].map((_,i)=>{const x=x0+i*(cw+gap)+cw/2;const c=no(x,820,cw,`Criativo ${i+1}`,p.rotCriativos?p.rotCriativos[i]:"");css(c.firstChild,{fontSize:"30px"});return {c,x}});
+  const l1=linha(960,210+128,960,420), ls=cards.map(o=>linha(960,660,o.x,820));
+  const dot=novoPonto();
+  return {dur,seek(t){
+    const {nasc}=telaCheia(bg,dot,t,dur,960,300,960,300);
+    textoIn(tit,t,tp.titulo,null);
+    textoIn(n1,t,tp.n1,null);
+    l1.l.setAttribute("stroke-dashoffset",(l1.L*(1-P(t,tp.n1+.2,Math.max(.3,tp.n2-tp.n1-.2),E.transforma))).toFixed(1));
+    textoIn(n2,t,tp.n2,null); tags.forEach((g,i)=>textoIn(g,t,tp.tags[i],null,12));
+    ls.forEach((o,i)=>o.l.setAttribute("stroke-dashoffset",(o.L*(1-P(t,tp.criativos+i*.08,.5,E.transforma))).toFixed(1)));
+    cards.forEach((o,i)=>textoIn(o.c,t,tp.criativos+.25+i*.1,null,14));
+    cartaoEscuro(n1,t>=tp.n1&&t<tp.n2); cartaoEscuro(n2,t>=tp.n2&&t<tp.criativos); cards.forEach(o=>cartaoEscuro(o.c,t>=tp.criativos+.6));
+    // o ponto desce a árvore: título -> campanha -> conjunto -> criativos
+    let x=960,y=300;
+    if(t>=tp.n1){y=210+128}
+    const d2=P(t,tp.n2-.3,.4,E.transforma); y=lerp(y,420+128,t>=tp.n2-.3?d2:0);
+    const d3=P(t,tp.criativos,.5,E.transforma); if(t>=tp.criativos) y=lerp(548,800,d3);
+    ponto(dot,x,y,14,nasc*(1-P(t,dur-.1,.1,E.sai)));
+  }};
 };
 
 let atual=null;
