@@ -198,7 +198,7 @@ K.destaque=(p)=>{
     const L=ring.getTotalLength(),draw=P(t,t0,.7,E.transforma),sai=P(t,out,D.sai,E.sai);
     ring.setAttribute("stroke-dasharray",L);ring.setAttribute("stroke-dashoffset",(L*(1-draw)).toFixed(2));ring.setAttribute("opacity",(1-sai).toFixed(3));
     dim.setAttribute("opacity",(.45*P(t,t0,.5)*(1-sai)).toFixed(3));
-    const lado=passos[k].lado||p.lado||"baixo"; const ex=lado==="direita"?x+w+22:x, ey=lado==="direita"?y+h/2-33:y+h+20;
+    const lado=passos[k].lado||p.lado||"baixo"; const ex=lado==="direita"?x+w+22:x, ey=lado==="direita"?y+h/2-33:(lado==="cima"?y-86:y+h+20);
     pills.forEach((pl,i)=>{const on=i===k?P(t,(i===0?t0+.7:passos[i].t+.1),.45):0;const off=i===k?sai:1;
       css(pl,{left:ex+"px",top:ey+"px",opacity:(on*(1-sai)*(i===k?1:0)).toFixed(3),transform:`translateY(${((1-on)*12).toFixed(1)}px)`})});
     const pt=draw<1?ring.getPointAtLength(L*draw):{x:ex+32,y:ey+33};const fim=P(t,t0+.7,.4,E.transforma);

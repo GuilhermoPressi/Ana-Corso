@@ -44,21 +44,41 @@
     "tema": "escuro",
     "passos": [
      {
+      "caixa": [
+       366,
+       594,
+       499,
+       143
+      ],
       "etiqueta": "R$ 259 mil de faturamento",
-      "t": 0.56
+      "t": 0.56,
+      "lado": "baixo"
      },
      {
+      "caixa": [
+       870,
+       594,
+       373,
+       143
+      ],
       "etiqueta": "R$ 107 mil investidos",
-      "t": 2.86
+      "t": 2.86,
+      "lado": "baixo"
      },
      {
+      "caixa": [
+       366,
+       594,
+       877,
+       143
+      ],
       "etiqueta": "R$ 152 mil de lucro",
-      "t": 4.5
+      "t": 4.5,
+      "lado": "baixo"
      }
-    ],
-    "caixas": "definir no quadro exato na montagem"
+    ]
    },
-   "texto": "“R$ 259 mil de faturamento” (42.46) → “R$ 107 mil investidos” (44.76) → “R$ 152 mil de lucro” (46.40)",
+   "texto": "“R$ 259 mil de faturamento” → “R$ 107 mil investidos” → “R$ 152 mil de lucro”",
    "por": "Destaca na tela os números que você fala; o contorno vai de faturamento para gastos e depois abraça os dois no lucro.",
    "grupo": "A",
    "final": 16.77
@@ -73,11 +93,11 @@
    "props": {
     "dur": 4.5,
     "nome": "Guilhermo Pressi",
-    "sub": "Grupo GPressi",
+    "sub": "",
     "x": 100,
     "y": 880
    },
-   "texto": "“Guilhermo Pressi” / “Grupo GPressi” (⚠ confirmar subtítulo)",
+   "texto": "“Guilhermo Pressi”",
    "por": "Primeira vez que você aparece na câmera: apresenta quem fala.",
    "final": 23.78
   },
@@ -313,17 +333,30 @@
     "tema": "escuro",
     "passos": [
      {
+      "caixa": [
+       226,
+       600,
+       690,
+       124
+      ],
       "etiqueta": "1 · A promessa",
-      "t": 0.2
+      "t": 0.2,
+      "lado": "direita"
      },
      {
+      "caixa": [
+       226,
+       722,
+       706,
+       232
+      ],
       "etiqueta": "2 · O mecanismo",
-      "t": 3.9
+      "t": 3.9,
+      "lado": "direita"
      }
-    ],
-    "caixas": "definir no quadro exato na montagem"
+    ]
    },
-   "texto": "“1 · A promessa” (455.10) → “2 · O mecanismo” (458.80)",
+   "texto": "“1 · A promessa” → “2 · O mecanismo”",
    "por": "Separa na própria headline a promessa e o mecanismo, no momento em que você nomeia cada um.",
    "grupo": "B",
    "final": 405.3
@@ -339,13 +372,19 @@
     "tema": "escuro",
     "passos": [
      {
+      "caixa": [
+       232,
+       628,
+       740,
+       200
+      ],
       "etiqueta": "3 · Quebra de objeção",
-      "t": 0.2
+      "t": 0.2,
+      "lado": "baixo"
      }
-    ],
-    "caixas": "definir no quadro exato na montagem"
+    ]
    },
-   "texto": "“3 · Quebra de objeção” (490.10)",
+   "texto": "“3 · Quebra de objeção”",
    "por": "Aponta o parágrafo que quebra a objeção enquanto você explica.",
    "grupo": "B",
    "final": 438.08
@@ -361,13 +400,19 @@
     "tema": "escuro",
     "passos": [
      {
+      "caixa": [
+       544,
+       553,
+       396,
+       425
+      ],
       "etiqueta": "4 · Prévia em vídeo",
-      "t": 0.2
+      "t": 0.2,
+      "lado": "direita"
      }
-    ],
-    "caixas": "definir no quadro exato na montagem"
+    ]
    },
-   "texto": "“4 · Prévia em vídeo” (762.00)",
+   "texto": "“4 · Prévia em vídeo”",
    "por": "Numera a dobra da página que você está mostrando.",
    "grupo": "B",
    "final": 599.4
@@ -379,25 +424,115 @@
    "comp": "destaque",
    "tipo": "sobreposição (alfa) na gravação de tela",
    "props": {
-    "dur": 4.0,
+    "dur": 2.3,
     "tema": "escuro",
     "passos": [
      {
+      "caixa": [
+       196,
+       505,
+       1194,
+       335
+      ],
       "etiqueta": "5 · Pra quem é",
-      "t": 0.3
+      "t": 0.15,
+      "lado": "baixo"
      }
-    ],
-    "caixas": "definir no quadro exato na montagem"
+    ]
    },
-   "texto": "“5 · Pra quem é” (842.30)",
+   "texto": "“5 · Pra quem é”",
    "por": "idem",
    "grupo": "B",
    "final": 677.99
   },
   {
-   "id": "MO16",
+   "id": "MO17",
    "fonte": "02",
-   "T": 905.7,
+   "T": 967.9,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 3.6,
+    "tema": "escuro",
+    "passos": [
+     {
+      "caixa": [
+       234,
+       460,
+       1432,
+       510
+      ],
+      "etiqueta": "6 · Bônus",
+      "t": 0.2,
+      "lado": "cima"
+     }
+    ]
+   },
+   "texto": "“6 · Bônus”",
+   "por": "idem",
+   "grupo": "B",
+   "final": 793.63
+  },
+  {
+   "id": "MO18",
+   "fonte": "02",
+   "T": 980.6,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 3.6,
+    "tema": "escuro",
+    "passos": [
+     {
+      "caixa": [
+       236,
+       308,
+       1428,
+       650
+      ],
+      "etiqueta": "7 · Preço",
+      "t": 0.3,
+      "lado": "cima"
+     }
+    ]
+   },
+   "texto": "“7 · Preço”",
+   "por": "idem (contorno no cartão de preço, que aparece em “uma foto com todo o produto”)",
+   "grupo": "B",
+   "final": 803.12
+  },
+  {
+   "id": "MO19",
+   "fonte": "02",
+   "T": 1016.6,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 3.8,
+    "tema": "escuro",
+    "passos": [
+     {
+      "caixa": [
+       234,
+       520,
+       1432,
+       470
+      ],
+      "etiqueta": "8 · Garantia",
+      "t": 0.2,
+      "lado": "cima"
+     }
+    ]
+   },
+   "texto": "“8 · Garantia”",
+   "por": "idem",
+   "grupo": "B",
+   "final": 834.6
+  },
+  {
+   "id": "MO20",
+   "fonte": "02",
+   "T": 1037.1,
    "comp": "destaque",
    "tipo": "sobreposição (alfa) na gravação de tela",
    "props": {
@@ -405,126 +540,50 @@
     "tema": "escuro",
     "passos": [
      {
-      "etiqueta": "6 · O que vai dominar",
-      "t": 0.3
+      "caixa": [
+       406,
+       442,
+       1088,
+       402
+      ],
+      "etiqueta": "9 · Motivos (2 opções)",
+      "t": 0.2,
+      "lado": "cima"
      }
-    ],
-    "caixas": "definir no quadro exato na montagem"
+    ]
    },
-   "texto": "“6 · O que vai dominar” (906.00)",
+   "texto": "“9 · Motivos (2 opções)”",
    "por": "idem",
    "grupo": "B",
-   "final": 738.21
-  },
-  {
-   "id": "MO17",
-   "fonte": "02",
-   "T": 965.4,
-   "comp": "destaque",
-   "tipo": "sobreposição (alfa) na gravação de tela",
-   "props": {
-    "dur": 3.8,
-    "tema": "escuro",
-    "passos": [
-     {
-      "etiqueta": "7 · Bônus",
-      "t": 0.4
-     }
-    ],
-    "caixas": "definir no quadro exato na montagem"
-   },
-   "texto": "“7 · Bônus” (965.80)",
-   "por": "idem",
-   "grupo": "B",
-   "final": 791.13
-  },
-  {
-   "id": "MO18",
-   "fonte": "02",
-   "T": 979.0,
-   "comp": "destaque",
-   "tipo": "sobreposição (alfa) na gravação de tela",
-   "props": {
-    "dur": 4.2,
-    "tema": "escuro",
-    "passos": [
-     {
-      "etiqueta": "8 · Preço",
-      "t": 0.3
-     }
-    ],
-    "caixas": "definir no quadro exato na montagem"
-   },
-   "texto": "“8 · Preço” (979.30)",
-   "por": "idem (contorno no cartão de preço, que aparece em “uma foto com todo o produto”)",
-   "grupo": "B",
-   "final": 802.01
-  },
-  {
-   "id": "MO19",
-   "fonte": "02",
-   "T": 1014.2,
-   "comp": "destaque",
-   "tipo": "sobreposição (alfa) na gravação de tela",
-   "props": {
-    "dur": 3.8,
-    "tema": "escuro",
-    "passos": [
-     {
-      "etiqueta": "9 · Garantia",
-      "t": 0.3
-     }
-    ],
-    "caixas": "definir no quadro exato na montagem"
-   },
-   "texto": "“9 · Garantia” (1014.50)",
-   "por": "idem",
-   "grupo": "B",
-   "final": 832.2
-  },
-  {
-   "id": "MO20",
-   "fonte": "02",
-   "T": 1028.9,
-   "comp": "destaque",
-   "tipo": "sobreposição (alfa) na gravação de tela",
-   "props": {
-    "dur": 3.8,
-    "tema": "escuro",
-    "passos": [
-     {
-      "etiqueta": "10 · Motivos pra se inscrever",
-      "t": 0.2
-     }
-    ],
-    "caixas": "definir no quadro exato na montagem"
-   },
-   "texto": "“10 · Motivos pra se inscrever” (1029.10)",
-   "por": "idem",
-   "grupo": "B",
-   "final": 845.78
+   "final": 852.07
   },
   {
    "id": "MO21",
    "fonte": "02",
-   "T": 1099.9,
+   "T": 1102.2,
    "comp": "destaque",
    "tipo": "sobreposição (alfa) na gravação de tela",
    "props": {
-    "dur": 3.8,
+    "dur": 3.6,
     "tema": "escuro",
     "passos": [
      {
-      "etiqueta": "11 · Dúvidas frequentes",
-      "t": 0.3
+      "caixa": [
+       406,
+       440,
+       1088,
+       630
+      ],
+      "etiqueta": "10 · Dúvidas frequentes",
+      "t": 0.2,
+      "lado": "cima"
      }
-    ],
-    "caixas": "definir no quadro exato na montagem"
+    ]
    },
-   "texto": "“11 · Dúvidas frequentes” (1100.20)",
+   "texto": "“10 · Dúvidas frequentes”",
    "por": "idem",
    "grupo": "B",
-   "final": 888.08
+   "final": 890.38
   },
   {
    "id": "MO22",
@@ -589,90 +648,86 @@
   {
    "id": "MO24",
    "fonte": "02",
-   "T": 1265.6,
+   "T": 1267.3,
    "comp": "destaque",
    "tipo": "sobreposição (alfa) na gravação de tela",
    "props": {
-    "dur": 4.0,
+    "dur": 3.8,
     "tema": "escuro",
     "passos": [
      {
+      "caixa": [
+       670,
+       360,
+       560,
+       640
+      ],
       "etiqueta": "Nota do celular",
-      "t": 0.3
+      "t": 0.3,
+      "lado": "cima"
      }
-    ],
-    "caixas": "definir no quadro exato na montagem"
+    ]
    },
-   "texto": "“Nota do celular” (1265.90)",
+   "texto": "“Nota do celular”",
    "por": "Nomeia cada formato de criativo no instante em que ele aparece na tela.",
    "grupo": "B",
-   "final": 967.67
+   "final": 969.14
   },
   {
    "id": "MO25",
    "fonte": "02",
-   "T": 1291.4,
+   "T": 1291.5,
    "comp": "destaque",
    "tipo": "sobreposição (alfa) na gravação de tela",
    "props": {
-    "dur": 3.6,
+    "dur": 2.6,
     "tema": "escuro",
     "passos": [
      {
+      "caixa": [
+       670,
+       360,
+       560,
+       660
+      ],
       "etiqueta": "Print do WhatsApp",
-      "t": 0.6
+      "t": 0.4,
+      "lado": "cima"
      }
-    ],
-    "caixas": "definir no quadro exato na montagem"
+    ]
    },
-   "texto": "“Print do WhatsApp” (1292.00)",
+   "texto": "“Print do WhatsApp”",
    "por": "idem (entra quando a imagem termina de carregar)",
    "grupo": "B",
-   "final": 985.54
+   "final": 985.64
   },
   {
    "id": "MO26",
    "fonte": "02",
-   "T": 1295.2,
+   "T": 1296.9,
    "comp": "destaque",
    "tipo": "sobreposição (alfa) na gravação de tela",
    "props": {
-    "dur": 4.6,
+    "dur": 2.4,
     "tema": "escuro",
     "passos": [
      {
+      "caixa": [
+       670,
+       360,
+       560,
+       700
+      ],
       "etiqueta": "Caixinha de perguntas",
-      "t": 0.2
+      "t": 0.2,
+      "lado": "cima"
      }
-    ],
-    "caixas": "definir no quadro exato na montagem"
+    ]
    },
-   "texto": "“Caixinha de perguntas” (1295.40)",
+   "texto": "“Caixinha de perguntas”",
    "por": "idem; o escurecimento ao redor também apaga a caixa de comentário aberta sem querer",
    "grupo": "B",
-   "final": 988.69
-  },
-  {
-   "id": "MO27",
-   "fonte": "02",
-   "T": 1314.8,
-   "comp": "destaque",
-   "tipo": "sobreposição (alfa) na gravação de tela",
-   "props": {
-    "dur": 4.0,
-    "tema": "escuro",
-    "passos": [
-     {
-      "etiqueta": "Antes e depois",
-      "t": 0.3
-     }
-    ],
-    "caixas": "definir no quadro exato na montagem"
-   },
-   "texto": "“Antes e depois” (1315.10)",
-   "por": "idem",
-   "grupo": "B",
-   "final": 1006.14
+   "final": 990.39
   },
   {
    "id": "MO28",
