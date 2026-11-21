@@ -1,0 +1,776 @@
+{
+ "_doc": "Inserções de motion. T = início em tempo-fonte; tempos/t dentro de props são relativos a T (palavras do Whisper). 'final' = minutagem no vídeo editado (calculada pelo EDL atual). Na montagem, cada tempo interno (palavra) é remapeado pelo EDL para o tempo final, então o motion continua sincronizado mesmo com as pausas encurtadas dentro dele.",
+ "insercoes": [
+  {
+   "id": "MO01",
+   "fonte": "01",
+   "T": 24.3,
+   "comp": "frase",
+   "tipo": "sobreposição (alfa) no canto inferior esquerdo do dashboard",
+   "grupo": "A",
+   "props": {
+    "dur": 4.4,
+    "linhas": [
+     "Os primeiros",
+     "R$ 100 mil por mês"
+    ],
+    "tempos": [
+     0.17999999999999972,
+     0.4800000000000004,
+     1.0999999999999979,
+     1.5799999999999983,
+     1.5799999999999983,
+     1.7199999999999989,
+     1.9399999999999977
+    ],
+    "chaveLinha": 1,
+    "x": 110,
+    "y": 760,
+    "w": 620,
+    "tam": 66
+   },
+   "texto": "“Os primeiros / R$ 100 mil por mês” (sublinhado na 2ª linha)",
+   "por": "Reforça o gancho da abertura com a promessa do título, dita por você nesse momento.",
+   "final": 0.45
+  },
+  {
+   "id": "MO02",
+   "fonte": "01",
+   "T": 41.9,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 7.0,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "R$ 259 mil de faturamento",
+      "t": 0.56
+     },
+     {
+      "etiqueta": "R$ 107 mil investidos",
+      "t": 2.86
+     },
+     {
+      "etiqueta": "R$ 152 mil de lucro",
+      "t": 4.5
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“R$ 259 mil de faturamento” (42.46) → “R$ 107 mil investidos” (44.76) → “R$ 152 mil de lucro” (46.40)",
+   "por": "Destaca na tela os números que você fala; o contorno vai de faturamento para gastos e depois abraça os dois no lucro.",
+   "grupo": "A",
+   "final": 16.77
+  },
+  {
+   "id": "MO03",
+   "fonte": "01",
+   "T": 55.0,
+   "comp": "lowerthird",
+   "tipo": "sobreposição (alfa) canto inferior esquerdo",
+   "grupo": "A",
+   "props": {
+    "dur": 4.5,
+    "nome": "Guilhermo Pressi",
+    "sub": "Grupo GPressi",
+    "x": 100,
+    "y": 880
+   },
+   "texto": "“Guilhermo Pressi” / “Grupo GPressi” (⚠ confirmar subtítulo)",
+   "por": "Primeira vez que você aparece na câmera: apresenta quem fala.",
+   "final": 23.78
+  },
+  {
+   "id": "MO04",
+   "fonte": "01",
+   "T": 60.0,
+   "comp": "mapa",
+   "tipo": "tela cheia",
+   "props": {
+    "dur": 3.3,
+    "titulo": "Do zero aos R$ 100 mil por mês",
+    "ativa": 0,
+    "etapas": [
+     "Produto",
+     "Oferta",
+     "Página de vendas",
+     "Criativos",
+     "Tráfego pago"
+    ]
+   },
+   "texto": "Mapa do vídeo, etapa 1 acesa: “Produto” (título: “Do zero aos R$ 100 mil por mês”)",
+   "por": "Marca o capítulo 1 e mostra o caminho inteiro do vídeo logo no começo, em “vou começar lá no conceito de produto”.",
+   "grupo": "A",
+   "final": 28.47
+  },
+  {
+   "id": "MO05",
+   "fonte": "01",
+   "T": 69.8,
+   "comp": "frase",
+   "tipo": "sobreposição (alfa) canto inferior esquerdo",
+   "grupo": "A",
+   "props": {
+    "dur": 3.6,
+    "linhas": [
+     "Algo que a gente",
+     "consiga tocar"
+    ],
+    "tempos": [
+     0.2600000000000051,
+     0.46000000000000796,
+     0.5799999999999983,
+     0.6000000000000085,
+     0.7999999999999972,
+     1.1599999999999966
+    ],
+    "chaveLinha": 1,
+    "x": 110,
+    "y": 740,
+    "w": 540,
+    "tam": 58
+   },
+   "texto": "“Algo que a gente / consiga tocar” (sublinhado em “consiga tocar”)",
+   "por": "Fixa o conceito abstrato de produto tangível com a sua frase exata.",
+   "final": 38.27
+  },
+  {
+   "id": "MO06",
+   "fonte": "01",
+   "T": 140.4,
+   "comp": "mapa",
+   "tipo": "tela cheia",
+   "props": {
+    "dur": 3.3,
+    "titulo": "Do zero aos R$ 100 mil por mês",
+    "ativa": 1,
+    "etapas": [
+     "Produto",
+     "Oferta",
+     "Página de vendas",
+     "Criativos",
+     "Tráfego pago"
+    ]
+   },
+   "texto": "Mapa do vídeo, etapa 2 acesa: “Oferta” (título: “Do zero aos R$ 100 mil por mês”)",
+   "por": "Troca de capítulo para Oferta (“a gente vai pro segundo ponto, que é a oferta”).",
+   "grupo": "A",
+   "final": 106.27
+  },
+  {
+   "id": "MO07",
+   "fonte": "02",
+   "T": 8.3,
+   "comp": "frase",
+   "tipo": "sobreposição (alfa) canto inferior esquerdo",
+   "grupo": "A",
+   "props": {
+    "dur": 4.4,
+    "linhas": [
+     "Não vá pra",
+     "grandes mercados"
+    ],
+    "tempos": [
+     0.3,
+     0.56,
+     0.92,
+     1.18,
+     1.68
+    ],
+    "chaveLinha": 1,
+    "x": 110,
+    "y": 720,
+    "w": 620,
+    "tam": 66
+   },
+   "texto": "“Não vá pra / grandes mercados”",
+   "por": "É a primeira regra da oferta; fica gravada antes dos exemplos.",
+   "final": 130.11
+  },
+  {
+   "id": "MO08",
+   "fonte": "02",
+   "T": 97.5,
+   "comp": "escada",
+   "tipo": "tela cheia (sua voz continua)",
+   "grupo": "A",
+   "props": {
+    "dur": 11.0,
+    "titulo": "Comece simples",
+    "passos": [
+     "R$ 100/dia",
+     "R$ 200/dia",
+     "R$ 400/dia",
+     "R$ 1.000/dia",
+     "R$ 100 mil/mês"
+    ],
+    "alturas": [
+     0.14,
+     0.24,
+     0.38,
+     0.58,
+     1.0
+    ],
+    "tempos": [
+     0.44,
+     4.22,
+     5.76,
+     7.0,
+     9.72
+    ]
+   },
+   "texto": "“Comece simples” + degraus “R$ 100/dia → R$ 200/dia → R$ 400/dia → R$ 1.000/dia → R$ 100 mil/mês”, cada um no valor falado",
+   "por": "Organiza o passo a passo de crescimento que você descreve em sequência.",
+   "final": 214.26
+  },
+  {
+   "id": "MO09",
+   "fonte": "02",
+   "T": 164.6,
+   "comp": "antesdepois",
+   "tipo": "tela cheia (sua voz continua)",
+   "grupo": "A",
+   "props": {
+    "dur": 7.9,
+    "titulo": "Nichar a oferta",
+    "tAntes": 0.36,
+    "tDepois": 3.02,
+    "antes": {
+     "label": "Oferta ampla",
+     "texto": "Dieta para emagrecer 8 kg até o final do mês",
+     "rodape": "“Será que é pra mim?”"
+    },
+    "depois": {
+     "label": "Oferta nichada",
+     "texto": "Dieta para emagrecer 8 kg até o final do mês para quem toma Mounjaro",
+     "rodape": "“É pra mim.”"
+    }
+   },
+   "texto": "“Nichar a oferta” · Oferta ampla: “Dieta para emagrecer 8 kg até o final do mês” / “Será que é pra mim?” → Oferta nichada: “…para quem toma Mounjaro” / “É pra mim.”",
+   "por": "Torna visível o conceito abstrato de nichar, com o seu próprio exemplo.",
+   "final": 275.53
+  },
+  {
+   "id": "MO10",
+   "fonte": "02",
+   "T": 211.9,
+   "comp": "metrica",
+   "tipo": "sobreposição (alfa) lado esquerdo",
+   "grupo": "A",
+   "props": {
+    "dur": 4.6,
+    "x": 100,
+    "y": 300,
+    "w": 560,
+    "tamNum": 88,
+    "itens": [
+     {
+      "label": "Compradores do curso de teclado",
+      "valor": 15,
+      "sufixo": " mil"
+     }
+    ],
+    "tempos": [
+     0.36
+    ]
+   },
+   "texto": "“15 mil” · “Compradores do curso de teclado”",
+   "por": "Destaca o número que prova que o nicho pequeno também tem volume.",
+   "final": 308.39
+  },
+  {
+   "id": "MO11",
+   "fonte": "02",
+   "T": 252.2,
+   "comp": "mapa",
+   "tipo": "tela cheia",
+   "props": {
+    "dur": 3.3,
+    "titulo": "Do zero aos R$ 100 mil por mês",
+    "ativa": 2,
+    "etapas": [
+     "Produto",
+     "Oferta",
+     "Página de vendas",
+     "Criativos",
+     "Tráfego pago"
+    ]
+   },
+   "texto": "Mapa do vídeo, etapa 3 acesa: “Página de vendas” (título: “Do zero aos R$ 100 mil por mês”)",
+   "por": "Troca de capítulo para Página de vendas.",
+   "grupo": "A",
+   "final": 347.07
+  },
+  {
+   "id": "MO12",
+   "fonte": "02",
+   "T": 454.9,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 8.6,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "1 · A promessa",
+      "t": 0.2
+     },
+     {
+      "etiqueta": "2 · O mecanismo",
+      "t": 3.9
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“1 · A promessa” (455.10) → “2 · O mecanismo” (458.80)",
+   "por": "Separa na própria headline a promessa e o mecanismo, no momento em que você nomeia cada um.",
+   "grupo": "B",
+   "final": 405.3
+  },
+  {
+   "id": "MO13",
+   "fonte": "02",
+   "T": 489.9,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 6.0,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "3 · Quebra de objeção",
+      "t": 0.2
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“3 · Quebra de objeção” (490.10)",
+   "por": "Aponta o parágrafo que quebra a objeção enquanto você explica.",
+   "grupo": "B",
+   "final": 438.08
+  },
+  {
+   "id": "MO14",
+   "fonte": "02",
+   "T": 761.8,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 4.0,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "4 · Prévia em vídeo",
+      "t": 0.2
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“4 · Prévia em vídeo” (762.00)",
+   "por": "Numera a dobra da página que você está mostrando.",
+   "grupo": "B",
+   "final": 599.4
+  },
+  {
+   "id": "MO15",
+   "fonte": "02",
+   "T": 842.0,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 4.0,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "5 · Pra quem é",
+      "t": 0.3
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“5 · Pra quem é” (842.30)",
+   "por": "idem",
+   "grupo": "B",
+   "final": 677.99
+  },
+  {
+   "id": "MO16",
+   "fonte": "02",
+   "T": 905.7,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 4.0,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "6 · O que vai dominar",
+      "t": 0.3
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“6 · O que vai dominar” (906.00)",
+   "por": "idem",
+   "grupo": "B",
+   "final": 738.21
+  },
+  {
+   "id": "MO17",
+   "fonte": "02",
+   "T": 965.4,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 3.8,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "7 · Bônus",
+      "t": 0.4
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“7 · Bônus” (965.80)",
+   "por": "idem",
+   "grupo": "B",
+   "final": 791.13
+  },
+  {
+   "id": "MO18",
+   "fonte": "02",
+   "T": 979.0,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 4.2,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "8 · Preço",
+      "t": 0.3
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“8 · Preço” (979.30)",
+   "por": "idem (contorno no cartão de preço, que aparece em “uma foto com todo o produto”)",
+   "grupo": "B",
+   "final": 802.01
+  },
+  {
+   "id": "MO19",
+   "fonte": "02",
+   "T": 1014.2,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 3.8,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "9 · Garantia",
+      "t": 0.3
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“9 · Garantia” (1014.50)",
+   "por": "idem",
+   "grupo": "B",
+   "final": 832.2
+  },
+  {
+   "id": "MO20",
+   "fonte": "02",
+   "T": 1028.9,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 3.8,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "10 · Motivos pra se inscrever",
+      "t": 0.2
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“10 · Motivos pra se inscrever” (1029.10)",
+   "por": "idem",
+   "grupo": "B",
+   "final": 845.78
+  },
+  {
+   "id": "MO21",
+   "fonte": "02",
+   "T": 1099.9,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 3.8,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "11 · Dúvidas frequentes",
+      "t": 0.3
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“11 · Dúvidas frequentes” (1100.20)",
+   "por": "idem",
+   "grupo": "B",
+   "final": 888.08
+  },
+  {
+   "id": "MO22",
+   "fonte": "02",
+   "T": 1155.5,
+   "comp": "mapa",
+   "tipo": "tela cheia",
+   "props": {
+    "dur": 3.3,
+    "titulo": "Do zero aos R$ 100 mil por mês",
+    "ativa": 3,
+    "etapas": [
+     "Produto",
+     "Oferta",
+     "Página de vendas",
+     "Criativos",
+     "Tráfego pago"
+    ]
+   },
+   "texto": "Mapa do vídeo, etapa 4 acesa: “Criativos” (título: “Do zero aos R$ 100 mil por mês”)",
+   "por": "Troca de capítulo para Criativos.",
+   "grupo": "A",
+   "final": 940.4
+  },
+  {
+   "id": "MO23",
+   "fonte": "02",
+   "T": 1163.3,
+   "comp": "metrica",
+   "tipo": "sobreposição (alfa) lado esquerdo",
+   "grupo": "A",
+   "props": {
+    "dur": 6.2,
+    "x": 100,
+    "y": 150,
+    "w": 560,
+    "tamNum": 88,
+    "itens": [
+     {
+      "label": "Criativos por campanha",
+      "valor": 5
+     },
+     {
+      "label": "Em vídeo",
+      "valor": 3
+     },
+     {
+      "label": "Em imagem",
+      "valor": 2
+     }
+    ],
+    "tempos": [
+     0.46,
+     3.42,
+     4.2
+    ]
+   },
+   "texto": "“5” Criativos por campanha · “3” Em vídeo · “2” Em imagem",
+   "por": "Os três números da regra dos criativos, cada um no momento em que você fala.",
+   "final": 947.62
+  },
+  {
+   "id": "MO24",
+   "fonte": "02",
+   "T": 1265.6,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 4.0,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "Nota do celular",
+      "t": 0.3
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“Nota do celular” (1265.90)",
+   "por": "Nomeia cada formato de criativo no instante em que ele aparece na tela.",
+   "grupo": "B",
+   "final": 967.67
+  },
+  {
+   "id": "MO25",
+   "fonte": "02",
+   "T": 1291.4,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 3.6,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "Print do WhatsApp",
+      "t": 0.6
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“Print do WhatsApp” (1292.00)",
+   "por": "idem (entra quando a imagem termina de carregar)",
+   "grupo": "B",
+   "final": 985.54
+  },
+  {
+   "id": "MO26",
+   "fonte": "02",
+   "T": 1295.2,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 4.6,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "Caixinha de perguntas",
+      "t": 0.2
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“Caixinha de perguntas” (1295.40)",
+   "por": "idem; o escurecimento ao redor também apaga a caixa de comentário aberta sem querer",
+   "grupo": "B",
+   "final": 988.69
+  },
+  {
+   "id": "MO27",
+   "fonte": "02",
+   "T": 1314.8,
+   "comp": "destaque",
+   "tipo": "sobreposição (alfa) na gravação de tela",
+   "props": {
+    "dur": 4.0,
+    "tema": "escuro",
+    "passos": [
+     {
+      "etiqueta": "Antes e depois",
+      "t": 0.3
+     }
+    ],
+    "caixas": "definir no quadro exato na montagem"
+   },
+   "texto": "“Antes e depois” (1315.10)",
+   "por": "idem",
+   "grupo": "B",
+   "final": 1006.14
+  },
+  {
+   "id": "MO28",
+   "fonte": "02",
+   "T": 1460.1,
+   "comp": "mapa",
+   "tipo": "tela cheia",
+   "props": {
+    "dur": 3.3,
+    "titulo": "Do zero aos R$ 100 mil por mês",
+    "ativa": 4,
+    "etapas": [
+     "Produto",
+     "Oferta",
+     "Página de vendas",
+     "Criativos",
+     "Tráfego pago"
+    ]
+   },
+   "texto": "Mapa do vídeo, etapa 5 acesa: “Tráfego pago” (título: “Do zero aos R$ 100 mil por mês”)",
+   "por": "Troca de capítulo para Tráfego pago.",
+   "grupo": "A",
+   "final": 1093.24
+  },
+  {
+   "id": "MO29",
+   "fonte": "02",
+   "T": 1466.5,
+   "comp": "metrica",
+   "tipo": "sobreposição (alfa) lado esquerdo",
+   "grupo": "A",
+   "props": {
+    "dur": 8.4,
+    "x": 100,
+    "y": 150,
+    "w": 560,
+    "tamNum": 88,
+    "itens": [
+     {
+      "label": "Campanha",
+      "valor": 1
+     },
+     {
+      "label": "Conjunto · Advantage+",
+      "valor": 1
+     },
+     {
+      "label": "Criativos",
+      "valor": 5
+     }
+    ],
+    "tempos": [
+     0.26,
+     1.44,
+     7.54
+    ]
+   },
+   "texto": "Estrutura “1 · 1 · 5”: “1” Campanha · “1” Conjunto · Advantage+ · “5” Criativos",
+   "por": "Traduz o código “1.1.5” (abstrato) nos três níveis que você explica.",
+   "final": 1099.64
+  },
+  {
+   "id": "MO30",
+   "fonte": "02",
+   "T": 1524.6,
+   "comp": "mapa",
+   "tipo": "tela cheia",
+   "props": {
+    "dur": 3.3,
+    "titulo": "Resumindo",
+    "ativa": 4,
+    "etapas": [
+     "Produto",
+     "Oferta",
+     "Página de vendas",
+     "Criativos",
+     "Tráfego pago"
+    ]
+   },
+   "texto": "Mapa do vídeo, etapa 5 acesa: “Tráfego pago” (título: “Resumindo”)",
+   "por": "Resumo final: o caminho inteiro de novo, com a última etapa acesa, em “Resumidamente”.",
+   "grupo": "A",
+   "final": 1154.79
+  },
+  {
+   "id": "MO31",
+   "fonte": null,
+   "T": null,
+   "comp": "final",
+   "tipo": "tela cheia (≤20s), depois do encerramento",
+   "grupo": "A",
+   "props": {
+    "dur": 15,
+    "titulo": "Assista também",
+    "sub": "Tráfego pago para low ticket, toda semana"
+   },
+   "texto": "“Assista também” / “Tráfego pago para low ticket, toda semana” + 2 espaços para os vídeos do YouTube",
+   "por": "Tela final para os elementos do YouTube; o texto vem da sua fala sobre os vídeos semanais."
+  }
+ ]
+}
