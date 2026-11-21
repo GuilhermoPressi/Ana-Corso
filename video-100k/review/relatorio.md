@@ -2,6 +2,11 @@
 
 Versão de revisão: `export/100k_por_mes_low_ticket_leve.mp4` (1920×1080, 30 fps, 2500k, AAC 192k). **O final em CRF 17 ainda não foi renderizado e aguarda a sua aprovação.**
 
+## Revisão 1 (21/11)
+- Mapa: a caixa cresce com o texto, então nenhuma escrita sai mais da caixa.
+- Tráfego: entrou o componente **estrutura** (árvore Campanha → Conjunto com Advantage+, Totalmente aberto e Sem segmentação → Criativo 1…5, cada nó na palavra), no lugar da métrica 1·1·5, mais duas frases: “Produto, oferta, páginas e criativos” e “Toda semana: tráfego pago para low ticket”.
+- O convite para o vídeo de criar produto com o Claude saiu do fim e entrou logo depois da explicação de produto (1:41–1:55). O vídeo agora termina em “…mesmo começando do zero”, e o encerramento entra depois.
+
 ## Números
 - Bruto: 29:37 (2 partes) → **final 20:23 + 15s de tela final = 20:38**.
 - 16 trechos mantidos (`config/edl.json`) e 88 segmentos depois de enxugar as pausas.
