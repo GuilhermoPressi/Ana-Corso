@@ -2,241 +2,237 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>Kit de motion GPressi</title>
+<title>Kit de motion GPressi v2</title>
 <style>
 @font-face{font-family:"Montserrat";src:url("../../assets/fontes/Montserrat-latin-wght.woff2") format("woff2");font-weight:100 900;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215}
 @font-face{font-family:"Montserrat";src:url("../../assets/fontes/Montserrat-latinext-wght.woff2") format("woff2");font-weight:100 900;unicode-range:U+0100-02AF,U+1E00-1EFF,U+20A0-20AB,U+20AD-20CF,U+2C60-2C7F,U+A720-A7FF}
-:root{--verde:#135613;--prof:#254425;--off:#F4F4F4;--cinza:#D4D4D4;--preto:#161513}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:1920px;height:1080px;overflow:hidden;background:transparent}
-body.fundo{background:#888}
-#stage{position:absolute;inset:0;font-family:"Montserrat",sans-serif;color:var(--preto);font-feature-settings:"tnum" 1,"lnum" 1}
+#stage{position:absolute;inset:0;font-family:"Montserrat",sans-serif;color:#F4F4F4;font-feature-settings:"tnum" 1,"lnum" 1}
 .abs{position:absolute}
-.dot{position:absolute;border-radius:50%;background:var(--verde)}
-.card{position:absolute;background:var(--off);border-radius:24px;box-shadow:0 24px 64px rgba(22,21,19,.28),0 2px 6px rgba(22,21,19,.18)}
-.label{font-weight:700;font-size:26px;letter-spacing:.14em;text-transform:uppercase;color:var(--verde)}
-.t-display{font-weight:800;font-size:132px;line-height:1.0;letter-spacing:-.02em}
-.t-h1{font-weight:800;font-size:72px;line-height:1.05;letter-spacing:-.015em}
-.t-h2{font-weight:700;font-size:56px;line-height:1.15;letter-spacing:-.01em}
-.t-body{font-weight:500;font-size:40px;line-height:1.3}
-.t-num{font-weight:800;font-size:100px;line-height:1;letter-spacing:-.02em}
+.label{font-weight:700;font-size:24px;letter-spacing:.14em;text-transform:uppercase;color:#D4D4D4}
+.t-display{font-weight:800;font-size:120px;line-height:1.0;letter-spacing:-.02em}
+.t-h1{font-weight:800;font-size:80px;line-height:1.05;letter-spacing:-.015em}
+.t-h2{font-weight:700;font-size:52px;line-height:1.15;letter-spacing:-.01em}
+.t-body{font-weight:600;font-size:38px;line-height:1.3}
+.t-num{font-weight:800;font-size:96px;line-height:1;letter-spacing:-.02em}
 </style>
 </head>
 <body>
 <div id="stage"></div>
 <script>
-/* ====== SISTEMA (ver motion/sistema.md) ====== */
+/* ====== SISTEMA v2 (ver motion/sistema.md) — tema ESCURO ====== */
 const COR={verde:"#135613",prof:"#254425",off:"#F4F4F4",cinza:"#D4D4D4",preto:"#161513"};
-function bezier(x1,y1,x2,y2){ // solver de cubic-bezier (CSS), x->y
-  const cx=3*x1,bx=3*(x2-x1)-cx,ax=1-cx-bx,cy=3*y1,by=3*(y2-y1)-cy,ay=1-cy-by;
+const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`};
+function bezier(x1,y1,x2,y2){const cx=3*x1,bx=3*(x2-x1)-cx,ax=1-cx-bx,cy=3*y1,by=3*(y2-y1)-cy,ay=1-cy-by;
   const X=t=>((ax*t+bx)*t+cx)*t,Y=t=>((ay*t+by)*t+cy)*t,dX=t=>(3*ax*t+2*bx)*t+cx;
   return x=>{if(x<=0)return 0;if(x>=1)return 1;let t=x;for(let i=0;i<8;i++){const d=dX(t);if(Math.abs(d)<1e-6)break;t-=(X(t)-x)/d}
-    let a=0,b=1;for(let i=0;i<30&&Math.abs(X(t)-x)>1e-5;i++){X(t)<x?a=t:b=t;t=(a+b)/2}return Y(t)}
-}
-const E={ saida_premium:bezier(.16,1,.3,1), transforma:bezier(.65,0,.35,1), sai:bezier(.7,0,.84,0) };
-// mola em forma fechada (sub-amortecida, zeta 0.8 => overshoot ~1.5%)
-function mola(t,w=16,z=.8){ if(t<=0)return 0; const wd=w*Math.sqrt(1-z*z); return 1-Math.exp(-z*w*t)*(Math.cos(wd*t)+(z*w/wd)*Math.sin(wd*t)); }
-const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-const P=(t,a,d,e=E.saida_premium)=>e(clamp((t-a)/d,0,1));   // progresso 0..1
-const lerp=(a,b,p)=>a+(b-a)*p;
-const D={entra:.6, sai:.35, stagger:.1, transforma:.5};      // durações padrão (s)
-
+    let a=0,b=1;for(let i=0;i<30&&Math.abs(X(t)-x)>1e-5;i++){X(t)<x?a=t:b=t;t=(a+b)/2}return Y(t)}}
+const E={saida_premium:bezier(.16,1,.3,1), transforma:bezier(.65,0,.35,1), sai:bezier(.7,0,.84,0)};
+function mola(t,w=18,z=.8){if(t<=0)return 0;const wd=w*Math.sqrt(1-z*z);return 1-Math.exp(-z*w*t)*(Math.cos(wd*t)+(z*w/wd)*Math.sin(wd*t));}
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)), lerp=(a,b,p)=>a+(b-a)*p;
+const P=(t,a,d,e=E.saida_premium)=>e(clamp((t-a)/d,0,1));
+const D={entra:.6,sai:.35,stagger:.1,transforma:.45};
 const stage=document.getElementById("stage");
 function el(tag,cls,parent=stage,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;parent.appendChild(e);return e}
-function css(e,o){for(const k in o)e.style[k]=o[k];}
-// entrada de texto padrão: sobe 18px + opacidade. Saída: opacidade com curva "sai".
-function textoIn(e,t,a,dur,saiEm){const p=P(t,a,D.entra);const q=saiEm!=null?P(t,saiEm,D.sai,E.sai):0;css(e,{opacity:(p*(1-q)).toFixed(4),transform:`translateY(${((1-p)*18).toFixed(2)}px)`});}
-/* O PONTO: elemento-assinatura. Nasce com mola, vira a máscara que revela a superfície e volta a ser ponto na saída. */
-function ponto(dot,x,y,r,escala){css(dot,{left:(x-r)+"px",top:(y-r)+"px",width:2*r+"px",height:2*r+"px",transform:`scale(${escala.toFixed(4)})`})}
-// revelação circular a partir do ponto (clip-path), raio em px
+function css(e,o){for(const k in o)e.style[k]=o[k]}
+function textoIn(e,t,a,saiEm,dy=18){const p=P(t,a,D.entra);const q=saiEm!=null?P(t,saiEm,D.sai,E.sai):0;css(e,{opacity:(p*(1-q)).toFixed(4),transform:`translateY(${((1-p)*dy).toFixed(2)}px)`})}
+/* superfície escura padrão: quase preto + respiro verde-profundo + grade sutil */
+function fundoEscuro(e,luzX=30,luzY=40){css(e,{background:`linear-gradient(${rgba(COR.cinza,.035)} 1px,transparent 1px) 0 0/80px 80px,linear-gradient(90deg,${rgba(COR.cinza,.035)} 1px,transparent 1px) 0 0/80px 80px,radial-gradient(ellipse 65% 70% at ${luzX}% ${luzY}%,${rgba(COR.prof,.75)},${rgba(COR.preto,0)} 70%),${COR.preto}`})}
+function cartaoEscuro(e,ativo=false){css(e,{background:ativo?rgba(COR.prof,.55):rgba(COR.off,.045),border:`1.5px solid ${ativo?rgba(COR.off,.28):rgba(COR.cinza,.14)}`,borderRadius:"22px"})}
+/* O PONTO: verde com anel claro (legível no escuro). Pode carregar um número. */
+function novoPonto(parent=stage){const d=el("div","abs",parent);css(d,{borderRadius:"50%",background:COR.verde,boxShadow:`0 0 0 3px ${COR.off}`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"800",color:COR.off});return d}
+function ponto(d,x,y,r,esc){css(d,{left:(x-r)+"px",top:(y-r)+"px",width:2*r+"px",height:2*r+"px",fontSize:(r*1.05)+"px",transform:`scale(${Math.max(0,esc).toFixed(4)})`})}
 function revela(e,cx,cy,raio){css(e,{clipPath:`circle(${Math.max(0,raio).toFixed(2)}px at ${cx}px ${cy}px)`})}
+const R=Math.hypot(1920,1080);
+/* tela cheia padrão: ponto nasce em (cx,cy), abre a tela; saída: recolhe para (fx,fy) */
+function telaCheia(bg,dot,t,dur,cx,cy,fx,fy){const out=dur-.45;const nasc=mola(t),abre=P(t,.1,D.transforma,E.transforma),fecha=P(t,out,.4,E.transforma);
+  revela(bg,fecha>0?fx:cx,fecha>0?fy:cy,fecha>0?lerp(R,0,fecha):lerp(0,R,abre));return {nasc,abre,fecha}}
 
-/* ====== COMPONENTES ====== cada um: build(props) -> {dur, seek(t)} */
 const K={};
-
-// 1) CARTÃO DE CAPÍTULO (tela cheia)
-K.capitulo=(p)=>{
-  const dur=p.dur||2.8, out=dur-0.55;
-  const bg=el("div","abs");css(bg,{inset:0,background:COR.off});
-  const lab=el("div","label abs",bg,`Capítulo ${p.num}`);css(lab,{left:"160px",top:"392px"});
-  const tit=el("div","t-display abs",bg,p.titulo);css(tit,{left:"152px",top:"440px",whiteSpace:"nowrap"});
-  const linha=el("div","abs",bg);css(linha,{left:"160px",top:"620px",height:"2px",background:COR.cinza});
-  const sub=p.sub?el("div","t-body abs",bg,p.sub):null; if(sub)css(sub,{left:"160px",top:"650px",color:COR.preto,opacity:0});
-  const dot=el("div","dot");
-  const R=Math.hypot(1920,1080);
+/* 1) MAPA DO VÍDEO = cartão de capítulo. Volta a cada capítulo com a etapa atual acesa. */
+K.mapa=(p)=>{
+  const dur=p.dur||3.2, n=p.etapas.length, at=p.ativa;           // ativa: índice 0..n-1
+  const bg=el("div","abs");css(bg,{inset:0});fundoEscuro(bg,20+at*15,45);
+  const cam=el("div","abs",bg);css(cam,{inset:0,transformOrigin:"0 0"});
+  const tit=el("div","t-h2 abs",cam,p.titulo);css(tit,{left:"160px",top:"110px"});
+  const X0=300,X1=1620,Y0=880,Y1=480;   // linha ascendente
+  const nodes=p.etapas.map((s,i)=>{const x=lerp(X0,X1,i/(n-1)),y=lerp(Y0,Y1,i/(n-1));
+    const c=el("div","abs",cam);const w=(X1-X0)/(n-1)-28;css(c,{left:(x-w/2)+"px",top:(y-150)+"px",width:w+"px",height:"104px"});cartaoEscuro(c,i===at);
+    const lb=el("div","",c,s);css(lb,{position:"absolute",left:"24px",right:"24px",top:"26px",fontWeight:i===at?"800":"600",fontSize:i===at?"38px":"32px",lineHeight:"1.15",color:i===at?COR.off:rgba(COR.cinza,.7)});
+    const no=el("div","abs",cam);css(no,{borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"800",fontSize:"26px"});
+    return {x,y,c,lb,no,w}});
+  const svgNS="http://www.w3.org/2000/svg";const svg=document.createElementNS(svgNS,"svg");svg.setAttribute("width",1920);svg.setAttribute("height",1080);css(svg,{position:"absolute",left:0,top:0});cam.insertBefore(svg,cam.firstChild);
+  const ln=document.createElementNS(svgNS,"line");ln.setAttribute("x1",X0);ln.setAttribute("y1",Y0);ln.setAttribute("x2",X1);ln.setAttribute("y2",Y1);ln.setAttribute("stroke",rgba(COR.cinza,.25));ln.setAttribute("stroke-width",2);svg.appendChild(ln);
+  const lnA=document.createElementNS(svgNS,"line");lnA.setAttribute("x1",X0);lnA.setAttribute("y1",Y0);lnA.setAttribute("stroke",COR.off);lnA.setAttribute("stroke-width",3);svg.appendChild(lnA);
+  const dot=novoPonto();
   return {dur,seek(t){
-    const w=tit.getBoundingClientRect().width;
-    const fx=152+w+30, fy=440+132*0.80;           // posição final: "ponto final" do título
-    const sx=960, sy=540;                          // nasce no centro
-    // ponto nasce (mola) -> abre a tela (revela) -> viaja até o fim do título
-    const nasc=mola(t,18), abre=P(t,.18,D.transforma,E.transforma), vai=P(t,.42,.7,E.transforma);
-    const fecha=P(t,out,.45,E.transforma);           // saída: tela recolhe para o ponto
-    const cx=lerp(sx,fx,vai), cy=lerp(sy,fy,vai);
-    revela(bg, fecha>0?fx:sx, fecha>0?fy:sy, fecha>0? lerp(R,0,fecha) : lerp(0,R,abre));
-    ponto(dot,cx,cy,15, nasc*(1-P(t,dur-.12,.12,E.sai)));
-    textoIn(lab,t,.45,0,null); textoIn(tit,t,.52,0,null); if(sub)textoIn(sub,t,.75,0,null);
-    css(linha,{width:(lerp(0,w,P(t,.6,.8))).toFixed(1)+"px"});
+    const A=nodes[at];
+    const {nasc,fecha}=telaCheia(bg,dot,t,dur,A.x,A.y,A.x,A.y);
+    // câmera: aproxima levemente da etapa ativa (push-in contínuo, sem parar)
+    const z=lerp(1,1.05,P(t,.2,dur-.2,E.transforma));
+    css(cam,{transformOrigin:`${A.x}px ${A.y}px`,transform:`scale(${z.toFixed(4)})`});
+    textoIn(tit,t,.25,null);
+    const prog=P(t,.25,.6,E.transforma); const xe=lerp(X0,A.x,prog), ye=lerp(Y0,A.y,prog);
+    lnA.setAttribute("x2",xe);lnA.setAttribute("y2",ye);
+    nodes.forEach((o,i)=>{textoIn(o.c,t,.15+i*.06,null,12);
+      const feito=i<at, ativo=i===at, r=ativo?0:20;
+      css(o.no,{left:(o.x-20)+"px",top:(o.y-20)+"px",width:"40px",height:"40px",background:feito?COR.verde:COR.preto,border:`2px solid ${feito?COR.off:rgba(COR.cinza,.45)}`,color:feito?COR.off:rgba(COR.cinza,.8),opacity:ativo?0:(P(t,.15+i*.06,.4)).toFixed(3)});
+      o.no.textContent=i+1;});
+    // o ponto: nasce na etapa ativa e carrega o número dela; na saída, a tela recolhe nele
+    const px=A.x, py=A.y;
+    dot.textContent=at+1; ponto(dot,px,py,30,nasc*(1-P(t,dur-.1,.1,E.sai)));
   }};
 };
 
-// 2) DESTAQUE DE MÉTRICA (sobreposição) — itens: [{label, prefixo, valor, sufixo}]
+/* 2) FRASE sobre o vídeo (texto cinético). Palavras entram no tempo da fala (props.tempos), palavra-chave sublinhada. */
+K.frase=(p)=>{
+  const dur=p.dur||3, out=dur-D.sai-.05;
+  const x=p.x??140, y=p.y??700, al=p.alinha||"left";
+  const scrim=el("div","abs");css(scrim,{left:(x-140)+"px",top:(y-120)+"px",width:(p.w??900)+280+"px",height:"420px",background:`radial-gradient(ellipse 50% 50% at ${al==="left"?"40%":"50%"} 50%,${rgba(COR.preto,.55)},${rgba(COR.preto,0)} 72%)`});
+  const box=el("div","abs");css(box,{left:x+"px",top:y+"px",width:(p.w??900)+"px",textAlign:al});
+  const linDivs=[];const linhas=p.linhas.map((ln,li)=>{const d=el("div","",box);linDivs.push(d);css(d,{position:"relative",display:"inline-block",fontWeight:"800",fontSize:(p.tam??76)+"px",lineHeight:"1.08",letterSpacing:"-.015em",textShadow:`0 4px 28px ${rgba(COR.preto,.6)}`,whiteSpace:"nowrap"});
+    const ws=ln.split(" ").map(w=>{const s=el("span","",d,w+" ");css(s,{display:"inline-block",position:"relative",whiteSpace:"pre"});return s});el("br","",box);return ws}).flat();
+  const chave=p.chaveLinha!=null?linDivs[p.chaveLinha]:null;const ultimaDaChave=p.chaveLinha!=null?p.linhas.slice(0,p.chaveLinha+1).join(" ").split(" ").length-1:0; let sub=null;
+  if(chave){sub=el("div","abs",chave);css(sub,{left:"0",bottom:"-6px",height:"10px",borderRadius:"5px",background:COR.verde,boxShadow:`0 0 0 2px ${rgba(COR.off,.9)}`})}
+  const dot=novoPonto();
+  const tempos=p.tempos||linhas.map((_,i)=>.15+i*.12);
+  return {dur,seek(t){
+    css(scrim,{opacity:(P(t,0,.4)*(1-P(t,out,D.sai,E.sai))).toFixed(3)});
+    linhas.forEach((s,i)=>textoIn(s,t,tempos[i],out,22));
+    if(chave){const tc=tempos[ultimaDaChave]+.2;const wC=chave.getBoundingClientRect().width-14;css(sub,{width:(wC*P(t,tc,.5,E.transforma)).toFixed(1)+"px",opacity:(1-P(t,out,D.sai,E.sai)).toFixed(3)});
+      const r=chave.getBoundingClientRect();ponto(dot,r.left+wC*P(t,tc,.5,E.transforma),r.bottom+1,9,mola(t-tc)*(1-P(t,out,D.sai,E.sai)));}
+    else ponto(dot,0,0,0,0);
+  }};
+};
+
+/* 3) MÉTRICA — sobreposição escura, lado livre do quadro. Números contam no tempo da fala (props.tempos). */
 K.metrica=(p)=>{
-  const dur=p.dur||4.0, out=dur-D.sai-.1;
-  const x=p.x??120, y=p.y??160, W=p.w??780, RH=210;
-  const itens=p.itens; const H=72+itens.length*RH;
-  const card=el("div","card");css(card,{left:x+"px",top:y+"px",width:W+"px",height:H+"px"});
-  const rows=itens.map((it,i)=>{
-    const r=el("div","abs",card);css(r,{left:"64px",top:(52+i*RH)+"px"});
-    const lab=el("div","label",r,it.label);css(lab,{color:COR.preto,opacity:.72,paddingLeft:"40px"});
-    const num=el("div","t-num",r);css(num,{marginTop:"14px",whiteSpace:"nowrap"});
-    if(i<itens.length-1){const sep=el("div","abs",card);css(sep,{left:"64px",right:"64px",top:(52+i*RH+186)+"px",height:"2px",background:COR.cinza});}
-    return {r,lab,num,it};
-  });
-  const dot=el("div","dot");
+  const dur=p.dur||4, out=dur-D.sai-.1, x=p.x??120, y=p.y??180, W=p.w??620, RH=190, n=p.itens.length, H=60+n*RH;
+  const card=el("div","abs");css(card,{left:x+"px",top:y+"px",width:W+"px",height:H+"px",background:rgba(COR.preto,.88),border:`1.5px solid ${rgba(COR.cinza,.16)}`,borderRadius:"24px",boxShadow:`0 24px 64px ${rgba(COR.preto,.45)}`});
+  const tempos=p.tempos||p.itens.map((_,i)=>.45+i*.55);
+  const rows=p.itens.map((it,i)=>{const r=el("div","abs",card);css(r,{left:"56px",top:(48+i*RH)+"px"});
+    const lab=el("div","label",r,it.label);css(lab,{paddingLeft:"34px"});
+    const num=el("div","t-num",r);css(num,{fontSize:(p.tamNum??80)+"px",marginTop:"12px",whiteSpace:"nowrap",color:i===n-1&&p.destacaUltimo?COR.off:COR.off});
+    if(i<n-1){const s=el("div","abs",card);css(s,{left:"56px",right:"56px",top:(48+i*RH+170)+"px",height:"1.5px",background:rgba(COR.cinza,.16)})}
+    return {lab,num,it}});
+  const dot=novoPonto();
   return {dur,seek(t){
-    const ox=x+30, oy=y+30;
-    const nasc=mola(t,18), abre=P(t,.15,D.transforma,E.transforma), fecha=P(t,out,.4,E.transforma);
-    revela(card, 30, 30, fecha>0? lerp(Math.hypot(W,H),0,fecha) : lerp(0,Math.hypot(W,H)+40,abre));
-    // ponto marca a métrica ativa (desce de linha em linha)
-    const ativo=Math.min(itens.length-1,Math.floor(clamp((t-.5)/0.55,0,9)));
-    const desl=itens.length>1? P(t,.5+ativo*.55-.25,.3,E.transforma):1;
-    const yA=y+52+ativo*RH+17, yPrev=y+52+Math.max(0,ativo-1)*RH+17;
-    const dy= fecha>0? lerp(yA, oy, fecha) : (ativo>0? lerp(yPrev,yA,desl): lerp(oy,yA,P(t,.35,.4,E.transforma)));
-    const dx= fecha>0? lerp(x+76,ox,fecha): lerp(ox, x+76, P(t,.35,.4,E.transforma));
-    ponto(dot,dx,dy,12,nasc*(1-P(t,dur-.1,.1,E.sai)));
-    rows.forEach((o,i)=>{const a=.45+i*.55;
-      textoIn(o.lab,t,a,0,out-.05); textoIn(o.num,t,a+.05,0,out-.05);
-      const c=E.saida_premium(clamp((t-a)/0.9,0,1)); const v=o.it.valor*c;
-      const txt=o.it.casas? v.toFixed(o.it.casas).replace(".",","): Math.round(v).toLocaleString("pt-BR");
-      o.num.innerHTML=`${o.it.prefixo||""}${txt}${o.it.sufixo||""}`;
-    });
+    const nasc=mola(t),abre=P(t,.1,D.transforma,E.transforma),fecha=P(t,out,.4,E.transforma);
+    revela(card,40,40,fecha>0?lerp(Math.hypot(W,H),0,fecha):lerp(0,Math.hypot(W,H)+40,abre));
+    let ativo=0;tempos.forEach((tt,i)=>{if(t>=tt-.2)ativo=i});
+    const yOf=i=>y+48+i*RH+14, prev=Math.max(0,ativo-1), mv=ativo>0?P(t,tempos[ativo]-.25,.3,E.transforma):P(t,.2,.35,E.transforma);
+    const dy=fecha>0?lerp(yOf(ativo),y+40,fecha):(ativo>0?lerp(yOf(prev),yOf(ativo),mv):lerp(y+40,yOf(0),mv));
+    ponto(dot,x+66,dy,10,nasc*(1-P(t,dur-.1,.1,E.sai)));
+    rows.forEach((o,i)=>{const a=tempos[i];textoIn(o.lab,t,a-.1,out);textoIn(o.num,t,a-.05,out);
+      const c=E.saida_premium(clamp((t-a+.05)/0.8,0,1)),v=o.it.valor*c;
+      o.num.innerHTML=`${o.it.prefixo||""}${o.it.casas?v.toFixed(o.it.casas).replace(".",","):Math.round(v).toLocaleString("pt-BR")}${o.it.sufixo||""}`});
   }};
 };
 
-// 3) LISTA DE PASSOS QUE SE MONTA (painel lateral)
-K.passos=(p)=>{
-  const dur=p.dur||6, out=dur-D.sai-.1, n=p.passos.length, gap=p.gap||1.0;
-  const x=p.x??120, y=p.y??120, W=p.w??760, rowH=104, H=168+n*rowH+44;
-  const card=el("div","card");css(card,{left:x+"px",top:y+"px",width:W+"px",height:H+"px"});
-  const tit=el("div","t-h2 abs",card,p.titulo);css(tit,{left:"56px",top:"52px"});
-  const trilho=el("div","abs",card);css(trilho,{left:"79px",top:(168+rowH/2)+"px",width:"2px",background:COR.cinza});
-  const rows=p.passos.map((s,i)=>{const r=el("div","abs",card);css(r,{left:"64px",top:(168+i*rowH)+"px",height:rowH+"px",display:"flex",alignItems:"center"});
-    const b=el("div","",r);css(b,{width:"32px",height:"32px",borderRadius:"50%",border:`3px solid ${COR.cinza}`,background:COR.off,flex:"none"});
-    const tx=el("div","t-body",r,s);css(tx,{marginLeft:"32px",fontWeight:"600"});return {r,b,tx}});
-  const dot=el("div","dot");
-  const t0=.6;
+/* 4) ESCADA de passos (tela cheia): cada degrau sobe no tempo da fala; o ponto sobe a escada. */
+K.escada=(p)=>{
+  const dur=p.dur||6, n=p.passos.length;
+  const bg=el("div","abs");css(bg,{inset:0});fundoEscuro(bg,25,70);
+  const tit=el("div","t-h1 abs",bg,p.titulo);css(tit,{left:"160px",top:"96px"});
+  const base=990, x0=160, gw=(1920-320)/n, maxH=660;
+  const hs=p.alturas||p.passos.map((_,i)=>(i+1)/n);
+  const bars=p.passos.map((s,i)=>{const b=el("div","abs",bg);const w=gw-28;css(b,{left:(x0+i*gw)+"px",width:w+"px",borderRadius:"20px 20px 6px 6px"});cartaoEscuro(b,i===n-1);
+    const lb=el("div","",bg,s);css(lb,{position:"absolute",left:(x0+i*gw)+"px",width:w+"px",textAlign:"center",fontWeight:"800",fontSize:"46px",whiteSpace:"nowrap"});return {b,lb,w,h:hs[i]*maxH,x:x0+i*gw}});
+  const tempos=p.tempos||p.passos.map((_,i)=>.6+i*.8);
+  const dot=novoPonto();
   return {dur,seek(t){
-    const nasc=mola(t,18),abre=P(t,.15,D.transforma,E.transforma),fecha=P(t,out,.4,E.transforma);
-    const R=Math.hypot(W,H)+40; revela(card,80,72,fecha>0?lerp(R,0,fecha):lerp(0,R,abre));
-    textoIn(tit,t,.35,0,out-.05);
-    const k=clamp((t-t0)/gap,0,n-1); const ki=Math.floor(k); const fr=P(k-ki,0,.45,E.transforma);
-    const yOf=i=>y+168+i*rowH+rowH/2;
-    const vis=clamp((t-t0+.2)/gap+1,1,n); const Hv=168+vis*rowH+44; css(card,{height:Hv.toFixed(1)+"px"});
-    css(trilho,{height:(lerp(0,(n-1)*rowH, P(t,t0,(n-1)*gap,(v)=>v))*(1-fecha)).toFixed(1)+"px"});
-    rows.forEach((o,i)=>{const a=t0+i*gap; textoIn(o.r,t,a-.15,0,out-.05);
-      const feito=t>=a; css(o.b,{borderColor:feito?COR.verde:COR.cinza});
-      const atual=(i===Math.min(n-1,Math.round(k))&&t>=a-.1); css(o.tx,{fontWeight:atual?"700":"500",color:COR.preto,opacity:atual||t<a?1:.62});});
-    const cy= ki<n-1? lerp(yOf(ki),yOf(ki+1),fr): yOf(n-1);
-    const dy= fecha>0? lerp(cy,y+72,fecha): (t<t0? lerp(y+72,yOf(0),P(t,.3,.3,E.transforma)) : cy);
-    ponto(dot,x+80,dy,11,nasc*(1-P(t,dur-.1,.1,E.sai)));
+    const {nasc}=telaCheia(bg,dot,t,dur,bars[0].x+bars[0].w/2,base,bars[n-1].x+bars[n-1].w/2,base-bars[n-1].h);
+    textoIn(tit,t,.2,null);
+    let at=-1;bars.forEach((o,i)=>{const g=P(t,tempos[i],.55,E.saida_premium);if(t>=tempos[i])at=i;
+      css(o.b,{top:(base-o.h*g)+"px",height:(o.h*g)+"px",opacity:g>0?1:0});cartaoEscuro(o.b,i===at);
+      css(o.lb,{top:(base-o.h*g-(i===n-1?96:76))+"px",opacity:P(t,tempos[i]+.15,.4).toFixed(3),color:i===at?COR.off:rgba(COR.cinza,.75)})});
+    const tg=at<0?{x:bars[0].x+bars[0].w/2,y:base}:{x:bars[at].x+bars[at].w/2,y:base-bars[at].h};
+    const fr=at<0?{x:tg.x,y:base}:(at>0?{x:bars[at-1].x+bars[at-1].w/2,y:base-bars[at-1].h}:{x:tg.x,y:base});
+    const mv=at<0?1:P(t,tempos[at],.5,E.transforma);
+    ponto(dot,lerp(fr.x,tg.x,mv),lerp(fr.y,tg.y,mv)-(at>=0?0:0),16,nasc*(1-P(t,dur-.1,.1,E.sai)));
   }};
 };
 
-// 4) COMPARAÇÃO ANTES / DEPOIS (tela cheia)
+/* 5) ANTES / DEPOIS (tela cheia) */
 K.antesdepois=(p)=>{
-  const dur=p.dur||6, out=dur-.55;
-  const bg=el("div","abs");css(bg,{inset:0,background:COR.off});
-  const head=el("div","t-h1 abs",bg,p.titulo);css(head,{left:"160px",top:"136px",fontSize:"88px"});
-  const mk=(lado,xx,escuro)=>{const c=el("div","abs",bg);css(c,{left:xx+"px",top:"300px",width:"720px",height:"640px",borderRadius:"28px",
-      background:escuro?COR.prof:COR.off,border:escuro?"none":`2px solid ${COR.cinza}`});
-    const l=el("div","label abs",c,lado.label);css(l,{left:"56px",top:"52px",color:escuro?COR.cinza:COR.preto,opacity:escuro?1:.7});
-    const tx=el("div","t-h2 abs",c,lado.texto);css(tx,{left:"60px",top:"124px",right:"60px",color:escuro?COR.off:COR.preto,fontWeight:escuro?"700":"600",fontSize:"48px"});
-    const ft=el("div","t-body abs",c,lado.rodape);css(ft,{left:"56px",bottom:"52px",color:escuro?COR.off:COR.preto,fontWeight:"700",opacity:escuro?1:.55});
+  const dur=p.dur||6;
+  const bg=el("div","abs");css(bg,{inset:0});fundoEscuro(bg,70,50);
+  const head=el("div","t-h1 abs",bg,p.titulo);css(head,{left:"160px",top:"120px"});
+  const mk=(lado,xx,ativo)=>{const c=el("div","abs",bg);css(c,{left:xx+"px",top:"290px",width:"720px",height:"640px"});cartaoEscuro(c,ativo);
+    const l=el("div","label abs",c,lado.label);css(l,{left:"56px",top:"52px",color:ativo?COR.off:COR.cinza});
+    const tx=el("div","t-h2 abs",c,lado.texto);css(tx,{left:"56px",top:"118px",right:"56px",fontSize:"46px",color:ativo?COR.off:rgba(COR.cinza,.85),fontWeight:ativo?"700":"600"});
+    const ft=el("div","abs",c,lado.rodape);css(ft,{left:"56px",bottom:"52px",fontSize:"40px",fontWeight:"800",color:ativo?COR.off:rgba(COR.cinza,.6)});
     return {c,l,tx,ft}};
-  const A=mk(p.antes,160,false), B=mk(p.depois,1040,true);
-  const seta=el("div","abs",bg);css(seta,{left:"880px",top:"619px",height:"2px",background:COR.preto,opacity:.35});
-  const dot=el("div","dot");const R=Math.hypot(1920,1080);
+  const A=mk(p.antes,160,false),B=mk(p.depois,1040,true);
+  const seta=el("div","abs",bg);css(seta,{left:"880px",top:"609px",height:"2px",background:rgba(COR.off,.5)});
+  const tB=p.tDepois??2.3, tA=p.tAntes??.55;
+  const dot=novoPonto();
   return {dur,seek(t){
-    const nasc=mola(t,18),abre=P(t,.15,D.transforma,E.transforma),fecha=P(t,out,.45,E.transforma);
-    const tA=1.6, tB=2.3;   // momento em que o ponto atravessa
-    const viag=P(t,tA,.7,E.transforma);
-    const px=t<.5?880:lerp(880,1040,viag), py=t<.5?620:lerp(620, 620, 1);
-    const fx=fecha>0?1040:px, fy=fecha>0?620:py;
-    revela(bg, fecha>0?fx:960, fecha>0?fy:540, fecha>0?lerp(R,0,fecha):lerp(0,R,abre));
-    ponto(dot, fecha>0?fx:px, fecha>0?fy:py, 14, nasc*(1-P(t,dur-.1,.1,E.sai)));
-    textoIn(head,t,.4,0,null);
-    [A.c].forEach(c=>textoIn(c,t,.55,0,null)); textoIn(A.l,t,.6,0,null); textoIn(A.tx,t,.7,0,null); textoIn(A.ft,t,1.1,0,null);
-    css(seta,{width:lerp(0,160,P(t,tA,.7,E.transforma))+"px"});
-    textoIn(B.c,t,tB,0,null); textoIn(B.l,t,tB+.08,0,null); textoIn(B.tx,t,tB+.16,0,null); textoIn(B.ft,t,tB+.6,0,null);
-    css(A.c,{filter:`saturate(${1-P(t,tB,.5)})`}); A.c.style.opacity=(parseFloat(A.c.style.opacity)*(1-.35*P(t,tB,.5))).toFixed(3);
+    const {nasc,fecha}=telaCheia(bg,dot,t,dur,960,610,1040,610);
+    textoIn(head,t,.25,null);textoIn(A.c,t,tA,null);textoIn(A.l,t,tA+.05,null);textoIn(A.tx,t,tA+.12,null);textoIn(A.ft,t,tA+.5,null);
+    const viag=P(t,tB-.6,.6,E.transforma); css(seta,{width:lerp(0,160,viag)+"px"});
+    textoIn(B.c,t,tB,null);textoIn(B.l,t,tB+.06,null);textoIn(B.tx,t,tB+.12,null);textoIn(B.ft,t,tB+.5,null);
+    A.c.style.opacity=(parseFloat(A.c.style.opacity)*(1-.4*P(t,tB,.5))).toFixed(3);
+    ponto(dot,t<tB-.6?880:lerp(880,1040,viag),610,14,nasc*(1-P(t,dur-.1,.1,E.sai)));
   }};
 };
 
-// 5) DESTAQUE NA TELA: retângulo arredondado desenhado a partir do ponto + escurecimento ao redor + etiqueta
+/* 6) DESTAQUE NA TELA (sobre gravação de tela). passos:[{caixa:[x,y,w,h], etiqueta, t}] — o contorno nasce desenhado
+   a partir do ponto e DESLIZA de um alvo para o próximo no tempo da fala; a etiqueta troca junto. */
 K.destaque=(p)=>{
-  const dur=p.dur||3.5, out=dur-D.sai-.1;
-  const [x,y,w,h]=p.caixa, r=p.raio??20, cor=p.tema==="claro"?COR.preto:COR.off;
-  const ns="http://www.w3.org/2000/svg";
-  const svg=document.createElementNS(ns,"svg");svg.setAttribute("width",1920);svg.setAttribute("height",1080);css(svg,{position:"absolute",left:0,top:0});stage.appendChild(svg);
+  const dur=p.dur||3.5,out=dur-D.sai-.1,cor=p.tema==="claro"?COR.preto:COR.off,r=p.raio??18;
+  const passos=p.passos||[{caixa:p.caixa,etiqueta:p.etiqueta,t:p.t0??.2}];
+  const ns="http://www.w3.org/2000/svg";const svg=document.createElementNS(ns,"svg");svg.setAttribute("width",1920);svg.setAttribute("height",1080);css(svg,{position:"absolute",left:0,top:0});stage.appendChild(svg);
   const dim=document.createElementNS(ns,"path");dim.setAttribute("fill-rule","evenodd");dim.setAttribute("fill",COR.preto);svg.appendChild(dim);
-  const rr=`M${x+r},${y} H${x+w-r} A${r},${r} 0 0 1 ${x+w},${y+r} V${y+h-r} A${r},${r} 0 0 1 ${x+w-r},${y+h} H${x+r} A${r},${r} 0 0 1 ${x},${y+h-r} V${y+r} A${r},${r} 0 0 1 ${x+r},${y} Z`;
-  dim.setAttribute("d",`M0,0 H1920 V1080 H0 Z ${rr}`);
-  const ring=document.createElementNS(ns,"path");ring.setAttribute("d",rr);ring.setAttribute("fill","none");ring.setAttribute("stroke",cor);ring.setAttribute("stroke-width",5);ring.setAttribute("stroke-linecap","round");svg.appendChild(ring);
-  const L=ring.getTotalLength();ring.setAttribute("stroke-dasharray",L);
-  const pill=el("div","abs");css(pill,{left:(p.etiquetaX??x)+"px",top:(p.etiquetaY??(y+h+22))+"px",background:COR.off,borderRadius:"999px",padding:"14px 30px 14px 58px",boxShadow:"0 12px 32px rgba(22,21,19,.3)"});
-  const tx=el("div","",pill,p.etiqueta);css(tx,{fontWeight:"700",fontSize:"30px",color:COR.preto,whiteSpace:"nowrap"});
-  const dot=el("div","dot");css(dot,{boxShadow:`0 0 0 4px ${COR.off}`});
+  const ring=document.createElementNS(ns,"path");ring.setAttribute("fill","none");ring.setAttribute("stroke",cor);ring.setAttribute("stroke-width",5);ring.setAttribute("stroke-linecap","round");svg.appendChild(ring);
+  const rr=(x,y,w,h)=>`M${x+r},${y} H${x+w-r} A${r},${r} 0 0 1 ${x+w},${y+r} V${y+h-r} A${r},${r} 0 0 1 ${x+w-r},${y+h} H${x+r} A${r},${r} 0 0 1 ${x},${y+h-r} V${y+r} A${r},${r} 0 0 1 ${x+r},${y} Z`;
+  const pills=passos.map(ps=>{const pl=el("div","abs");css(pl,{background:rgba(COR.preto,.92),border:`1.5px solid ${rgba(COR.cinza,.2)}`,borderRadius:"999px",padding:"14px 30px 14px 60px"});
+    const tx=el("div","",pl,ps.etiqueta);css(tx,{fontWeight:"700",fontSize:"32px",whiteSpace:"nowrap"});return pl});
+  const dot=novoPonto();const t0=passos[0].t;
   return {dur,seek(t){
-    const nasc=mola(t,18), draw=P(t,.2,.8,E.transforma), sai=P(t,out,D.sai,E.sai);
-    ring.setAttribute("stroke-dashoffset",(L*(1-draw)).toFixed(2)); ring.setAttribute("opacity",(1-sai).toFixed(3));
-    dim.setAttribute("opacity",(0.42*P(t,.2,.6)*(1-sai)).toFixed(3));
-    const pt=ring.getPointAtLength(L*draw); // o ponto puxa o traço
-    const fim=P(t,1.0,.45,E.transforma);    // depois desce para dentro da etiqueta
-    const ex=(p.etiquetaX??x)+32, ey=(p.etiquetaY??(y+h+22))+31;
-    const dx=lerp(pt.x,ex,fim), dy=lerp(pt.y,ey,fim);
-    ponto(dot,dx,dy,11,nasc*(1-sai));
-    const pin=P(t,1.15,D.entra); css(pill,{opacity:(pin*(1-sai)).toFixed(3),transform:`translateY(${((1-pin)*14).toFixed(1)}px)`});
+    let k=0;passos.forEach((ps,i)=>{if(t>=ps.t-.1)k=i});
+    const A=passos[Math.max(0,k-1)].caixa,B=passos[k].caixa,m=k>0?P(t,passos[k].t-.1,.45,E.transforma):1;
+    const [x,y,w,h]=[0,1,2,3].map(i=>lerp(A[i],B[i],m));
+    const d=rr(x,y,w,h);ring.setAttribute("d",d);dim.setAttribute("d",`M0,0 H1920 V1080 H0 Z ${d}`);
+    const L=ring.getTotalLength(),draw=P(t,t0,.7,E.transforma),sai=P(t,out,D.sai,E.sai);
+    ring.setAttribute("stroke-dasharray",L);ring.setAttribute("stroke-dashoffset",(L*(1-draw)).toFixed(2));ring.setAttribute("opacity",(1-sai).toFixed(3));
+    dim.setAttribute("opacity",(.45*P(t,t0,.5)*(1-sai)).toFixed(3));
+    const lado=passos[k].lado||p.lado||"baixo"; const ex=lado==="direita"?x+w+22:x, ey=lado==="direita"?y+h/2-33:y+h+20;
+    pills.forEach((pl,i)=>{const on=i===k?P(t,(i===0?t0+.7:passos[i].t+.1),.45):0;const off=i===k?sai:1;
+      css(pl,{left:ex+"px",top:ey+"px",opacity:(on*(1-sai)*(i===k?1:0)).toFixed(3),transform:`translateY(${((1-on)*12).toFixed(1)}px)`})});
+    const pt=draw<1?ring.getPointAtLength(L*draw):{x:ex+32,y:ey+33};const fim=P(t,t0+.7,.4,E.transforma);
+    ponto(dot,lerp(pt.x,ex+32,fim),lerp(pt.y,ey+33,fim),11,mola(t-t0+.15)*(1-sai));
   }};
 };
 
-// 6) LOWER THIRD com o nome
+/* 7) LOWER THIRD (escuro) */
 K.lowerthird=(p)=>{
-  const dur=p.dur||4.5, out=dur-D.sai-.1;
-  const x=p.x??120, y=p.y??840;
-  const card=el("div","card");css(card,{left:x+"px",top:y+"px",height:"128px",borderRadius:"20px",padding:"0 48px 0 80px",display:"flex",flexDirection:"column",justifyContent:"center"});
-  const nome=el("div","",card,p.nome);css(nome,{fontWeight:"800",fontSize:"44px",letterSpacing:"-.01em",whiteSpace:"nowrap"});
-  const sub=el("div","",card,p.sub);css(sub,{fontWeight:"600",fontSize:"26px",color:COR.verde,marginTop:"4px",whiteSpace:"nowrap"});
-  const dot=el("div","dot");
-  return {dur,seek(t){
-    const w=card.getBoundingClientRect().width||600;
-    const nasc=mola(t,18), abre=P(t,.12,D.transforma,E.transforma), fecha=P(t,out,.4,E.transforma);
-    revela(card,40,64,fecha>0?lerp(w+40,0,fecha):lerp(0,w+40,abre));
-    ponto(dot,x+40,y+64,12,nasc*(1-P(t,dur-.1,.1,E.sai)));
-    textoIn(nome,t,.32,0,out-.05); textoIn(sub,t,.42,0,out-.05);
-  }};
+  const dur=p.dur||4.5,out=dur-D.sai-.1,x=p.x??120,y=p.y??860;
+  const card=el("div","abs");css(card,{left:x+"px",top:y+"px",height:"120px",borderRadius:"20px",padding:"0 48px 0 84px",display:"flex",flexDirection:"column",justifyContent:"center",background:rgba(COR.preto,.9),border:`1.5px solid ${rgba(COR.cinza,.16)}`});
+  const nome=el("div","",card,p.nome);css(nome,{fontWeight:"800",fontSize:"42px",whiteSpace:"nowrap"});
+  const sub=el("div","",card,p.sub);css(sub,{fontWeight:"600",fontSize:"24px",color:COR.cinza,marginTop:"2px",whiteSpace:"nowrap"});
+  const dot=novoPonto();
+  return {dur,seek(t){const w=card.getBoundingClientRect().width||600;
+    const nasc=mola(t),abre=P(t,.12,D.transforma,E.transforma),fecha=P(t,out,.4,E.transforma);
+    revela(card,44,60,fecha>0?lerp(w+40,0,fecha):lerp(0,w+40,abre));
+    ponto(dot,x+44,y+60,12,nasc*(1-P(t,dur-.1,.1,E.sai)));textoIn(nome,t,.3,out);textoIn(sub,t,.4,out)}};
 };
 
-// 7) TELA FINAL (até 20s; espaços para os elementos de tela final do YouTube)
+/* 8) TELA FINAL (escura) */
 K.final=(p)=>{
-  const dur=p.dur||8, R=Math.hypot(1920,1080);
-  const bg=el("div","abs");css(bg,{inset:0,background:COR.off});
+  const dur=p.dur||8;
+  const bg=el("div","abs");css(bg,{inset:0});fundoEscuro(bg,25,50);
   const tit=el("div","t-h1 abs",bg,p.titulo);css(tit,{left:"160px",top:"420px",whiteSpace:"nowrap"});
-  const sub=el("div","t-body abs",bg,p.sub);css(sub,{left:"160px",top:"512px",fontWeight:"600",opacity:.7,fontSize:"32px",maxWidth:"760px"});
-  const slots=[0,1].map(i=>{const s=el("div","abs",bg);css(s,{left:"1040px",top:(186+i*368)+"px",width:"640px",height:"340px",borderRadius:"20px",background:COR.preto});return s});
-  const linha=el("div","abs",bg);css(linha,{left:"160px",top:"580px",height:"2px",background:COR.cinza});
-  const dot=el("div","dot");
-  return {dur,seek(t){
-    const w=tit.getBoundingClientRect().width;
-    const nasc=mola(t,18),abre=P(t,.18,D.transforma,E.transforma),vai=P(t,.42,.7,E.transforma);
-    revela(bg,960,540,lerp(0,R,abre));
-    ponto(dot,lerp(960,160+w+28,vai),lerp(540,420+72*.82,vai),13,nasc);
-    textoIn(tit,t,.5,0,null);textoIn(sub,t,.62,0,null);
-    css(linha,{width:lerp(0,w,P(t,.7,.8))+"px"});
-    slots.forEach((s,i)=>textoIn(s,t,.75+i*D.stagger,0,null));
-  }};
+  const sub=el("div","t-body abs",bg,p.sub);css(sub,{left:"160px",top:"520px",color:COR.cinza,fontSize:"32px",maxWidth:"760px"});
+  const slots=[0,1].map(i=>{const s=el("div","abs",bg);css(s,{left:"1040px",top:(186+i*368)+"px",width:"640px",height:"340px"});cartaoEscuro(s,false);return s});
+  const dot=novoPonto();
+  return {dur,seek(t){const w=tit.getBoundingClientRect().width;
+    const nasc=mola(t),abre=P(t,.1,D.transforma,E.transforma),vai=P(t,.4,.7,E.transforma);
+    revela(bg,960,540,lerp(0,R,abre));ponto(dot,lerp(960,160+w+30,vai),lerp(540,420+80*.78,vai),14,nasc);
+    textoIn(tit,t,.45,null);textoIn(sub,t,.6,null);slots.forEach((s,i)=>textoIn(s,t,.7+i*.1,null))}};
 };
 
-/* ====== API seek(t) ====== */
 let atual=null;
 window.monta=(nome,props)=>{stage.innerHTML="";atual=K[nome](props);return atual.dur};
 window.seek=(t)=>{atual.seek(t)};

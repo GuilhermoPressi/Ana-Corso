@@ -1,0 +1,234 @@
+[
+ {
+  "id": "M1_dashboard",
+  "fonte": "01",
+  "clip": [
+   38.6,
+   49.0
+  ],
+  "T": 41.9,
+  "comp": "destaque",
+  "sons": [
+   [
+    "traco",
+    0.56
+   ],
+   [
+    "tick",
+    2.86
+   ],
+   [
+    "tick",
+    4.5
+   ]
+  ],
+  "props": {
+   "dur": 7.0,
+   "tema": "escuro",
+   "passos": [
+    {
+     "caixa": [
+      366,
+      594,
+      499,
+      143
+     ],
+     "etiqueta": "R$ 259 mil de faturamento",
+     "t": 0.56
+    },
+    {
+     "caixa": [
+      870,
+      594,
+      373,
+      143
+     ],
+     "etiqueta": "R$ 107 mil investidos",
+     "t": 2.86
+    },
+    {
+     "caixa": [
+      366,
+      594,
+      877,
+      143
+     ],
+     "etiqueta": "R$ 152 mil de lucro",
+     "t": 4.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "M2_mapa",
+  "fonte": "01",
+  "clip": [
+   58.5,
+   65.3
+  ],
+  "T": 60.0,
+  "comp": "mapa",
+  "sons": [
+   [
+    "sopro",
+    0.0
+   ],
+   [
+    "impacto",
+    0.35
+   ]
+  ],
+  "props": {
+   "dur": 3.4,
+   "titulo": "Do zero aos R$ 100 mil por mês",
+   "ativa": 0,
+   "etapas": [
+    "Produto",
+    "Oferta",
+    "Página de vendas",
+    "Criativos",
+    "Tráfego pago"
+   ]
+  }
+ },
+ {
+  "id": "M3_frase",
+  "fonte": "02",
+  "clip": [
+   5.5,
+   14.0
+  ],
+  "T": 8.3,
+  "comp": "frase",
+  "sons": [
+   [
+    "ponto",
+    0.3
+   ],
+   [
+    "tick",
+    1.9
+   ]
+  ],
+  "props": {
+   "dur": 4.4,
+   "linhas": [
+    "Não vá pra",
+    "grandes mercados"
+   ],
+   "tempos": [
+    0.3,
+    0.56,
+    0.92,
+    1.18,
+    1.68
+   ],
+   "chaveLinha": 1,
+   "x": 110,
+   "y": 720,
+   "w": 620,
+   "tam": 66
+  }
+ },
+ {
+  "id": "M4_escada",
+  "fonte": "02",
+  "clip": [
+   93.0,
+   109.2
+  ],
+  "T": 97.5,
+  "comp": "escada",
+  "sons": [
+   [
+    "sopro",
+    0.0
+   ],
+   [
+    "tick",
+    0.44
+   ],
+   [
+    "tick",
+    4.22
+   ],
+   [
+    "tick",
+    5.76
+   ],
+   [
+    "tick",
+    7.0
+   ],
+   [
+    "impacto",
+    9.72
+   ]
+  ],
+  "props": {
+   "dur": 11.0,
+   "titulo": "Comece simples",
+   "passos": [
+    "R$ 100/dia",
+    "R$ 200/dia",
+    "R$ 400/dia",
+    "R$ 1.000/dia",
+    "R$ 100 mil/mês"
+   ],
+   "alturas": [
+    0.14,
+    0.24,
+    0.38,
+    0.58,
+    1.0
+   ],
+   "tempos": [
+    0.44,
+    4.22,
+    5.76,
+    7.0,
+    9.72
+   ]
+  }
+ },
+ {
+  "id": "M5_antesdepois",
+  "fonte": "02",
+  "clip": [
+   162.5,
+   174.5
+  ],
+  "T": 164.6,
+  "comp": "antesdepois",
+  "sons": [
+   [
+    "sopro",
+    0.0
+   ],
+   [
+    "tick",
+    0.36
+   ],
+   [
+    "impacto",
+    3.02
+   ]
+  ],
+  "props": {
+   "dur": 7.9,
+   "titulo": "Nichar a oferta",
+   "tAntes": 0.36,
+   "tDepois": 3.02,
+   "antes": {
+    "label": "Oferta ampla",
+    "texto": "Dieta para emagrecer 8 kg até o final do mês",
+    "rodape": "“Será que é pra mim?”"
+   },
+   "depois": {
+    "label": "Oferta nichada",
+    "texto": "Dieta para emagrecer 8 kg até o final do mês para quem toma Mounjaro",
+    "rodape": "“É pra mim.”"
+   }
+  }
+ }
+]

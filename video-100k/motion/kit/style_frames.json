@@ -1,36 +1,75 @@
 [
  {
-  "id": "1_capitulo",
-  "comp": "capitulo",
+  "id": "1_mapa",
+  "comp": "mapa",
   "fundo": null,
   "t": [
-   0.32,
-   1.9
+   0.2,
+   2.6
   ],
   "props": {
-   "num": "01",
-   "titulo": "Produto tangível"
+   "dur": 3.4,
+   "titulo": "Do zero aos R$ 100 mil por mês",
+   "ativa": 1,
+   "etapas": [
+    "Produto",
+    "Oferta",
+    "Página de vendas",
+    "Criativos",
+    "Tráfego pago"
+   ]
   }
  },
  {
-  "id": "2_metrica",
+  "id": "2_frase",
+  "comp": "frase",
+  "fundo": "bg_camera.png",
+  "t": [
+   0.9,
+   2.6
+  ],
+  "props": {
+   "dur": 4.4,
+   "linhas": [
+    "Não vá pra",
+    "grandes mercados"
+   ],
+   "tempos": [
+    0.3,
+    0.56,
+    0.92,
+    1.18,
+    1.68
+   ],
+   "chaveLinha": 1,
+   "x": 110,
+   "y": 720,
+   "w": 620,
+   "tam": 66
+  }
+ },
+ {
+  "id": "3_metrica",
   "comp": "metrica",
   "fundo": "bg_camera.png",
   "t": [
    0.3,
-   3.4
+   3.2
   ],
   "props": {
-   "dur": 5,
+   "dur": 4.5,
+   "x": 100,
+   "y": 150,
+   "w": 560,
    "itens": [
     {
-     "label": "Faturamento no mês",
+     "label": "Faturamento",
      "prefixo": "R$ ",
      "valor": 259,
      "sufixo": " mil"
     },
     {
-     "label": "Investido em anúncios",
+     "label": "Investido",
      "prefixo": "R$ ",
      "valor": 107,
      "sufixo": " mil"
@@ -41,39 +80,61 @@
      "valor": 152,
      "sufixo": " mil"
     }
+   ],
+   "tempos": [
+    0.4,
+    1.0,
+    1.6
    ]
   }
  },
  {
-  "id": "3_passos",
-  "comp": "passos",
-  "fundo": "bg_camera.png",
+  "id": "4_escada",
+  "comp": "escada",
+  "fundo": null,
   "t": [
-   1.75,
-   5.2
+   0.25,
+   10.4
   ],
   "props": {
-   "dur": 7,
+   "dur": 11.0,
    "titulo": "Comece simples",
    "passos": [
-    "R$ 100 por dia",
-    "R$ 200 por dia",
-    "R$ 400 por dia",
-    "R$ 1.000 por dia",
-    "R$ 100 mil por mês"
+    "R$ 100/dia",
+    "R$ 200/dia",
+    "R$ 400/dia",
+    "R$ 1.000/dia",
+    "R$ 100 mil/mês"
+   ],
+   "alturas": [
+    0.14,
+    0.24,
+    0.38,
+    0.58,
+    1.0
+   ],
+   "tempos": [
+    0.44,
+    4.22,
+    5.76,
+    7.0,
+    9.72
    ]
   }
  },
  {
-  "id": "4_antesdepois",
+  "id": "5_antesdepois",
   "comp": "antesdepois",
   "fundo": null,
   "t": [
-   1.9,
-   4.2
+   1.4,
+   4.5
   ],
   "props": {
+   "dur": 7.9,
    "titulo": "Nichar a oferta",
+   "tAntes": 0.36,
+   "tDepois": 3.02,
    "antes": {
     "label": "Oferta ampla",
     "texto": "Dieta para emagrecer 8 kg até o final do mês",
@@ -81,13 +142,13 @@
    },
    "depois": {
     "label": "Oferta nichada",
-    "texto": "Dieta para emagrecer 8 kg até o final do mês para mulheres com mais de 45 anos que tomam Mounjaro",
+    "texto": "Dieta para emagrecer 8 kg até o final do mês para quem toma Mounjaro",
     "rodape": "“É pra mim.”"
    }
   }
  },
  {
-  "id": "5_destaque",
+  "id": "6_destaque",
   "comp": "destaque",
   "fundo": "bg_tela.png",
   "t": [
@@ -95,20 +156,25 @@
    2.4
   ],
   "props": {
-   "caixa": [
-    226,
-    603,
-    684,
-    124
-   ],
-   "etiqueta": "A promessa",
+   "dur": 3.5,
    "tema": "escuro",
-   "etiquetaX": 946,
-   "etiquetaY": 630
+   "passos": [
+    {
+     "caixa": [
+      226,
+      603,
+      684,
+      124
+     ],
+     "etiqueta": "A promessa",
+     "t": 0.2
+    }
+   ],
+   "lado": "direita"
   }
  },
  {
-  "id": "6_lowerthird",
+  "id": "7_lowerthird",
   "comp": "lowerthird",
   "fundo": "bg_camera.png",
   "t": [
@@ -117,11 +183,13 @@
   ],
   "props": {
    "nome": "Guilhermo Pressi",
-   "sub": "Grupo GPressi"
+   "sub": "Grupo GPressi",
+   "x": 100,
+   "y": 880
   }
  },
  {
-  "id": "7_final",
+  "id": "8_final",
   "comp": "final",
   "fundo": null,
   "t": [
