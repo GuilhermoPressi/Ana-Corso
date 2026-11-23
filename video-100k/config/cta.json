@@ -1,0 +1,22 @@
+{
+ "03": {
+  "bruto": "03_CTA_ENCERRAMENTO.mov", "nome": "cta_encerramento",
+  "manter": [[0.0, 88.75], [94.9, 103.5]],
+  "_cortes": "E1 89,1–95,1 primeira tentativa do 'saber mais'; E2 103,3–fim fala de bastidor; pausas >0,6s -> 0,35s",
+  "elementos": [
+   {"id": "YT1", "comp": "youtube", "ini": 4.45, "fim": 8.0, "cliques": {"inscrever": 5.02, "like": 6.24, "sino": 6.95}},
+   {"id": "YT2", "comp": "youtube", "ini": 18.25, "fim": 23.2, "cliques": {"inscrever": 18.66, "like": 21.86, "sino": 22.45}},
+   {"id": "IG1", "comp": "instagram", "ini": 23.6, "fim": 27.3},
+   {"id": "LK1", "comp": "cartao", "ini": 96.6, "props": {"linhas": ["Link na descrição ↓"], "destaque": 0, "x": 80, "y": 900}}
+  ]
+ },
+ "04": {
+  "bruto": "04_INSERCAO_MEIO.mov", "nome": "insercao_meio",
+  "manter": [[0.0, 5.45], [9.75, 45.55], [65.4, 104.55]],
+  "_cortes": "E4 5,4–9,9 'se tu,' + silêncio; E5 45,5–65,4 fala de bastidor 'pit para mentoria' + silêncio; E7 sobra final; pausas >0,6s -> 0,35s",
+  "elementos": [
+   {"id": "LK1", "comp": "cartao", "ini": 90.3, "fim": 95.9, "props": {"linhas": ["Link na descrição ↓"], "destaque": 0, "x": 80, "y": 900}},
+   {"id": "LK2", "comp": "cartao", "ini": 102.7, "props": {"linhas": ["Link na descrição ↓"], "destaque": 0, "x": 80, "y": 900}}
+  ]
+ }
+}

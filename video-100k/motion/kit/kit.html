@@ -299,6 +299,55 @@ K.titulo=(p)=>{
   return {dur,seek(t){const {nasc}=telaCheia(bg,dot,t,dur,960,540,960,540);deriva(bg,t,dur);
     ls.forEach((d,i)=>textoIn(d,t,tl[i],null,20)); ponto(dot,960,540,14,nasc*(1-P(t,.5,.3,E.sai)))}};
 };
+/* 12) BOTÃO DO YOUTUBE (estilo da referência do autor): pílula branca, cursor clica INSCREVER-SE, like e sino.
+   p.cliques = {inscrever, like, sino} em segundos relativos ao início. Escala: p.esc (1 = 1080p). */
+const SVG={
+ like:'<svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>',
+ sino:'<svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>',
+ cursor:'<svg viewBox="0 0 24 24"><path d="M5 2.5v17.2l4.3-4.1 3.1 7 3-1.3-3.1-6.9h6z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>'};
+K.youtube=(p)=>{
+  const dur=p.dur||4.5,out=dur-D.sai,x=p.x??60,y=p.y??930,s=p.esc||1.35,ck=p.cliques||{inscrever:1.0,like:1.9,sino:2.7};
+  const box=el("div","abs");css(box,{left:x+"px",top:y+"px",transformOrigin:"0 50%",display:"flex",alignItems:"center",gap:18*s+"px",padding:`${12*s}px ${22*s}px`,background:"#fff",borderRadius:12*s+"px",boxShadow:"0 10px 30px rgba(0,0,0,.35)",fontFamily:"Montserrat"});
+  const ic=(h,cor)=>{const d=el("div","",box,h);css(d,{width:30*s+"px",height:30*s+"px",fill:cor,position:"relative"});return d};
+  const like=ic(SVG.like,"#222"),bar=el("div","abs",like);css(bar,{left:0,bottom:-8*s+"px",height:3*s+"px",background:"#065fd4",width:"0"});
+  const dis=ic(SVG.like,"#222");css(dis,{transform:"rotate(180deg)"});
+  const bt=el("div","",box,"INSCREVER-SE");css(bt,{fontWeight:"800",fontSize:17*s+"px",letterSpacing:".04em",color:"#fff",background:"#e62117",padding:`${8*s}px ${16*s}px`,borderRadius:6*s+"px",minWidth:150*s+"px",textAlign:"center"});
+  const sino=ic(SVG.sino,"#222");
+  const cur=el("div","abs",stage,SVG.cursor);css(cur,{width:34*s+"px",height:34*s+"px"});
+  const centro=e=>{const r=e.getBoundingClientRect();return[r.left+r.width/2,r.top+r.height/2]};
+  return {dur,seek(t){
+    const ent=mola(t,16,.75),q=P(t,out,D.sai,E.sai);
+    css(box,{opacity:Math.min(1,t/.15)*(1-q),transform:`scale(${(.6+.4*ent)*(1-.1*q)})`});
+    const lk=t>=ck.like,ins=t>=ck.inscrever,sn=t>=ck.sino;
+    like.style.fill=lk?"#065fd4":"#222";bar.style.width=(lk?100*P(t,ck.like,.25,E.saida_premium):0)+"%";
+    const pop=(e,tc)=>{const k=t-tc;e.style.transform=k>=0&&k<.25?`scale(${1+.25*Math.sin(Math.PI*k/.25)})`:""};
+    pop(like,ck.like);
+    if(ins){bt.textContent="INSCRITO";css(bt,{background:"#606060"})}else{bt.textContent="INSCREVER-SE";css(bt,{background:"#e62117"})}
+    {const k=t-ck.inscrever;bt.style.transform=k>=0&&k<.2?`scale(${1-.08*Math.sin(Math.PI*k/.2)})`:""}
+    {const k=t-ck.sino;sino.style.fill=sn?"#111":"#222";sino.style.transform=k>=0&&k<.8?`rotate(${22*Math.sin(k*28)*(1-k/.8)}deg)`:""}
+    // cursor: entra de baixo, visita os alvos na ordem dos cliques, segura e sai
+    const alvos=[["inscrever",bt],["like",like],["sino",sino]].sort((a,b)=>ck[a[0]]-ck[b[0]]).map(([k,e])=>[ck[k],...centro(e)]);
+    let px=alvos[0][1]+60,py=y+160,ini=alvos[0][0]-.5;
+    let cx=px,cy=py;
+    for(const [tc,ax,ay] of alvos){const a=Math.max(ini,tc-.45);const f=P(t,a,tc-.05-a,E.transforma);if(t>=a){cx=lerp(px,ax,f);cy=lerp(py,ay,f)}px=ax;py=ay;ini=tc+.1}
+    const press=alvos.some(([tc])=>t>=tc-.05&&t<tc+.1);
+    css(cur,{left:(cx-6)+"px",top:(cy-4)+"px",opacity:(t>=alvos[0][0]-.55?1:0)*(1-q),transform:`scale(${press?.85:1})`});
+  }};
+};
+/* 13) SELO DO INSTAGRAM (estilo da referência): logo com o degradê oficial + @usuario em branco. */
+K.instagram=(p)=>{
+  const dur=p.dur||4,out=dur-D.sai,r=p.direita??60,y=p.y??925,s=p.esc||1.3;
+  const box=el("div","abs");css(box,{right:r+"px",top:y+"px",display:"flex",alignItems:"center",gap:16*s+"px"});
+  const logo=el("div","",box);css(logo,{width:62*s+"px",height:62*s+"px",borderRadius:17*s+"px",position:"relative",flex:"none",
+    background:"radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%)",boxShadow:"0 8px 24px rgba(0,0,0,.35)"});
+  const q1=el("div","abs",logo);css(q1,{inset:12*s+"px",border:`${4.6*s}px solid #fff`,borderRadius:13*s+"px"});
+  const c1=el("div","abs",logo);css(c1,{left:"50%",top:"50%",width:22*s+"px",height:22*s+"px",margin:`${-11*s}px 0 0 ${-11*s}px`,border:`${4.6*s}px solid #fff`,borderRadius:"50%"});
+  const d1=el("div","abs",logo);css(d1,{right:16.5*s+"px",top:16.5*s+"px",width:5.5*s+"px",height:5.5*s+"px",background:"#fff",borderRadius:"50%"});
+  const tx=el("div","",box,p.usuario||"@guilhermopressi");css(tx,{fontWeight:"800",fontSize:34*s+"px",color:"#fff",whiteSpace:"nowrap",textShadow:"0 3px 14px rgba(0,0,0,.55)"});
+  return {dur,seek(t){const ent=mola(t,16,.7),q=P(t,out,D.sai,E.sai);
+    css(logo,{transform:`scale(${Math.max(0,ent)*(1-.2*q)})`,opacity:1-q});
+    const w=tx.scrollWidth,f=P(t,.2,D.entra,E.saida_premium);css(tx,{clipPath:`inset(0 ${((1-f)*100).toFixed(2)}% 0 0)`,opacity:1-q,transform:`translateX(${(1-f)*-14}px)`});}};
+};
 
 let atual=null;
 window.monta=(nome,props)=>{stage.innerHTML="";atual=K[nome](props);return atual.dur};
