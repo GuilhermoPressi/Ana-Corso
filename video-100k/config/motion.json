@@ -5,31 +5,23 @@
    "id": "MO01",
    "fonte": "01",
    "T": 24.3,
-   "comp": "frase",
+   "comp": "cartao",
    "tipo": "sobreposição (alfa) no canto inferior esquerdo do dashboard",
    "grupo": "A",
    "props": {
     "dur": 4.4,
     "linhas": [
-     "Os primeiros",
-     "R$ 100 mil por mês"
+     "Os primeiros R$ 100 mil por mês"
     ],
+    "destaque": -1,
+    "tam": 46,
     "tempos": [
-     0.17999999999999972,
-     0.4800000000000004,
-     1.0999999999999979,
-     1.5799999999999983,
-     1.5799999999999983,
-     1.7199999999999989,
-     1.9399999999999977
+     0.18
     ],
-    "chaveLinha": 1,
-    "x": 110,
-    "y": 760,
-    "w": 620,
-    "tam": 66
+    "x": 90,
+    "y": 860
    },
-   "texto": "“Os primeiros / R$ 100 mil por mês” (sublinhado na 2ª linha)",
+   "texto": "Cartão: “Os primeiros R$ 100 mil por mês”",
    "por": "Reforça o gancho da abertura com a promessa do título, dita por você nesse momento.",
    "final": 0.45
   },
@@ -128,30 +120,22 @@
    "id": "MO05",
    "fonte": "01",
    "T": 69.8,
-   "comp": "frase",
-   "tipo": "sobreposição (alfa) canto inferior esquerdo",
+   "comp": "titulo",
+   "tipo": "tela cheia curta (sua voz continua)",
    "grupo": "A",
    "props": {
-    "dur": 3.6,
+    "dur": 2.7,
     "linhas": [
      "Algo que a gente",
      "consiga tocar"
     ],
+    "destaque": 1,
     "tempos": [
-     0.2600000000000051,
-     0.46000000000000796,
-     0.5799999999999983,
-     0.6000000000000085,
-     0.7999999999999972,
-     1.1599999999999966
-    ],
-    "chaveLinha": 1,
-    "x": 110,
-    "y": 740,
-    "w": 540,
-    "tam": 58
+     0.26,
+     0.8
+    ]
    },
-   "texto": "“Algo que a gente / consiga tocar” (sublinhado em “consiga tocar”)",
+   "texto": "Tela cheia: “Algo que a gente / consiga tocar”",
    "por": "Fixa o conceito abstrato de produto tangível com a sua frase exata.",
    "final": 38.27
   },
@@ -182,29 +166,22 @@
    "id": "MO07",
    "fonte": "02",
    "T": 8.3,
-   "comp": "frase",
-   "tipo": "sobreposição (alfa) canto inferior esquerdo",
+   "comp": "titulo",
+   "tipo": "tela cheia curta (sua voz continua)",
    "grupo": "A",
    "props": {
-    "dur": 4.4,
+    "dur": 2.8,
     "linhas": [
      "Não vá pra",
      "grandes mercados"
     ],
+    "destaque": 1,
     "tempos": [
      0.3,
-     0.56,
-     0.92,
-     1.18,
-     1.68
-    ],
-    "chaveLinha": 1,
-    "x": 110,
-    "y": 720,
-    "w": 620,
-    "tam": 66
+     1.18
+    ]
    },
-   "texto": "“Não vá pra / grandes mercados”",
+   "texto": "Tela cheia: “Não vá pra / grandes mercados”",
    "por": "É a primeira regra da oferta; fica gravada antes dos exemplos.",
    "final": 130.11
   },
@@ -790,7 +767,7 @@
    "id": "MO32",
    "fonte": "02",
    "T": 1487.5,
-   "comp": "frase",
+   "comp": "cartao",
    "tipo": "sobreposição (alfa) canto inferior esquerdo",
    "grupo": "A",
    "props": {
@@ -799,27 +776,23 @@
      "Produto, oferta,",
      "páginas e criativos"
     ],
+    "destaque": -1,
+    "tam": 36,
     "tempos": [
      0.36,
-     0.8,
-     1.74,
-     1.98,
-     2.16
+     1.74
     ],
-    "chaveLinha": 1,
     "x": 90,
-    "y": 740,
-    "w": 480,
-    "tam": 52
+    "y": 800
    },
-   "texto": "“Produto, oferta, / páginas e criativos”",
+   "texto": "Cartão: “Produto, oferta, / páginas e criativos”",
    "por": "Lembra o foco do vídeo quando você diz o intuito dele."
   },
   {
    "id": "MO33",
    "fonte": "02",
    "T": 1504.0,
-   "comp": "frase",
+   "comp": "cartao",
    "tipo": "sobreposição (alfa) canto inferior esquerdo",
    "grupo": "A",
    "props": {
@@ -829,22 +802,17 @@
      "tráfego pago",
      "para low ticket"
     ],
+    "destaque": -1,
+    "tam": 40,
     "tempos": [
      0.24,
-     0.52,
      2.66,
-     2.96,
-     3.26,
-     3.78,
-     4.02
+     3.26
     ],
-    "chaveLinha": 1,
     "x": 90,
-    "y": 680,
-    "w": 480,
-    "tam": 52
+    "y": 740
    },
-   "texto": "“Toda semana: / tráfego pago / para low ticket”",
+   "texto": "Cartão: “Toda semana: / tráfego pago / para low ticket”",
    "por": "Reforça o convite para os vídeos semanais de tráfego no canal."
   },
   {

@@ -135,6 +135,8 @@ SONS={"mapa":lambda p:[("sopro",0.0),("impacto",0.35)],
       "antesdepois":lambda p:[("sopro",0.0),("tick",p["tAntes"]),("impacto",p["tDepois"])],
       "lowerthird":lambda p:[("ponto",0.0)],
       "final":lambda p:[("sopro",0.0),("resolucao",0.5)],
+      "cartao":lambda p:[("ponto",0.0)]+[("tick",t) for t in p["tempos"][1:]],
+      "titulo":lambda p:[("sopro",0.0),("impacto",p["tempos"][p["destaque"]])],
       "estrutura":lambda p:[("sopro",0.0),("tick",p["tempos"]["n1"]),("tick",p["tempos"]["n2"])]+[("tick",t) for t in p["tempos"]["tags"]]+[("impacto",p["tempos"]["criativos"])]}
 def plano():
     segs=carregar(); d=json.load(open(f"{B}/config/motion.json"))["insercoes"]; out=[]

@@ -269,6 +269,35 @@ K.estrutura=(p)=>{
   }};
 };
 
+
+/* 10) CARTAO de frase (alternativa B): mesma linguagem da métrica/lower third — cartão escuro com borda sutil,
+   ponto à esquerda, texto entra por linha no tempo da fala, sem sublinhado. */
+K.cartao=(p)=>{
+  const dur=p.dur||3.5,out=dur-D.sai-.1,x=p.x??100,y=p.y??780;
+  const card=el("div","abs");css(card,{left:x+"px",top:y+"px",padding:"30px 44px 30px 84px",borderRadius:"22px",background:rgba(COR.preto,.9),border:`1.5px solid ${rgba(COR.cinza,.16)}`,boxShadow:`0 24px 64px ${rgba(COR.preto,.45)}`});
+  const tam=p.tam||46, ativo=i=>p.destaque===-1||i===p.destaque;
+  const ls=p.linhas.map((l,i)=>{const d=el("div","",card,l);css(d,{fontWeight:ativo(i)?"800":"600",fontSize:(ativo(i)?tam:tam*.82)+"px",lineHeight:"1.2",whiteSpace:"nowrap",color:ativo(i)?COR.off:COR.cinza});return d});
+  const dot=novoPonto(); const tl=p.tempos||p.linhas.map((_,i)=>.3+i*.4);
+  return {dur,seek(t){const r=card.getBoundingClientRect();
+    const nasc=mola(t),abre=P(t,.1,D.transforma,E.transforma),fecha=P(t,out,.4,E.transforma);
+    revela(card,44,r.height/2,fecha>0?lerp(r.width+40,0,fecha):lerp(0,r.width+40,abre));
+    ls.forEach((d,i)=>textoIn(d,t,tl[i],out,14));
+    ponto(dot,x+44,y+r.height/2,12,nasc*(1-P(t,dur-.1,.1,E.sai)))}};
+};
+/* 11) TÍTULO em tela cheia curta (alternativa C): mesma linguagem do mapa/escada — fundo escuro, frase grande centralizada,
+   palavra-chave em verde-claro no cartão ativo. */
+K.titulo=(p)=>{
+  const dur=p.dur||2.6;
+  const bg=el("div","abs");css(bg,{inset:0});fundoEscuro(bg,50,50);
+  const box=el("div","abs",bg);css(box,{left:"0",right:"0",top:"50%",transform:"translateY(-50%)",textAlign:"center"});
+  const ls=p.linhas.map((l,i)=>{const d=el("div","",box);css(d,{display:"block"});
+    const inner=el("span","",d,l);css(inner,{display:"inline-block",fontWeight:"800",fontSize:"96px",lineHeight:"1.15",letterSpacing:"-.02em",padding:i===p.destaque?"4px 28px":"0",borderRadius:"18px"});
+    if(i===p.destaque) cartaoEscuro(inner,true); return inner});
+  const dot=novoPonto(); const tl=p.tempos||p.linhas.map((_,i)=>.25+i*.3);
+  return {dur,seek(t){const {nasc}=telaCheia(bg,dot,t,dur,960,540,960,540);
+    ls.forEach((d,i)=>textoIn(d,t,tl[i],null,20)); ponto(dot,960,540,14,nasc*(1-P(t,.5,.3,E.sai)))}};
+};
+
 let atual=null;
 window.monta=(nome,props)=>{stage.innerHTML="";atual=K[nome](props);return atual.dur};
 window.seek=(t)=>{atual.seek(t)};

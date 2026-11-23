@@ -83,6 +83,8 @@ Na saída, a tela recolhe de volta nele.
 | 5 | `antesdepois` | tela cheia | comparação |
 | 6 | `destaque` | sobre gravação de tela (alfa) | contorno desenhado que desliza entre alvos, com etiqueta e o entorno escurecido 45% |
 | 7 | `lowerthird` | sobre o vídeo (alfa) | nome |
+| 10 | `cartao` | sobre o vídeo (alfa) | frase em cartão escuro com ponto, linha a linha no tempo da fala (substitui `frase`) |
+| 11 | `titulo` | tela cheia ~2,7s | frase forte centralizada, linha-chave num cartão ativo |
 | 9 | `estrutura` | tela cheia | árvore Campanha → Conjunto (com etiquetas) → N criativos; cada nó entra na palavra |
 | 8 | `final` | tela cheia (≤20s) | tela final com 2 espaços para os elementos do YouTube |
 
