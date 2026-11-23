@@ -1,6 +1,7 @@
 # Relatório de edição — “R$ 100 mil por mês com low ticket”
 
-Versão de revisão: `export/100k_por_mes_low_ticket_leve.mp4` (1920×1080, 30 fps, 2500k, AAC 192k). **O final em CRF 17 ainda não foi renderizado e aguarda a sua aprovação.**
+**Final:** `export/100k_por_mes_low_ticket_final.mp4`: 1920×1080, 30 fps, H.264 High, CRF 17, preset slow, +faststart, AAC 48 kHz 192k, 20:38, 680 MB.
+Versão leve: `export/100k_por_mes_low_ticket_leve.mp4` (2500k). QC rodado sobre o arquivo final.
 
 ## Revisão 1 (21/11)
 - Mapa: a caixa cresce com o texto, então nenhuma escrita sai mais da caixa.
@@ -62,7 +63,7 @@ Todos os itens aprovados em `review/erros.md`: bastidor, regravações (fica a �
 ## Áudio
 - Voz: declip (os 7.428 picos achatados do bruto foram reconstruídos), passa-alta de 70 Hz, EQ leve, compressor e loudnorm em 2 passos.
 - (Revisão 3: trilha **removida** a pedido do autor; efeitos baixados 6 dB; voz conferida idêntica antes/depois.) Trilha **sintetizada CC0** (`assets/trilhas/FONTES.md`) bem baixa, abaixada pela voz com sidechain. Efeitos sintetizados CC0, um por impacto.
-- Mix final: **-14.0 LUFS**, true peak **-1.0 dBFS**.
+- Mix final: **-14.0 LUFS**, true peak **-1.6 dBTP**.
 
 ## Controle de qualidade (no MP4 exportado)
 - Quadros extraídos de cada borrão (1º quadro, +1 quadro, meio e último) e de cada motion em `review/qc/`. Conferi visualmente e não vazou nenhum dado.
