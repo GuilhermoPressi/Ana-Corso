@@ -61,7 +61,7 @@ Todos os itens aprovados em `review/erros.md`: bastidor, regravações (fica a �
 
 ## Áudio
 - Voz: declip (os 7.428 picos achatados do bruto foram reconstruídos), passa-alta de 70 Hz, EQ leve, compressor e loudnorm em 2 passos.
-- Trilha **sintetizada CC0** (`assets/trilhas/FONTES.md`) bem baixa, abaixada pela voz com sidechain. Efeitos sintetizados CC0, um por impacto.
+- (Revisão 3: trilha **removida** a pedido do autor; efeitos baixados 6 dB; voz conferida idêntica antes/depois.) Trilha **sintetizada CC0** (`assets/trilhas/FONTES.md`) bem baixa, abaixada pela voz com sidechain. Efeitos sintetizados CC0, um por impacto.
 - Mix final: **-14.0 LUFS**, true peak **-1.0 dBFS**.
 
 ## Controle de qualidade (no MP4 exportado)

@@ -17,6 +17,8 @@ W=f"{B}/trabalho/montagem"; os.makedirs(W,exist_ok=True)
 NOME="100k_por_mes_low_ticket"
 FONTE={"01":f"{B}/brutos/01_100KPORMESSEESTIVESSECOMECANDO.mov","02":f"{B}/brutos/02_100KPORMESSEESTIVESSECOMECANDO.mov"}
 TELA_FINAL_S=15.0
+TRILHA=False      # autor pediu sem música de fundo (revisão 3)
+SFX_GANHO=0.25    # efeitos: era 0.5 (-6 dB)
 def run(cmd,**k): return subprocess.run(cmd,check=True,**k)
 
 # ---------- timeline (grade de quadros) ----------
@@ -181,15 +183,18 @@ def mix():
         w=wave.open(f"{B}/assets/sfx/{n}.wav"); a=np.frombuffer(w.readframes(w.getnframes()),np.int16).astype(np.float32)/32767; return a
     for mo in P:
         for n,t in mo["sons"]:
-            a=lewav(n)*0.5; i=int((mo["F"]+t)*SR); fx[i:i+len(a)]+=a[:,None][:len(fx)-i]
+            a=lewav(n)*SFX_GANHO; i=int((mo["F"]+t)*SR); fx[i:i+len(a)]+=a[:,None][:len(fx)-i]
     w=wave.open(f"{W}/sfx.wav","wb"); w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((np.clip(fx,-1,1)*32767).astype(np.int16).tobytes()); w.close()
-    # 3) trilha baixa com sidechain pela voz, sobe um pouco na tela final
-    run(["python3",f"{B}/scripts/trilha.py",str(T)])
+    # 3) sem trilha: voz + efeitos. Com trilha (TRILHA=True): sidechain pela voz
     fim=duracao(segs)
-    fc=(f"[1:a]volume=0.22,volume='if(gte(t,{fim:.2f}),2.2,1)':eval=frame[tr];[0:a]asplit[v1][v2];"
+    if not TRILHA:
+        run(["ffmpeg","-v","error","-y","-i",f"{W}/voz.wav","-i",f"{W}/sfx.wav","-filter_complex","[0:a][1:a]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.89:level=false[a]","-map","[a]","-t",str(T),"-ar",str(SR),f"{W}/mix.wav"])
+    else:
+     run(["python3",f"{B}/scripts/trilha.py",str(T)])
+     fc=(f"[1:a]volume=0.22,volume='if(gte(t,{fim:.2f}),2.2,1)':eval=frame[tr];[0:a]asplit[v1][v2];"
         f"[tr][v2]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=400:makeup=1[duck];"
         f"[v1][duck][2:a]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89:level=false[a]")
-    run(["ffmpeg","-v","error","-y","-i",f"{W}/voz.wav","-i",f"{B}/assets/trilhas/trilha_pad.wav","-i",f"{W}/sfx.wav","-filter_complex",fc,"-map","[a]","-t",str(T),"-ar",str(SR),f"{W}/mix.wav"])
+     run(["ffmpeg","-v","error","-y","-i",f"{W}/voz.wav","-i",f"{B}/assets/trilhas/trilha_pad.wav","-i",f"{W}/sfx.wav","-filter_complex",fc,"-map","[a]","-t",str(T),"-ar",str(SR),f"{W}/mix.wav"])
     # master: loudnorm 2 passos com limitador de true peak (sobreamostrado) a -2 dBTP, margem para o AAC
     m=run(["ffmpeg","-v","info","-i",f"{W}/mix.wav","-af","loudnorm=I=-14:TP=-2:LRA=11:print_format=json","-f","null","-"],capture_output=True,text=True).stderr
     j=json.loads(m[m.rindex("{"):m.rindex("}")+1])
