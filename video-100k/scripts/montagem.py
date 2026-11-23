@@ -160,7 +160,7 @@ def motion():
     P=plano()
     from concurrent.futures import ThreadPoolExecutor
     def r(m):
-        d=f"{W}/mo/{m['id']}"; marca=f"{d}/.ok_"+str(abs(hash(json.dumps(m['props'],sort_keys=True))))
+        d=f"{W}/mo/{m['id']}"; import hashlib; marca=f"{d}/.ok_"+hashlib.md5((json.dumps(m['props'],sort_keys=True)+open(f"{B}/motion/kit/kit.html").read()).encode()).hexdigest()[:12]
         if os.path.exists(marca): return
         run(["rm","-rf",d]); run(["node",f"{B}/motion/render.mjs",m["comp"],json.dumps(m["props"]),d],capture_output=True); open(marca,"w").close()
         print(m["id"],"ok",flush=True)
@@ -190,6 +190,11 @@ def mix():
         f"[tr][v2]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=400:makeup=1[duck];"
         f"[v1][duck][2:a]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89:level=false[a]")
     run(["ffmpeg","-v","error","-y","-i",f"{W}/voz.wav","-i",f"{B}/assets/trilhas/trilha_pad.wav","-i",f"{W}/sfx.wav","-filter_complex",fc,"-map","[a]","-t",str(T),"-ar",str(SR),f"{W}/mix.wav"])
+    # master: loudnorm 2 passos com limitador de true peak (sobreamostrado) a -2 dBTP, margem para o AAC
+    m=run(["ffmpeg","-v","info","-i",f"{W}/mix.wav","-af","loudnorm=I=-14:TP=-2:LRA=11:print_format=json","-f","null","-"],capture_output=True,text=True).stderr
+    j=json.loads(m[m.rindex("{"):m.rindex("}")+1])
+    ln=f"loudnorm=I=-14:TP=-2:LRA=11:measured_I={j['input_i']}:measured_TP={j['input_tp']}:measured_LRA={j['input_lra']}:measured_thresh={j['input_thresh']}:offset={j['target_offset']}:linear=true"
+    run(["ffmpeg","-v","error","-y","-i",f"{W}/mix.wav","-af",ln,"-ar",str(SR),f"{W}/mix_master.wav"]); os.replace(f"{W}/mix_master.wav",f"{W}/mix.wav")
     r=run(["ffmpeg","-v","info","-i",f"{W}/mix.wav","-af","ebur128=peak=true","-f","null","-"],capture_output=True,text=True).stderr
     print([l.strip() for l in r.splitlines() if l.strip().startswith(("I:","Peak:"))][-2:])
 

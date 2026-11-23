@@ -45,6 +45,8 @@ function novoPonto(parent=stage){const d=el("div","abs",parent);css(d,{borderRad
 function ponto(d,x,y,r,esc){css(d,{left:(x-r)+"px",top:(y-r)+"px",width:2*r+"px",height:2*r+"px",fontSize:(r*1.05)+"px",transform:`scale(${Math.max(0,esc).toFixed(4)})`})}
 function revela(e,cx,cy,raio){css(e,{clipPath:`circle(${Math.max(0,raio).toFixed(2)}px at ${cx}px ${cy}px)`})}
 const R=Math.hypot(1920,1080);
+/* deriva lenta de câmera nas telas cheias: nada fica parado */
+function deriva(e,t,dur,amp=.03){css(e,{transformOrigin:'50% 45%',transform:`scale(${(1+amp*clamp(t/dur,0,1)).toFixed(5)})`})}
 /* tela cheia padrão: ponto nasce em (cx,cy), abre a tela; saída: recolhe para (fx,fy) */
 function telaCheia(bg,dot,t,dur,cx,cy,fx,fy){const out=dur-.45;const nasc=mola(t),abre=P(t,.1,D.transforma,E.transforma),fecha=P(t,out,.4,E.transforma);
   revela(bg,fecha>0?fx:cx,fecha>0?fy:cy,fecha>0?lerp(R,0,fecha):lerp(0,R,abre));return {nasc,abre,fecha}}
@@ -142,7 +144,7 @@ K.escada=(p)=>{
   const tempos=p.tempos||p.passos.map((_,i)=>.6+i*.8);
   const dot=novoPonto();
   return {dur,seek(t){
-    const {nasc}=telaCheia(bg,dot,t,dur,bars[0].x+bars[0].w/2,base,bars[n-1].x+bars[n-1].w/2,base-bars[n-1].h);
+    const {nasc}=telaCheia(bg,dot,t,dur,bars[0].x+bars[0].w/2,base,bars[n-1].x+bars[n-1].w/2,base-bars[n-1].h);deriva(bg,t,dur);
     textoIn(tit,t,.2,null);
     let at=-1;bars.forEach((o,i)=>{const g=P(t,tempos[i],.55,E.saida_premium);if(t>=tempos[i])at=i;
       css(o.b,{top:(base-o.h*g)+"px",height:(o.h*g)+"px",opacity:g>0?1:0});cartaoEscuro(o.b,i===at);
@@ -169,7 +171,7 @@ K.antesdepois=(p)=>{
   const tB=p.tDepois??2.3, tA=p.tAntes??.55;
   const dot=novoPonto();
   return {dur,seek(t){
-    const {nasc,fecha}=telaCheia(bg,dot,t,dur,960,610,1040,610);
+    const {nasc,fecha}=telaCheia(bg,dot,t,dur,960,610,1040,610);deriva(bg,t,dur);
     textoIn(head,t,.25,null);textoIn(A.c,t,tA,null);textoIn(A.l,t,tA+.05,null);textoIn(A.tx,t,tA+.12,null);textoIn(A.ft,t,tA+.5,null);
     const viag=P(t,tB-.6,.6,E.transforma); css(seta,{width:lerp(0,160,viag)+"px"});
     textoIn(B.c,t,tB,null);textoIn(B.l,t,tB+.06,null);textoIn(B.tx,t,tB+.12,null);textoIn(B.ft,t,tB+.5,null);
@@ -252,7 +254,7 @@ K.estrutura=(p)=>{
   const l1=linha(960,210+128,960,420), ls=cards.map(o=>linha(960,660,o.x,820));
   const dot=novoPonto();
   return {dur,seek(t){
-    const {nasc}=telaCheia(bg,dot,t,dur,960,300,960,300);
+    const {nasc}=telaCheia(bg,dot,t,dur,960,300,960,300);deriva(bg,t,dur);
     textoIn(tit,t,tp.titulo,null);
     textoIn(n1,t,tp.n1,null);
     l1.l.setAttribute("stroke-dashoffset",(l1.L*(1-P(t,tp.n1+.2,Math.max(.3,tp.n2-tp.n1-.2),E.transforma))).toFixed(1));
@@ -294,7 +296,7 @@ K.titulo=(p)=>{
     const inner=el("span","",d,l);css(inner,{display:"inline-block",fontWeight:"800",fontSize:"96px",lineHeight:"1.15",letterSpacing:"-.02em",padding:i===p.destaque?"4px 28px":"0",borderRadius:"18px"});
     if(i===p.destaque) cartaoEscuro(inner,true); return inner});
   const dot=novoPonto(); const tl=p.tempos||p.linhas.map((_,i)=>.25+i*.3);
-  return {dur,seek(t){const {nasc}=telaCheia(bg,dot,t,dur,960,540,960,540);
+  return {dur,seek(t){const {nasc}=telaCheia(bg,dot,t,dur,960,540,960,540);deriva(bg,t,dur);
     ls.forEach((d,i)=>textoIn(d,t,tl[i],null,20)); ponto(dot,960,540,14,nasc*(1-P(t,.5,.3,E.sai)))}};
 };
 
