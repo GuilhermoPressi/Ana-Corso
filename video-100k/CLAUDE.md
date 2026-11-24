@@ -29,3 +29,8 @@ Configuração: `config/edl.json` (trechos mantidos e coberturas), `config/blur.
 - Regras do autor: fundo escuro e texto branco; **nunca sobre o rosto** (câmera: só x ≤ 680, conferido com `trabalho/rosto_*.json`); tudo **sincronizado com a palavra**; poucos motions, só onde explicam; **sem legenda e sem logo**.
 - Sons (`assets/sfx/`, sintetizados CC0): sopro, impacto, tick, traço, ponto, resolução. Sem música de fundo (pedido do autor); efeitos a 25% (`SFX_GANHO`), voz intocada. A trilha sintetizada continua disponível (`TRILHA=True` em montagem.py).
 - Áudio final: -14 LUFS, true peak -1 dBTP. Export final: H.264 High CRF 17 preset slow +faststart, AAC 48k 192k. Versão leve: 2500k.
+
+## Vídeos avulsos de CTA e inserção (`scripts/cta.py`, `config/cta.json`)
+- `python3 scripts/cta.py <03|04> previa|final`. `manter` = trechos em tempo-fonte. Pausas >0,6s viram 0,35s. Zoom 1,00/1,07 alterna em cada corte e em cada frase nova (peças >6s).
+- Elementos em tempo-fonte: `youtube` (pílula branca; o cursor clica inscrever/like/sino em `cliques`), `instagram` (selo com @guilhermopressi), `cartao` "Link na descrição ↓" (kit escuro). Visual misto, aprovado pelo autor, igual à referência `assets/referencia_video/cta_referencia.mp4`.
+- Entregues: `export/cta_encerramento_final.mp4` (1:36) e `export/insercao_meio_final.mp4` (1:19).
