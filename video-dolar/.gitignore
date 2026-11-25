@@ -1,0 +1,26 @@
+# brutos e derivados pesados/sensíveis ficam fora do git
+brutos/
+export/
+trabalho/*
+!trabalho/diagnostico.md
+!trabalho/transcricao_revisada.md
+!trabalho/cenas.json
+*.wav
+*.mov
+*.mp4
+
+# folhas "antes" contêm dados sensíveis originais
+review/borroes/*.png
+review/style/
+motion/kit/bg_*.png
+assets/referencia_video/
+trabalho/amostra/
+review/qc/
+review/amostra-motion.mp4
+review/kit-preview.mp4
+review/style-frames.png
+assets/trilhas/*.wav
+__pycache__/
+
+# lista de borrões cita nomes de cliente: fica só local
+review/erros-e-borroes.md
