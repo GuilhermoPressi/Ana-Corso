@@ -9,21 +9,36 @@ cfg=json.load(open(f"{B}/config/blur.json"))
 RX=re.compile(cfg["regex_dinamico"],re.I); RX_ROT=re.compile(r"^(\*?Anunciante$|Página$|Perfil$|URL$)")
 def carrega(f):
     return [json.loads(l) for l in open(f)] if os.path.exists(f) else []
-s1=carrega(f"{B}/trabalho/ocr_02.jsonl"); s4=carrega(f"{B}/trabalho/ocr4_a.jsonl")+carrega(f"{B}/trabalho/ocr4_b.jsonl")
-faixas4=[(95,122),(244,380)]
+s1=carrega(f"{B}/trabalho/ocr_02.jsonl")
+# OCR de todos os quadros na coluna do formulário (scripts/ocr_quadros.py) + deslocamento da rolagem
+import glob
+QD=[json.load(open(f)) for f in sorted(glob.glob(f"{B}/trabalho/quadros_*.json"))]
+faixas=[(q["ini_f"],q["ini_f"]+len(q["hits"])) for q in QD]
+RX_NOME=re.compile(r"dani[eêoil1]|suass|suasu|ssuna|yoga|(?-i:^CORPO$)|\d{12,}",re.I)  # sem "suas" solto (palavra comum)
+VIZ=2   # quadros vizinhos (±) cujas caixas são trazidas, deslocadas pela rolagem medida
+RODAPE=636  # abaixo disso fica o rodapé fixo 'Publicar' (não rola): caixas deslocadas não entram nele
+def por_quadro(fi):
+    for q,(a,b) in zip(QD,faixas):
+        if a<=fi<b:
+            i=fi-a; out=[]
+            for j in range(max(0,i-VIZ),min(len(q["hits"]),i+VIZ+1)):
+                dy=q["desl"][i]-q["desl"][j]
+                for x0,y0,x1,y1,txt in q["hits"][j]:
+                    if not RX_NOME.search(txt): continue
+                    if j!=i and (y0+dy+y1+dy)/2>RODAPE: continue
+                    out.append((x0,y0+dy,x1,min(y1+dy,RODAPE+4) if j!=i else y1+dy))
+            return out
+    return None
 def hits(a):
-    hs=[]
-    for x,y,w,h,t,c in a["palavras"]:
-        if RX.search(t): hs.append((x-30,y-10,x+w+14,y+h+10))
-    # campos de identidade: borra o valor abaixo do rótulo mesmo que o OCR não leia o nome
-    for x,y,w,h,t,c in a["palavras"]:
-        if RX_ROT.match(t) and 400<x<800: hs.append((x-12,y+h+2,x+360,y+h+52))
-    return hs
-amostras=[(a["t"],hits(a)) for a in s4]+[(a["t"],hits(a)) for a in s1 if not any(p<=a["t"]<=q for p,q in faixas4)]
-amostras=[a for a in amostras if a[1]]
+    # fora da coluna rolável (UTMify, cabeçalho): amostras a 1 fps, só nomes
+    return [(x-30,y-10,x+w+14,y+h+10) for x,y,w,h,t,c in a["palavras"] if RX.search(t)]
+amostras=[(a["t"],hits(a)) for a in s1]; amostras=[a for a in amostras if a[1]]
 def dinamicos(t):
-    em4=any(p<=t<=q for p,q in faixas4); jan=0.3 if em4 else 0.6
-    return [b for s,hs in amostras if abs(s-t)<=jan for b in hs]
+    fi=round(t*FPS); pq=por_quadro(fi)
+    fora=[b for s,hs in amostras if abs(s-t)<=0.6 for b in hs]
+    if pq is None: return fora
+    # na faixa quadro a quadro, as amostras de 1 fps só valem fora da coluna do formulário
+    return pq+[b for b in fora if b[0]>=940 or b[2]<=400]
 def janela(seg,t): return any(a-1.0<=t<=b+1.0 for a,b in seg)
 def caixas(t):
     bx=[]
