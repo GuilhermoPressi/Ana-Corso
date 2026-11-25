@@ -14,9 +14,9 @@ B=os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0
 import ffblur
 FPS=30; SR=48000; SPF=SR//FPS
 W=f"{B}/trabalho/montagem"; os.makedirs(W,exist_ok=True)
-NOME="100k_por_mes_low_ticket"
-FONTE={"01":f"{B}/brutos/01_100KPORMESSEESTIVESSECOMECANDO.mov","02":f"{B}/brutos/02_100KPORMESSEESTIVESSECOMECANDO.mov"}
-TELA_FINAL_S=15.0
+NOME="venda_em_dolar"
+FONTE={"02":f"{B}/trabalho/fonte_borrada.mp4"}  # bruto já borrado quadro a quadro (scripts/borrar_dinamico.py)
+TELA_FINAL_S=0.0   # CTA e tela final o autor adiciona depois
 TRILHA=False      # autor pediu sem música de fundo (revisão 3)
 SFX_GANHO=0.25    # efeitos: era 0.5 (-6 dB)
 def run(cmd,**k): return subprocess.run(cmd,check=True,**k)

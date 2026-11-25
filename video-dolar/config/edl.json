@@ -1,0 +1,14 @@
+{
+ "_doc": "Trechos MANTIDOS em ordem (tempo do bruto). Reordenação pedida pelo autor aos 6:20: o bloco 'qual o objetivo' vai para depois da abertura; o vídeo termina em 'estrutura de campanha bem simples'.",
+ "pausa_max": 0.6,
+ "pausa_alvo": 0.35,
+ "manter": [
+  {"id": "K01", "fonte": "02", "in": 4.85, "out": 61.38, "nota": "abertura (UTMify)"},
+  {"id": "K02", "fonte": "02", "in": 408.0, "out": 494.6, "nota": "MOVIDO: qual o objetivo (97 reais x 37 dólares) até 'agora vou para a parte mais técnica'"},
+  {"id": "K03", "fonte": "02", "in": 61.42, "out": 108.0, "nota": "gerenciador: campanha e conjunto"},
+  {"id": "K04", "fonte": "02", "in": 113.25, "out": 178.15, "nota": "E2 cortado (pixel); conversão, datas, configs"},
+  {"id": "K05", "fonte": "02", "in": 186.8, "out": 251.85, "nota": "E3 cortado (alô/atenção); localizações"},
+  {"id": "K06", "fonte": "02", "in": 255.45, "out": 272.9, "nota": "E4 cortado (nome do cliente); anunciantes, posicionamentos"},
+  {"id": "K07", "fonte": "02", "in": 290.75, "out": 377.35, "nota": "E5 cortado (parte da direita); criativos até 'bem simples.'"}
+ ]
+}

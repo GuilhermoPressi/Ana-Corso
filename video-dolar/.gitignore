@@ -24,3 +24,5 @@ __pycache__/
 
 # lista de borrões cita nomes de cliente: fica só local
 review/erros-e-borroes.md
+config/blur.json
+review/borroes/

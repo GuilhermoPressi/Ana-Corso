@@ -47,7 +47,7 @@ for m in P:
     cv2.imwrite(f"{O}/motion_{m['id']}.png",np.hstack(tiles)); rel["motions"].append(m["id"])
 # 2) OCR a cada 1s
 PAD={"email":r"[\w.+-]+@[\w-]+\.[a-z]{2,}","telefone":r"\(?\d{2}\)?\s?9\d{4}[-\s]?\d{4}","cpf_cnpj":r"\d{3}\.\d{3}\.\d{3}-\d{2}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}",
-     "url_privada":r"(dashboards/|/file/d/|/folders/|lastlink\.com|token=|key=)","nome_borrado":r"(Destrave Corporal|Corpo de Y[oô]ga|Dashboard\s*-\s*Daniel)"}
+     "url_privada":r"(dashboards/|/file/d/|/folders/|lastlink\.com|token=|key=)","nome_borrado":r"(dani[eo]l|suass?una|y[oô]ga|1221798|889407|act=|business_id)"}
 dur=float(subprocess.run(["ffprobe","-v","error","-show_entries","format=duration","-of","csv=p=0",V],capture_output=True,text=True).stdout)
 proc=subprocess.Popen(["ffmpeg","-v","error","-i",V,"-vf","fps=1","-f","rawvideo","-pix_fmt","gray","-"],stdout=subprocess.PIPE)
 t=0
